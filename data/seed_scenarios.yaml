@@ -1,0 +1,108 @@
+# Simulation parameters and scripted scenarios for the Demand Radar synthetic world.
+# The simulator "knows the answer": true_demand is generated first, everything else
+# (stock, POS, conversations) is derived from it, so we can score how well the system
+# recovers the demand that POS never saw.
+
+simulation:
+  seed: 20261013
+  end_date: 2026-10-12        # last simulated day (the dashboard "today" is the day after)
+  days: 90
+  stores:
+    - {id: S01, name: "Radar Mart Cipete",        size_factor: 1.00}
+    - {id: S02, name: "Radar Mart BSD",           size_factor: 0.80}
+    - {id: S03, name: "Radar Mart Kelapa Gading", size_factor: 0.90}
+
+  # Demand shape ------------------------------------------------------------
+  weekday_factors: [0.90, 0.88, 0.92, 0.97, 1.12, 1.25, 1.15]   # Mon..Sun
+  # Multiplier uplift around payday (days of month 25-3). Scaled per category below.
+  payday_uplift: {25: 0.25, 26: 0.20, 27: 0.12, 28: 0.08, 1: 0.15, 2: 0.10, 3: 0.05}
+  midmonth_dip: 0.08                                            # days 10-18
+  payday_sensitivity:                                           # default 1.0
+    Snacks: 1.4
+    Beverages: 1.3
+    Frozen: 1.3
+    "Cooking Essentials": 0.7
+    "Fresh Produce": 0.6
+  demand_noise_shape: 25        # gamma shape for day-level demand noise (higher = calmer)
+
+  # Local events (multipliers applied on matching categories) ---------------
+  events:
+    - id: independence_day
+      name: "Independence Day (17 Aug)"
+      start: 2026-08-13
+      end: 2026-08-17
+      categories: [Snacks, Beverages]
+      multiplier: 1.30
+
+  # Stock policy ("same as last week" naive reorder driven by POS) ----------
+  stock:
+    lead_time_days: 1
+    cover_days: 4              # order-up-to = recent POS rate * cover_days
+    ema_alpha: 0.15
+    random_disruption_prob: 0.004   # per SKU-store-day chance a supplier delay starts
+    random_disruption_days: [1, 3]
+
+  # How shoppers talk to the kiosk -----------------------------------------
+  conversations:
+    p_chat_in_stock: 0.015     # share of sold units that come with a kiosk chat
+    p_chat_unmet: 0.35         # share of unmet units that become a kiosk chat ("kiosk capture rate")
+    p_substitute: 0.30         # unmet chats where shopper accepts an alternative
+    not_stocked_per_store_day: 3.5
+    no_demand_share: 0.04      # chit-chat ("where is the toilet?")
+    multi_item_share: 0.06     # two items in one conversation
+
+  # Assumption used by forecast B to turn kiosk signals into estimated unmet units.
+  # Deliberately a parameter, not a fact: the notebook runs a sensitivity sweep.
+  assumed_capture_rate: 0.35
+
+scenarios:
+  - id: hero_santan
+    title: "Small coconut-milk carton: POS says 0, shoppers say 60"
+    type: supply_failure          # stock wiped at window start, receipts blocked during window
+    store_id: S01
+    product: "Santan Kotak Kara 65 ml"
+    ends_days_before_end: 0       # window runs through the last simulated day
+    days: 14
+    base_units_override: 8.0      # make it a fast mover at this store
+    demo:
+      live_stock: 0               # kiosk sandbox starts with the shelf empty
+      restock_units: 60
+
+  - id: minyak_bsd
+    title: "Cooking oil supplier delay at BSD"
+    type: supply_failure
+    store_id: S02
+    product: "Minyak Goreng Bimoli 2 L"
+    ends_days_before_end: 25
+    days: 6
+
+  - id: telur_kg
+    title: "Eggs sell out before payday weekend at Kelapa Gading"
+    type: supply_failure
+    store_id: S03
+    product: "Telur Ayam Peternak Lokal 10 pcs"
+    ends_days_before_end: 10
+    days: 4
+
+  - id: indomie_cipete
+    title: "Instant noodles gap during payday rush"
+    type: supply_failure
+    store_id: S01
+    product: "Mi Goreng Indomie 5 pcs"
+    ends_days_before_end: 40
+    days: 3
+
+  - id: cabai_bsd
+    title: "Chili shortage at BSD (still out today)"
+    type: supply_failure
+    store_id: S02
+    product: "Cabai Rawit 100 g"
+    ends_days_before_end: 0
+    days: 6
+    base_units_override: 5.0
+
+  - id: sambal_ijo_gap
+    title: "Green chili sauce: asked for constantly, never stocked"
+    type: assortment_gap
+    item: "Sambal Ijo Instan"
+    demand_multiplier: 2.5

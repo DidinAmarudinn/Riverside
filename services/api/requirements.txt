@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+pandas>=2.2
+numpy>=1.26
+pyyaml>=6.0
+google-adk>=1.0
+google-genai>=1.0
+google-cloud-bigquery>=3.25
+google-cloud-firestore>=2.19
+google-cloud-pubsub>=2.23

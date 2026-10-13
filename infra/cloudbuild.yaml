@@ -1,0 +1,5 @@
+# Builds the API image from the repo root using services/api/Dockerfile.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build", "-f", "services/api/Dockerfile", "-t", "${_IMAGE}", "."]
+images: ["${_IMAGE}"]

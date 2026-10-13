@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+node_modules/
+dist/
+.env
+.env.local
+data/out/
+data/sim/phrasebank.generated.json
+.firebase/
+.DS_Store
+*.tsbuildinfo
+firebase-debug.log
+*-debug.log

@@ -1,0 +1,1 @@
+-- TODO: compare forecast A / B against true_demand (WAPE, bias, preventable stockout days)
