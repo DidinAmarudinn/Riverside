@@ -15,4 +15,4 @@ web:
 test:
 	cd services/api && PYTHONPATH=.:../../data ../../$(PY) -m pytest -q
 smoke:
-	python3 infra/smoke_test.py
+	python3 infra/smoke_test.py $(or $(SUITE),judge)
