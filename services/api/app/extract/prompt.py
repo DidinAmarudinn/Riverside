@@ -1,15 +1,21 @@
-"""Prompt for turning a shopper conversation into demand signals."""
+"""Prompt for turning a shopper conversation into demand signals (response schema: schema.ExtractionResult)."""
 
 SYSTEM_PROMPT = """You extract demand signals from grocery-store conversations written in informal \
 Bahasa Indonesia (slang, typos, descriptions without brand names).
 
 For every product the shopper wanted, return one item:
-- sku: the best match from the CANDIDATES list, or null if the store does not sell it
-- outcome: bought | out_of_stock | not_stocked | substituted
-- match_confidence: 0..1
-Ignore chit-chat that is not about a product. Never invent SKUs that are not in CANDIDATES."""
+- requested_text: what the shopper said, verbatim
+- sku: the best match from the CATALOG, or null if the store does not sell it
+- normalized_name and category: a clean product name and category, also when sku is null
+- intent: ask_location | ask_availability | buy | complain
+- accepted_substitute: the SKU of an alternative the shopper accepted, else null
+- qty and confidence (0..1)
+Do not decide whether the item was in stock; that comes from stock data. Ignore chit-chat that is not about a \
+product. Never invent SKUs that are not in the CATALOG."""
 
 
-def build_user_prompt(transcript: str, candidates: list[dict]) -> str:
-    lines = "\n".join(f"{c['sku']} | {c['name']} | {c['category']}" for c in candidates)
-    return f"CANDIDATES:\n{lines}\n\nCONVERSATION:\n{transcript}"
+def build_user_prompt(transcript: str, catalog: list[dict]) -> str:
+    lines = "\n".join(
+        f"{c['sku']} | {c['name']} | {', '.join(c.get('synonyms') or [])}" for c in catalog
+    )
+    return f"CATALOG (sku | name | synonyms):\n{lines}\n\nCONVERSATION:\n{transcript}"

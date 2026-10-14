@@ -12,7 +12,11 @@ class Settings:
     bq_dataset: str = os.getenv("BQ_DATASET", "demand_radar")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     pubsub_topic: str = os.getenv("PUBSUB_TOPIC", "conversations")
-    firestore_collection: str = os.getenv("FIRESTORE_COLLECTION", "signals_live")
+    # OIDC check on /pubsub/extract: audience = this service's Cloud Run URL, email = the push service account.
+    pubsub_audience: str = os.getenv("PUBSUB_AUDIENCE", "")
+    pubsub_invoker_email: str = os.getenv(
+        "PUBSUB_INVOKER_EMAIL", f"dr-pubsub-invoker@{os.getenv('GCP_PROJECT', '')}.iam.gserviceaccount.com"
+    )
     # "local" = CSVs in data/out + in-memory state; "gcp" = BigQuery + Firestore + Pub/Sub
     backend: str = os.getenv("DATA_BACKEND", "local")
     cors_origins: tuple[str, ...] = tuple(

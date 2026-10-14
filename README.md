@@ -24,7 +24,7 @@ docs/            architecture, API contract, experiment results
 ```bash
 make setup            # venv + Python deps + npm install
 make product-master   # (re)build data/product_master.csv (214 SKUs)
-make api              # http://localhost:8080/api/health
+make api              # http://localhost:8080/api/healthz
 make web              # http://localhost:5173
 ```
 
