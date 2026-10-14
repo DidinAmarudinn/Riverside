@@ -15,7 +15,7 @@ deploy_api() {
 }
 deploy_web() {
   (cd "$ROOT/apps/web" && npm ci && npm run build)
-  (cd "$ROOT/infra" && firebase deploy --project "$GCP_PROJECT" --only hosting,firestore)
+  (cd "$ROOT" && firebase deploy --project "$GCP_PROJECT" --only hosting,firestore)
 }
 
 case "${1:-all}" in
