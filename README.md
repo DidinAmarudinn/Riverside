@@ -30,6 +30,13 @@ make web              # http://localhost:3000
 
 Copy `.env.example` to `.env` and fill in the GCP values to enable Gemini and the `gcp` backend.
 
+## Deploy
+
+Every push to `main` deploys the API (Cloud Run) and web (Firebase Hosting) via `.github/workflows/deploy.yml`;
+it can also be run by hand from the Actions tab (`all`, `api` or `web`). Pushes after the submission deadline
+(`DEPLOY_CUTOFF` in the workflow) skip the deploy; to stop it entirely, disable the workflow in the Actions tab. One-time GCP setup for the workflow:
+`GCP_PROJECT=riverside-511503 infra/github-wif.sh`. Manual deploy: `GCP_PROJECT=riverside-511503 infra/deploy.sh all`.
+
 ## Status
 
 Scaffold: project structure, API stubs (health + placeholder routes), ADK agent definitions, web routes,
