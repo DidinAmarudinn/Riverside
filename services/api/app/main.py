@@ -1,7 +1,7 @@
 """Demand Radar API (FastAPI). Routes follow docs/api-contract.md §3.
 
 Kiosk messages run the shopper agent and manager chat runs the manager agent; the manager GET routes read BigQuery.
-Demo, sandbox and Pub/Sub extract endpoints are still placeholders.
+The next-morning demo endpoint is still a placeholder.
 """
 from __future__ import annotations
 
@@ -22,10 +22,11 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import contract, manager_api
 from .agents.manager import manager_agent
-from .agents.runtime import AgentRuntime
+from .agents.runtime import USER_ID, AgentRuntime
 from .agents.shopper import shopper_agent
 from .config import settings
 from .data import get_repo
+from .demo.sandbox import reset_sandbox
 from .tools.products import search_products
 
 app = FastAPI(title="Demand Radar API", version="0.2.0")
@@ -231,8 +232,13 @@ def manager_gaps(store_id: str, sandbox: str = Depends(sandbox_id)) -> dict:
 # ---------- demo ----------
 
 @app.post("/api/demo/reset", status_code=204)
-def demo_reset(sandbox: str = Depends(sandbox_id)) -> Response:
-    # TODO: delete sandboxes/{sandbox} content; base data is never touched.
+async def demo_reset(sandbox: str = Depends(sandbox_id)) -> Response:
+    # Only this visitor's sandbox: Firestore sandboxes/{sandbox}/** and their kiosk chats. Base data stays.
+    await run_in_threadpool(reset_sandbox, sandbox)
+    for session_id in [k for k, v in _kiosk_sessions.items() if v["sandboxId"] == sandbox]:
+        del _kiosk_sessions[session_id]
+        if _shopper_runtime is not None:
+            await _shopper_runtime.sessions.delete_session(app_name="shopper", user_id=USER_ID, session_id=session_id)
     return Response(status_code=204)
 
 

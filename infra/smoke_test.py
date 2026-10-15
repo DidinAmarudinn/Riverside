@@ -256,7 +256,12 @@ def check_demo_flow(sku: str) -> None:
 
     # 1. reset
     status = reset(box)
-    record(status in (200, 204), "§11.1 Reset demo", f"HTTP {status}")
+    if firestore:  # a 204 alone proves nothing: the reset must stamp sandboxes/{id}
+        _, state = firestore_get(f"sandboxes/{box}")
+        record(status in (200, 204) and bool(state.get("lastResetAt")), "§11.1 Reset demo",
+               f"HTTP {status}, lastResetAt {state.get('lastResetAt')}")
+    else:
+        record(status in (200, 204), "§11.1 Reset demo", f"HTTP {status} ({no_fs}, sandbox doc not checked)")
 
     # 2. kiosk asks for the hero item and gets a rescue
     kiosk = Kiosk(box)
