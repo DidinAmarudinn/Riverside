@@ -53,13 +53,16 @@ export function TopNav() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-2 rounded-xl bg-surface-container-low px-3 py-2 text-caption font-label-mono text-on-surface-variant lg:flex">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+          {/* Only mock builds are labelled; the deployed live site shows no badge. */}
+          {env.dataMode === "mock" ? (
+            <span className="hidden items-center gap-2 rounded-xl bg-surface-container-low px-3 py-2 text-caption font-label-mono text-on-surface-variant lg:flex">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+              </span>
+              Demo mode
             </span>
-            {env.dataMode === "live" ? "Live data" : "Demo mode"}
-          </span>
+          ) : null}
           {env.githubUrl ? (
             <a
               href={env.githubUrl}
