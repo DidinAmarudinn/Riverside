@@ -115,13 +115,14 @@ export interface Overview {
   topRisks: Recommendation[];
 }
 
+/** One day on the SKU chart; null where a series has no value that day. */
 export interface ForecastPoint {
   date: string;
-  posSales: number;
-  forecastA: number;
+  posSales: number | null;
+  forecastA: number | null;
   forecastALower?: number;
   forecastAUpper?: number;
-  forecastB: number;
+  forecastB: number | null;
   forecastBLower?: number;
   forecastBUpper?: number;
   isStockout: boolean;
@@ -182,7 +183,7 @@ export interface Citation {
   label: string;
   sku?: string;
   date?: string;
-  snippet?: string;
+  quote?: string;
 }
 
 export interface ManagerChatResponse {

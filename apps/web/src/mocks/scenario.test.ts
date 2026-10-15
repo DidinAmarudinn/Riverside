@@ -18,7 +18,7 @@ describe("hero scenario (Santan Kotak 65 ml)", () => {
   it("starts on Tuesday night with the hero not yet high risk", () => {
     expect(getHeroComputed()).toBe(false);
     expect(getDemoState().scenario).toBe("Selasa malam");
-    const detail = getSkuDetail("SKU-65ML", false);
+    const detail = getSkuDetail("SKU-0001", false);
     expect(detail?.riskType).toBe("reorder");
     expect(detail?.recommendation.recommendedQty).toBe(6);
   });
@@ -26,7 +26,7 @@ describe("hero scenario (Santan Kotak 65 ml)", () => {
   it("after next morning returns A = 0, B = 60 and 38 unmet", () => {
     applyNextMorning();
     expect(getHeroComputed()).toBe(true);
-    const detail = getSkuDetail("SKU-65ML", true);
+    const detail = getSkuDetail("SKU-0001", true);
     expect(detail?.riskType).toBe("stockout_risk");
     expect(detail?.recommendation.recommendedQty).toBe(60);
     expect(detail?.kpis.unmetRequests).toBe(38);
@@ -42,10 +42,10 @@ describe("hero scenario (Santan Kotak 65 ml)", () => {
     const before = getMetrics().unmetToday;
     recordKioskSignal({
       id: "test-signal",
-      storeId: "store_1",
+      storeId: "S01",
       ts: new Date().toISOString(),
       requestedText: "ada santan kotak kecil?",
-      sku: "SKU-65ML",
+      sku: "SKU-0001",
       matchedName: "Santan Kotak 65 ml",
       outcome: "out_of_stock",
     });

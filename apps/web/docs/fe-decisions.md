@@ -20,7 +20,7 @@ frontend. Owner: frontend. Newest decisions added at the bottom of each section.
 
 ## Routing
 
-- **SKU detail uses a query param** `/manager/sku?code=SKU-65ML` instead of a
+- **SKU detail uses a query param** `/manager/sku?code=SKU-0001` instead of a
   dynamic `[sku]` segment, so the data-team can add SKUs without a rebuild and
   static export works for every SKU. Deep links from chat citations use
   `/manager/sku?code=...&evidence=open`.
@@ -56,23 +56,21 @@ frontend. Owner: frontend. Newest decisions added at the bottom of each section.
   from Firestore.
 - `NEXT_PUBLIC_DATA_MODE` selects the adapter (`mock` default).
 
-## Response shapes still to agree with backend
+## Response shapes (contract §3.1, decided 15 Oct)
 
-The contract names these responses but not their fields. The FE shapes are in
-`src/lib/api/schemas.ts`; they must be agreed with the backend owner and then
-written into `docs/api-contract.md` by PR:
+The field-level shapes now live in the repo-root `docs/api-contract.md` §3.1;
+backend stubs in `services/api/app/main.py` return them. What the FE does on
+top of them (`src/lib/api/adapters.ts`):
 
-- `GET /overview` → `{ storeId, kpis: {lostRevenueToday, unmetToday,
-  stockoutSkus}, topRisks: [recommendation] }` (matches the backend stub).
-- `GET /sku/{sku}`: the FE needs product info, `riskType`, `kpis`, a merged
-  `series` (sales + A/B with bands + `isStockout`), `unmetDaily`,
-  `recommendation` and `evidence: {total, items}`. The backend stub returns
-  separate `sales` / `forecastA` / `forecastB` arrays and `reason`.
-- `GET /gaps`: the FE needs `{ items, summary: {totalRequests,
-  lostRevenueExposureIdr, categories} }`; the stub returns `{ categories }`.
-- `citations` in `/chat`: FE assumes `{ label, sku?, date?, snippet? }`.
-- Alert `severity` and live-signal `matchedName` / `substituteName` /
-  `source` are FE additions to the Firestore documents in contract §2.
+- **SkuDetail**: the API sends `sales`, `forecastA`, `forecastB` as separate
+  series; the FE merges them by date (a missing value is `null`, drawn as a gap).
+  `urgency` is derived from `riskType`. Barcode, vendor and evidence intent are
+  not in the contract and are only shown in mock mode.
+- **GapItem**: the FE ranks items by `requests`, formats `trend7dPct`, and builds
+  the per-category summary and total exposure (`estRevenueIdr`).
+- **Citation**: `{ label, sku?, date?, quote? }`; a citation with `sku` opens that
+  SKU's evidence drawer.
+- **IDs** follow the data (`S01`–`S03`, hero `SKU-0001`); mocks use the same IDs.
 
 ## Design fidelity
 

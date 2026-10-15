@@ -132,9 +132,9 @@ export const demoStateSchema = z.object({
 
 export const citationSchema = z.object({
   label: z.string(),
-  sku: z.string().optional(),
-  date: z.string().optional(),
-  snippet: z.string().optional(),
+  sku: z.string().nullish(),
+  date: z.string().nullish(),
+  quote: z.string().nullish(),
 });
 
 export const managerChatSchema = z.object({
@@ -143,92 +143,85 @@ export const managerChatSchema = z.object({
   citations: z.array(citationSchema).default([]),
 });
 
-const forecastPointSchema = z.object({
+const seriesPointSchema = z.object({
   date: z.string(),
-  posSales: z.number(),
-  forecastA: z.number(),
-  forecastALower: z.number().optional(),
-  forecastAUpper: z.number().optional(),
-  forecastB: z.number(),
-  forecastBLower: z.number().optional(),
-  forecastBUpper: z.number().optional(),
-  isStockout: z.boolean().default(false),
-});
-
-const unmetPointSchema = z.object({
-  date: z.string(),
-  count: z.number(),
+  qty: z.number(),
+  lower: z.number().nullish(),
+  upper: z.number().nullish(),
 });
 
 const evidenceSchema = z.object({
   id: z.string(),
   ts: z.string(),
   channel: z.string(),
-  text: z.string(),
-  matchedName: z.string().optional(),
+  quote: z.string(),
   outcome,
   confidence: z.number(),
-  intent: z.string().optional(),
 });
 
+/** SkuDetail (contract §3.1). Series stay separate; adapters merge by date. */
 export const skuDetailSchema = z.object({
+  storeId: z.string(),
   sku: z.string(),
-  name: z.string(),
-  brand: z.string().optional(),
-  category: z.string().optional().default(""),
-  barcode: z.string().optional(),
-  priceIdr: z.number(),
+  product: z.object({
+    name: z.string(),
+    brand: z.string().optional(),
+    category: z.string().optional().default(""),
+    packSize: z.string().optional(),
+    priceIdr: z.number(),
+    aisle: z.string().optional(),
+  }),
   riskType,
   kpis: z.object({
     onHand: z.number(),
-    onHandNote: z.string().optional(),
     lostRevenueIdr: z.number(),
     lostRevenueUnits: z.number().optional(),
     unmetRequests: z.number(),
     stockoutDays: z.number(),
-    stockoutSince: z.string().optional(),
+    stockoutSince: z.string().nullish(),
   }),
-  series: z.array(forecastPointSchema).default([]),
-  unmetDaily: z.array(unmetPointSchema).default([]),
-  recommendation: z.object({
-    recommendedQtyB: z.number(),
-    recommendedQtyA: z.number().optional().default(0),
-    reasonText: z.string().optional().default(""),
-    vendor: z.string().optional(),
-    leadTimeDays: z.number().optional(),
-    urgency: z.enum(["low", "medium", "high"]).optional(),
-  }),
+  sales: z
+    .array(
+      z.object({
+        date: z.string(),
+        qty: z.number(),
+        isStockout: z.boolean().default(false),
+      }),
+    )
+    .default([]),
+  forecastA: z.array(seriesPointSchema).default([]),
+  forecastB: z.array(seriesPointSchema).default([]),
+  unmetDaily: z
+    .array(z.object({ date: z.string(), count: z.number() }))
+    .default([]),
   evidence: z.object({
     total: z.number(),
     items: z.array(evidenceSchema).default([]),
   }),
+  reason: z.object({
+    recommendedQtyA: z.number().default(0),
+    recommendedQtyB: z.number(),
+    reasonText: z.string().default(""),
+    leadTimeDays: z.number().nullish(),
+  }),
 });
 
+/** GapItem (contract §3.1). The UI ranks items and builds the summary. */
 export const gapItemSchema = z.object({
-  rank: z.number(),
   name: z.string(),
-  subtitle: z.string().optional(),
   category: z.string(),
   requests: z.number(),
-  trend7d: z.string(),
-  trendDirection: z.enum(["up", "down", "flat"]).default("flat"),
-  spark: z.array(z.number()).default([]),
-  quote: z.string(),
+  firstSeen: z.string().optional(),
+  lastSeen: z.string().optional(),
+  daily: z.array(z.number()).default([]),
+  trend7dPct: z.number().default(0),
+  quote: z.string().nullish(),
+  estRevenueIdr: z.number().nullish(),
 });
 
 export const gapsSchema = z.object({
+  storeId: z.string(),
   items: z.array(gapItemSchema).default([]),
-  summary: z.object({
-    totalRequests: z.number(),
-    lostRevenueExposureIdr: z.number(),
-    categories: z.array(
-      z.object({
-        name: z.string(),
-        count: z.number(),
-        percent: z.number(),
-      }),
-    ),
-  }),
 });
 
 export const sessionSchema = z.object({

@@ -6,7 +6,7 @@ import type { Product } from "@/lib/api/types";
  */
 export const products: Product[] = [
   {
-    sku: "SKU-65ML",
+    sku: "SKU-0001",
     name: "Santan Kotak 65 ml",
     brand: "Kelapa Utama",
     category: "Cooking Essentials / Dairy & Coconut",

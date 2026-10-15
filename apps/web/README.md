@@ -74,7 +74,7 @@ needs the `NEXT_PUBLIC_FIREBASE_*` web config for realtime; Firestore rules
 | `/` | Jury page: explanation, scenario buttons, reset demo, links |
 | `/kiosk` | Shopper chat (Bahasa Indonesia) with product/alternative/branch cards |
 | `/manager` | KPIs, ranked recommendations, live feed, alerts, agent chat |
-| `/manager/sku?code=SKU-65ML` | Forecast charts, unmet demand, recommendation, evidence drawer |
+| `/manager/sku?code=SKU-0001` | Forecast charts, unmet demand, recommendation, evidence drawer |
 | `/manager/gaps` | Products requested but not carried |
 | `/about` | Architecture, platform roles, experiment results |
 

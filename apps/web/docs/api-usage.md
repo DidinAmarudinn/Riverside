@@ -17,14 +17,14 @@ Contract: repo-root `docs/api-contract.md` §3. Every request carries
 | `POST /api/kiosk/sessions/{id}/messages` | kiosk send | `{ text }` → `{ reply, products, alternatives, nearestBranch? }` |
 | `GET /api/manager/{storeId}/overview` | dashboard KPIs (fallback without Firebase) | `{ storeId, kpis, topRisks }` |
 | `GET /api/manager/{storeId}/recommendations?risk=` | dashboard table | `{ items: [...] }` |
-| `GET /api/manager/{storeId}/sku/{sku}` | SKU detail | series, `unmetDaily`, recommendation, evidence |
+| `GET /api/manager/{storeId}/sku/{sku}` | SKU detail | SkuDetail: `product`, `kpis`, `sales`, `forecastA`, `forecastB`, `unmetDaily`, `evidence`, `reason` |
 | `POST /api/manager/{storeId}/chat` | agent chat | `{ sessionId?, message }` → `{ reply, citations, sessionId }` |
-| `GET /api/manager/{storeId}/gaps` | gaps | items + summary |
+| `GET /api/manager/{storeId}/gaps` | gaps | `{ storeId, items: [GapItem] }` |
 | `POST /api/demo/reset` | reset demo | 204 |
 | `POST /api/demo/next-morning` | next morning | `{ storeId }` → body ignored |
 
-Field shapes for `/overview`, `/sku`, `/gaps` and `citations` are not yet in the
-contract; see `docs/fe-decisions.md` → "Response shapes still to agree".
+Field shapes: `docs/api-contract.md` §3.1. The FE merges SKU series by date and
+builds the gaps summary itself (`docs/fe-decisions.md` → "Response shapes").
 
 ## Firestore listeners (live mode)
 
@@ -50,7 +50,7 @@ visible.
 
 Demo behaviours reproduced in mock:
 
-- Hero SKU `SKU-65ML` (Santan Kotak 65 ml): on-hand 0, 5-day stockout, POS 0.
+- Hero SKU `SKU-0001` (Santan Kotak 65 ml): on-hand 0, 5-day stockout, POS 0.
 - Before "Next morning": hero is a low-risk `reorder`. After: `stockout_risk`,
   Forecast A = 0, Forecast B = 60, and a new critical alert appears.
 - Asking the kiosk about santan replies with alternatives + nearest branch and

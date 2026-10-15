@@ -18,25 +18,26 @@ import { formatDateWib } from "@/lib/format";
 interface Row {
   date: string;
   label: string;
-  posSales: number;
+  posSales: number | null;
   forecastA: number | null;
-  forecastB: number;
-  bandBase: number;
-  bandRange: number;
+  forecastB: number | null;
+  bandBase: number | null;
+  bandRange: number | null;
 }
 
 function buildRows(data: ForecastPoint[]): Row[] {
   return data.map((p) => {
-    const lower = p.forecastBLower ?? p.forecastB;
-    const upper = p.forecastBUpper ?? p.forecastB;
+    const b = p.forecastB;
+    const lower = p.forecastBLower ?? b;
+    const upper = p.forecastBUpper ?? b;
     return {
       date: p.date,
       label: formatDateWib(p.date),
       posSales: p.posSales,
       forecastA: p.forecastA,
       forecastB: p.forecastB,
-      bandBase: Math.max(0, lower),
-      bandRange: Math.max(0, upper - lower),
+      bandBase: lower == null ? null : Math.max(0, lower),
+      bandRange: lower == null || upper == null ? null : Math.max(0, upper - lower),
     };
   });
 }
@@ -55,9 +56,9 @@ function ChartTooltip({
   return (
     <div className="rounded-lg border border-surface-container bg-surface-container-lowest px-3 py-2 text-caption shadow-md">
       <p className="mb-1 font-medium text-on-surface">{label}</p>
-      <p className="text-on-surface-variant">POS sales: {row.posSales}</p>
+      <p className="text-on-surface-variant">POS sales: {row.posSales ?? "—"}</p>
       <p className="text-outline">Forecast A: {row.forecastA ?? "—"}</p>
-      <p className="font-medium text-primary">Forecast B: {row.forecastB}</p>
+      <p className="font-medium text-primary">Forecast B: {row.forecastB ?? "—"}</p>
     </div>
   );
 }

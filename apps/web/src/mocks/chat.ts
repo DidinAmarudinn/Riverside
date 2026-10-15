@@ -26,13 +26,13 @@ const canned: Canned[] = [
     citations: [
       {
         label: "Santan Kotak 65 ml",
-        sku: "SKU-65ML",
-        snippet: "ada santen kotak kecil?",
+        sku: "SKU-0001",
+        quote: "ada santen kotak kecil?",
       },
       {
         label: "Evidence · 38 conversations",
-        sku: "SKU-65ML",
-        snippet: "santan kara 65ml abis ya",
+        sku: "SKU-0001",
+        quote: "santan kara 65ml abis ya",
       },
     ],
   },
@@ -41,7 +41,7 @@ const canned: Canned[] = [
     reply:
       "Top risk SKUs this week: Santan Kotak 65 ml (stockout, 0 on-hand, B = 60), Gula Pasir Kristal Putih 1kg (2 units left, 12 unmet hits), and Minyak Goreng Sawit 2L (promo surge, +65 requests). Together they represent Rp 1.052.000 in at-risk revenue.",
     citations: [
-      { label: "Santan Kotak 65 ml", sku: "SKU-65ML" },
+      { label: "Santan Kotak 65 ml", sku: "SKU-0001" },
       { label: "Gula Pasir 1kg", sku: "SKU-GLP1" },
       { label: "Minyak Goreng 2L", sku: "SKU-MG2L" },
     ],
@@ -51,7 +51,7 @@ const canned: Canned[] = [
     reply:
       "Shoppers logged 142 requests for Oat Milk Barista Edition and 98 for Matcha Powder ceremonial, and we carry neither. Plant-based dairy alternatives make up 45% of uncarried queries — an estimated Rp 32,8 jt monthly revenue exposure.",
     citations: [
-      { label: "Oat Milk Barista Edition", snippet: "ada oat milk yang buat kopi ga?" },
+      { label: "Oat Milk Barista Edition", quote: "ada oat milk yang buat kopi ga?" },
       { label: "Assortment gaps · 8 items" },
     ],
   },
@@ -60,7 +60,7 @@ const canned: Canned[] = [
     reply:
       "Verified stockouts cost Rp 1.980.000 yesterday, concentrated in fresh dairy and instant seasoning refills. The single largest contributor was Santan Kotak 65 ml, which alone lost an estimated Rp 323.000.",
     citations: [
-      { label: "Santan Kotak 65 ml", sku: "SKU-65ML", date: "yesterday" },
+      { label: "Santan Kotak 65 ml", sku: "SKU-0001", date: "yesterday" },
       { label: "Lost revenue ledger" },
     ],
   },
@@ -92,7 +92,7 @@ export function kioskReply(text: string): KioskMessageResponse {
         "Maaf kak, santan kotak 65 ml lagi habis. Ada santan sachet merek lain di Lorong 4, atau cabang Toko 2 (2,1 km) masih ada stok.",
       products: [
         {
-          sku: "SKU-65ML",
+          sku: "SKU-0001",
           name: "Santan Kotak 65 ml",
           subtitle: "Kemasan Tetra Pak • Rasa Original Gurih",
           priceIdr: 8500,
@@ -122,7 +122,7 @@ export function kioskReply(text: string): KioskMessageResponse {
         },
       ],
       nearestBranch: {
-        storeId: "store_2",
+        storeId: "S02",
         name: "Toko 2",
         distanceKm: 2.1,
         stockQty: 24,

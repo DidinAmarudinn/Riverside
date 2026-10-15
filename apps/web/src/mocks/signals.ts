@@ -9,17 +9,17 @@ function minutesAgo(m: number): string {
 export const seedSignals: LiveSignal[] = [
   {
     id: "sig-1",
-    storeId: "store_1",
+    storeId: "S01",
     ts: minutesAgo(6),
     requestedText: "ada santan kotak kecil ga?",
-    sku: "SKU-65ML",
+    sku: "SKU-0001",
     matchedName: "Santan Kotak 65 ml",
     outcome: "out_of_stock",
     source: "Voice Kiosk #02",
   },
   {
     id: "sig-2",
-    storeId: "store_1",
+    storeId: "S01",
     ts: minutesAgo(10),
     requestedText: "minyak goreng 2 liter ada promo?",
     sku: "SKU-MG2L",
@@ -29,7 +29,7 @@ export const seedSignals: LiveSignal[] = [
   },
   {
     id: "sig-3",
-    storeId: "store_1",
+    storeId: "S01",
     ts: minutesAgo(23),
     requestedText: "biskuit kaleng matcha jepang",
     outcome: "not_carried",
@@ -37,7 +37,7 @@ export const seedSignals: LiveSignal[] = [
   },
   {
     id: "sig-4",
-    storeId: "store_1",
+    storeId: "S01",
     ts: minutesAgo(36),
     requestedText: "santan kara sachet ada ga",
     sku: "SKU-2J4K",
@@ -48,7 +48,7 @@ export const seedSignals: LiveSignal[] = [
   },
   {
     id: "sig-5",
-    storeId: "store_1",
+    storeId: "S01",
     ts: minutesAgo(48),
     requestedText: "gula pasir curah kiloan",
     sku: "SKU-GLP1",
@@ -59,7 +59,7 @@ export const seedSignals: LiveSignal[] = [
 ];
 
 export const initialMetrics: Metrics = {
-  storeId: "store_1",
+  storeId: "S01",
   lostRevenueToday: 1_980_000,
   unmetToday: 24,
   stockoutSkus: 6,
@@ -67,7 +67,7 @@ export const initialMetrics: Metrics = {
 };
 
 export const heroMetrics: Metrics = {
-  storeId: "store_1",
+  storeId: "S01",
   lostRevenueToday: 2_340_000,
   unmetToday: 38,
   stockoutSkus: 7,

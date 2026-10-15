@@ -12,7 +12,7 @@ function readMode(): DataMode {
 
 export const env = {
   dataMode: readMode(),
-  defaultStoreId: process.env.NEXT_PUBLIC_DEFAULT_STORE_ID ?? "store_1",
+  defaultStoreId: process.env.NEXT_PUBLIC_DEFAULT_STORE_ID ?? "S01",
   apiProxyTarget: process.env.NEXT_PUBLIC_API_PROXY_TARGET ?? "",
   featureMultimodal: process.env.NEXT_PUBLIC_FEATURE_MULTIMODAL === "true",
   videoUrl: process.env.NEXT_PUBLIC_VIDEO_URL ?? "",

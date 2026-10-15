@@ -177,7 +177,7 @@ export function getSkuDetail(
   const product = findProduct(sku);
   if (!product) return undefined;
 
-  if (sku === "SKU-65ML") {
+  if (sku === "SKU-0001") {
     const rec = heroComputed ? heroAfter : heroBefore;
     return {
       sku,

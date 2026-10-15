@@ -5,6 +5,7 @@ import type {
   GapsResponse,
   KioskMessageResponse,
   LiveSignal,
+  ForecastPoint,
   ManagerChatResponse,
   Metrics,
   Overview,
@@ -100,21 +101,126 @@ export function adaptSignal(
 export function adaptManagerChat(
   raw: Raw<typeof managerChatSchema>,
 ): ManagerChatResponse {
-  return raw;
-}
-
-export function adaptSkuDetail(raw: Raw<typeof skuDetailSchema>): SkuDetail {
-  const { unmetDaily, recommendation, ...rest } = raw;
-  const { recommendedQtyB, ...recRest } = recommendation;
   return {
-    ...rest,
-    dailyUnmet: unmetDaily,
-    recommendation: { recommendedQty: recommendedQtyB, ...recRest },
+    ...raw,
+    citations: raw.citations.map((c) => ({
+      label: c.label,
+      sku: c.sku ?? undefined,
+      date: c.date ?? undefined,
+      quote: c.quote ?? undefined,
+    })),
   };
 }
 
+/** Merges the separate sales / forecast A / forecast B series by date. */
+function mergeSeries(raw: Raw<typeof skuDetailSchema>): ForecastPoint[] {
+  const byDate = new Map<string, ForecastPoint>();
+  const at = (date: string) => {
+    let p = byDate.get(date);
+    if (!p) {
+      p = { date, posSales: null, forecastA: null, forecastB: null, isStockout: false };
+      byDate.set(date, p);
+    }
+    return p;
+  };
+  for (const s of raw.sales) {
+    const p = at(s.date);
+    p.posSales = s.qty;
+    p.isStockout = s.isStockout;
+  }
+  for (const f of raw.forecastA) {
+    const p = at(f.date);
+    p.forecastA = f.qty;
+    p.forecastALower = f.lower ?? undefined;
+    p.forecastAUpper = f.upper ?? undefined;
+  }
+  for (const f of raw.forecastB) {
+    const p = at(f.date);
+    p.forecastB = f.qty;
+    p.forecastBLower = f.lower ?? undefined;
+    p.forecastBUpper = f.upper ?? undefined;
+  }
+  return [...byDate.values()].sort((x, y) => x.date.localeCompare(y.date));
+}
+
+export function adaptSkuDetail(raw: Raw<typeof skuDetailSchema>): SkuDetail {
+  const { product, kpis, reason } = raw;
+  return {
+    sku: raw.sku,
+    name: product.name,
+    brand: product.brand,
+    category: product.category,
+    priceIdr: product.priceIdr,
+    riskType: raw.riskType,
+    kpis: {
+      onHand: kpis.onHand,
+      lostRevenueIdr: kpis.lostRevenueIdr,
+      lostRevenueUnits: kpis.lostRevenueUnits,
+      unmetRequests: kpis.unmetRequests,
+      stockoutDays: kpis.stockoutDays,
+      stockoutSince: kpis.stockoutSince ?? undefined,
+    },
+    series: mergeSeries(raw),
+    dailyUnmet: raw.unmetDaily,
+    recommendation: {
+      recommendedQty: reason.recommendedQtyB,
+      recommendedQtyA: reason.recommendedQtyA,
+      reasonText: reason.reasonText,
+      leadTimeDays: reason.leadTimeDays ?? undefined,
+      urgency:
+        raw.riskType === "stockout_risk"
+          ? "high"
+          : raw.riskType === "unmet_spike"
+            ? "medium"
+            : "low",
+    },
+    evidence: {
+      total: raw.evidence.total,
+      items: raw.evidence.items.map(({ quote, ...e }) => ({ ...e, text: quote })),
+    },
+  };
+}
+
+function formatTrend(pct: number): string {
+  const rounded = Math.round(pct);
+  return `${rounded > 0 ? "+" : ""}${rounded}%`;
+}
+
+/** Ranks items and builds the per-category summary (contract §3.1 GapItem). */
 export function adaptGaps(raw: Raw<typeof gapsSchema>): GapsResponse {
-  return raw;
+  const sorted = [...raw.items].sort((a, b) => b.requests - a.requests);
+  const totalRequests = sorted.reduce((sum, g) => sum + g.requests, 0);
+  const perCategory = new Map<string, number>();
+  for (const g of sorted) {
+    perCategory.set(g.category, (perCategory.get(g.category) ?? 0) + g.requests);
+  }
+  return {
+    items: sorted.map((g, i) => ({
+      rank: i + 1,
+      name: g.name,
+      category: g.category,
+      requests: g.requests,
+      trend7d: formatTrend(g.trend7dPct),
+      trendDirection:
+        g.trend7dPct > 0 ? "up" : g.trend7dPct < 0 ? "down" : "flat",
+      spark: g.daily,
+      quote: g.quote ?? "",
+    })),
+    summary: {
+      totalRequests,
+      lostRevenueExposureIdr: sorted.reduce(
+        (sum, g) => sum + (g.estRevenueIdr ?? 0),
+        0,
+      ),
+      categories: [...perCategory]
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({
+          name,
+          count,
+          percent: totalRequests ? count / totalRequests : 0,
+        })),
+    },
+  };
 }
 
 export function adaptDemoState(raw: Raw<typeof demoStateSchema>): DemoState {

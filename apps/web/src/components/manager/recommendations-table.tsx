@@ -58,7 +58,7 @@ export function RecommendationsTable({
         </thead>
         <tbody className="divide-y divide-surface-container-low">
           {recommendations.map((rec) => {
-            const isHero = rec.sku === "SKU-65ML";
+            const isHero = rec.sku === "SKU-0001";
             return (
               <tr
                 key={rec.sku}

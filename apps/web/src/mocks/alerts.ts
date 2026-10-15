@@ -9,7 +9,7 @@ function minutesAgo(m: number): string {
 export const seedAlerts: AlertItem[] = [
   {
     id: "alert-oil-spike",
-    storeId: "store_1",
+    storeId: "S01",
     type: "unmet_spike",
     severity: "medium",
     title: "Unmet demand spike: Cooking oil category inquiries +140%",
@@ -18,7 +18,7 @@ export const seedAlerts: AlertItem[] = [
   },
   {
     id: "alert-beras-delay",
-    storeId: "store_1",
+    storeId: "S01",
     sku: "SKU-BRS5",
     type: "reorder",
     severity: "low",
@@ -28,7 +28,7 @@ export const seedAlerts: AlertItem[] = [
   },
   {
     id: "alert-kecap-overstock",
-    storeId: "store_1",
+    storeId: "S01",
     sku: "SKU-KCP5",
     type: "overstock",
     severity: "low",
@@ -40,8 +40,8 @@ export const seedAlerts: AlertItem[] = [
 
 export const heroAlert: AlertItem = {
   id: "alert-santan-stockout",
-  storeId: "store_1",
-  sku: "SKU-65ML",
+  storeId: "S01",
+  sku: "SKU-0001",
   type: "stockout_risk",
   severity: "critical",
   title: "Critical stockout on Santan Kotak 65 ml",

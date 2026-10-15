@@ -1,6 +1,6 @@
 import type { Recommendation } from "@/lib/api/types";
 
-const STORE = "store_1";
+const STORE = "S01";
 
 /** Non-hero recommendations, always present for Toko 1. */
 export const baseRecommendations: Recommendation[] = [
@@ -84,7 +84,7 @@ export const baseRecommendations: Recommendation[] = [
 /** Hero SKU before "Next morning": not yet flagged as high risk. */
 export const heroBefore: Recommendation = {
   storeId: STORE,
-  sku: "SKU-65ML",
+  sku: "SKU-0001",
   name: "Santan Kotak 65 ml",
   category: "Cooking Essentials / Dairy & Coconut",
   onHand: 0,
@@ -101,7 +101,7 @@ export const heroBefore: Recommendation = {
 /** Hero SKU after "Next morning": A = 0, B = 60, stockout_risk. */
 export const heroAfter: Recommendation = {
   storeId: STORE,
-  sku: "SKU-65ML",
+  sku: "SKU-0001",
   name: "Santan Kotak 65 ml",
   category: "Cooking Essentials / Dairy & Coconut",
   onHand: 0,
