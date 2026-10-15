@@ -3,6 +3,7 @@
 import { Sparkles, BadgeCheck } from "lucide-react";
 import type { SkuRecommendation } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
+import { env } from "@/lib/env";
 
 export function RecommendationCard({
   recommendation,
@@ -71,10 +72,12 @@ export function RecommendationCard({
       </p>
 
       <div className="flex flex-col gap-2">
-        <Button variant="primary" disabled title="Segera hadir">
-          <BadgeCheck className="h-[18px] w-[18px]" aria-hidden />
-          Approve Order ({recommendation.recommendedQty} units)
-        </Button>
+        {env.featureApprove ? (
+          <Button variant="primary" disabled title="Segera hadir">
+            <BadgeCheck className="h-[18px] w-[18px]" aria-hidden />
+            Approve Order ({recommendation.recommendedQty} units)
+          </Button>
+        ) : null}
         <Button variant="secondary" onClick={onViewEvidence}>
           Lihat evidence
         </Button>

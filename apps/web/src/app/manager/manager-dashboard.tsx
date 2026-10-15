@@ -21,6 +21,7 @@ import { AlertsPanel } from "@/components/manager/alerts-panel";
 import { AgentChat } from "@/components/manager/agent-chat";
 import { StoreSelector } from "@/components/manager/store-selector";
 import { formatRupiah, formatTimeWib } from "@/lib/format";
+import { env } from "@/lib/env";
 
 const RISK_FILTERS: { value: RiskType | "all"; label: string }[] = [
   { value: "all", label: "All risks" },
@@ -176,14 +177,16 @@ export function ManagerDashboard() {
                   Actionable reorder adjustments combining POS and unmet demand
                 </p>
               </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled
-                title="Segera hadir"
-              >
-                Approve Selected POs
-              </Button>
+              {env.featureApprove ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled
+                  title="Segera hadir"
+                >
+                  Approve Selected POs
+                </Button>
+              ) : null}
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-2">
