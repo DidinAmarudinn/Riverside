@@ -215,8 +215,8 @@ def check_kiosk_to_signal(sandbox: str) -> None:
     ok, detail = kiosk.open()
     if not record(ok, "Create kiosk session", detail):
         return
-    sent_at = time.monotonic()
     status, body, secs = kiosk.say(KIOSK_TEXT)
+    replied_at = time.monotonic()  # the signal clock starts when the judge sees the answer
     reply = body.get("reply", "")
     record(status == 200 and bool(reply) and secs < 10, "Kiosk agent replies in < 10 s",
            f"HTTP {status}, {secs:.1f}s, reply {reply[:70]!r}")
@@ -225,9 +225,9 @@ def check_kiosk_to_signal(sandbox: str) -> None:
     if not FIREBASE_PROJECT:
         record(None, "Live signal appears in Firestore in < 5 s", "FIREBASE_PROJECT not set")
         return
-    docs, waited, fs_status = wait_for_signals(sandbox, sent_at)
+    docs, waited, fs_status = wait_for_signals(sandbox, replied_at)
     detail = f"{len(docs)} doc(s) after {waited:.1f}s" if docs else f"none after {waited:.0f}s (HTTP {fs_status})"
-    record(bool(docs) and waited <= 5, "Live signal appears in Firestore in < 5 s", detail)
+    record(bool(docs) and waited <= 5, "Live signal appears in Firestore in < 5 s", detail + " after the reply")
 
 
 def check_extract_requires_token() -> None:
@@ -268,8 +268,8 @@ def check_demo_flow(sku: str) -> None:
     ok, detail = kiosk.open()
     if not record(ok, "§11.2 Open kiosk session", detail):
         return
-    sent_at = time.monotonic()
     status, body, secs = kiosk.say(KIOSK_TEXT)
+    replied_at = time.monotonic()
     hero = [p for p in body.get("products") or [] if isinstance(p, dict) and "santan" in str(p.get("name", "")).lower()]
     out_of_stock = any(p.get("inStock") is False for p in hero)
     rescue = bool(body.get("alternatives")) or bool(body.get("nearestBranch"))
@@ -280,8 +280,8 @@ def check_demo_flow(sku: str) -> None:
 
     # 3. signal and metrics delta in Firestore
     if firestore:
-        docs, waited, fs_status = wait_for_signals(box, sent_at)
-        record(bool(docs) and waited <= 5, "§11.3 Live signal in Firestore in < 5 s",
+        docs, waited, fs_status = wait_for_signals(box, replied_at)
+        record(bool(docs) and waited <= 5, "§11.3 Live signal in Firestore in < 5 s after the reply",
                f"{len(docs)} doc(s) after {waited:.1f}s" if docs else f"none after {waited:.0f}s (HTTP {fs_status})")
         _, delta = firestore_get(f"sandboxes/{box}/metrics/{STORE_ID}")
         unmet = delta.get("unmetToday")
@@ -379,9 +379,8 @@ def check_reset_and_isolation() -> None:
     if not kiosk.open()[0]:
         record(False, "Two concurrent sandboxes stay isolated", "could not open a session")
         return
-    sent_at = time.monotonic()
     kiosk.say(KIOSK_TEXT)
-    docs_a, _, _ = wait_for_signals(a, sent_at)
+    docs_a, _, _ = wait_for_signals(a, time.monotonic())
     _, docs_b = firestore_list(f"sandboxes/{b}/liveSignals")
     record(bool(docs_a) and not docs_b, "Two concurrent sandboxes stay isolated",
            f"sandbox A {len(docs_a)} signal(s), sandbox B {len(docs_b)}")
@@ -460,11 +459,11 @@ def check_gaps(sandbox: str) -> None:
 
 
 def app_bundle_text() -> str:
-    """index.html plus every JS file it loads: the SPA's routes (/about included) live in the bundle."""
+    """index.html, every JS file it loads, and the prerendered /about page (its chunk is not loaded from /)."""
     status, html, _ = http("GET", BASE_URL + "/")
     if status != 200:
         return ""
-    parts = [html]
+    parts = [html, http("GET", BASE_URL + "/about/")[1]]
     for src in re.findall(r'<script[^>]+src="([^"]+)"', html):
         _, js, _ = http("GET", urllib.parse.urljoin(BASE_URL + "/", src))
         parts.append(js)

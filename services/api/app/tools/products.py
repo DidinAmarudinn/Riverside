@@ -124,20 +124,26 @@ def _index() -> _Index:
     return _cached[1]
 
 
-def search_products(query: str, limit: int = 5) -> dict:
-    """Find products in the store catalog that match a shopper's description.
+def search_products(query: str, limit: int = 5, store_id: str = "") -> dict:
+    """Find products in the store catalog that match a shopper's description, with their stock.
 
     Pass a short, clean product phrase (e.g. "santan kotak", "minyak goreng 2 liter"), not the whole
     sentence. Each match has a `match_score` between 0 and 1: 0.8 or higher is a confident match; lower
     means ask the shopper to confirm. An empty list means the store does not sell this product.
 
+    With `store_id`, every match also has `units` and `stock_status` in that store, and when the best match
+    is out of stock the result already includes in-stock `alternatives` and the `nearest_branch` with stock,
+    so no further tool call is needed to answer.
+
     Args:
         query: Product name or description as the shopper said it.
         limit: Maximum number of candidates to return.
+        store_id: The shopper's store, e.g. "S01".
 
     Returns:
         A dict with `status` ("ok" or "no_match") and `matches`: list of
-        {sku, name, brand, category, pack_size, price_idr, shelf_location, match_score}.
+        {sku, name, brand, category, pack_size, price_idr, shelf_location, match_score, units?, stock_status?},
+        plus `alternatives` and `nearest_branch` when the best match is out of stock.
     """
     idx = _index()
     all_tokens = _tokens(query)
@@ -161,4 +167,25 @@ def search_products(query: str, limit: int = 5) -> dict:
         }
         for s, p in scored[: max(1, min(limit, 10))]
     ]
-    return {"status": "ok" if matches else "no_match", "matches": matches, "query": query}
+    result = {"status": "ok" if matches else "no_match", "matches": matches, "query": query}
+    if store_id and matches:
+        _add_stock(result, store_id)
+    return result
+
+
+def _add_stock(result: dict, store_id: str) -> None:
+    """Stock per match and, when the best match is empty, the rescue (alternatives + nearest branch) in the
+    same tool result: each extra tool call is another ~3 s model round trip for the kiosk shopper."""
+    from .stock import LOW_STOCK_THRESHOLD, find_alternatives, nearest_branch_with_stock
+
+    repo = get_repo()
+    for m in result["matches"]:
+        units = repo.get_stock(store_id, m["sku"])
+        m["units"] = units
+        m["stock_status"] = ("unknown" if units is None else "out_of_stock" if units == 0
+                             else "low_stock" if units <= LOW_STOCK_THRESHOLD else "in_stock")
+    best = result["matches"][0]
+    if best["stock_status"] == "out_of_stock" and best["match_score"] >= CONFIDENT_SCORE:
+        result["alternatives"] = find_alternatives(store_id, best["sku"])["alternatives"]
+        branches = nearest_branch_with_stock(store_id, best["sku"])["branches"]
+        result["nearest_branch"] = branches[0] if branches else None

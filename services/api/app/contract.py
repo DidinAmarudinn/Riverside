@@ -29,7 +29,16 @@ def kiosk_payload(tool_calls: list[dict]) -> dict:
     products, alternatives, branch = {}, {}, None
     for call in tool_calls:
         res = call.get("result") or {}
-        if call["name"] == "check_stock" and res.get("status") in ("in_stock", "low_stock", "out_of_stock"):
+        if call["name"] == "search_products" and res.get("matches") and "units" in res["matches"][0]:
+            best = res["matches"][0]  # searched with the store: the product the reply is about
+            if best["units"] is not None:
+                products[best["sku"]] = _kiosk_product(best, best["units"], best["units"] > 0)
+            for alt in res.get("alternatives") or []:
+                alternatives[alt["sku"]] = _kiosk_product(alt, alt["units"], True)
+            b = res.get("nearest_branch")
+            if b and branch is None:
+                branch = {"storeId": b["store_id"], "name": b["name"], "distanceKm": b["distance_km"], "stockQty": b["units"]}
+        elif call["name"] == "check_stock" and res.get("status") in ("in_stock", "low_stock", "out_of_stock"):
             products[res["sku"]] = _kiosk_product(res, res["units"], res["units"] > 0)
         elif call["name"] == "find_alternatives":
             for alt in res.get("alternatives", []):

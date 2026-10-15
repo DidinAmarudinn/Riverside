@@ -28,3 +28,15 @@ def test_citation_shapes():
     gap = contract.citation({"type": "gap", "normalized_name": "oat milk", "quotes": ["ada oat?"]})
     assert gap == {"label": "oat milk", "quote": "ada oat?"}
     assert contract.citation({"type": "query", "sql": "SELECT  1\nFROM v"})["label"] == "Query: SELECT 1 FROM v"
+
+
+def test_kiosk_payload_reads_stock_and_rescue_from_a_store_search():
+    best = {"sku": "A", "name": "A", "shelf_location": "A1", "price_idr": 10, "units": 0, "stock_status": "out_of_stock"}
+    other = {**best, "sku": "B", "units": 4}
+    alt = {"sku": "C", "name": "C", "shelf_location": "A2", "price_idr": 9, "units": 7}
+    branch = {"store_id": "S02", "name": "BSD", "distance_km": 21, "units": 12}
+    out = contract.kiosk_payload([{"name": "search_products", "result": {
+        "matches": [best, other], "alternatives": [alt], "nearest_branch": branch}}])
+    assert [(p["sku"], p["inStock"]) for p in out["products"]] == [("A", False)]  # the product the reply is about
+    assert [a["sku"] for a in out["alternatives"]] == ["C"]
+    assert out["nearestBranch"] == {"storeId": "S02", "name": "BSD", "distanceKm": 21, "stockQty": 12}
