@@ -5,9 +5,10 @@ not carried), turns it into reorder recommendations for store managers, and
 shows why POS-only forecasting misleads when shelves run dry: **Forecast A**
 (POS only) vs. **Forecast B** (POS + unmet demand).
 
-This repository is the **frontend only**. The backend (FastAPI + ADK, Gemini,
-BigQuery/BQML) is built by other team members. The app runs fully in **mock
-mode** with no backend.
+This is the frontend app of the Demand Radar monorepo (`apps/web/`). The backend
+(FastAPI + ADK, Gemini, BigQuery/BQML) lives in `services/api/`; the shared
+contract is `docs/api-contract.md` at the repo root. The app runs fully in
+**mock mode** with no backend.
 
 ## Stack
 
@@ -19,6 +20,7 @@ mode** with no backend.
 ## Getting started
 
 ```bash
+cd apps/web                  # or `make web` from the repo root
 npm install
 cp .env.example .env.local   # mock mode works with the defaults
 npm run dev                  # http://localhost:3000
@@ -91,20 +93,10 @@ src/
 
 ## Deployment
 
-The build is a static export (`out/`). Deploy it to any static host (e.g.
-Firebase Hosting) and rewrite `/api/**` to the Cloud Run service so the browser
-talks to the API without CORS. Example `firebase.json`:
-
-```json
-{
-  "hosting": {
-    "public": "out",
-    "rewrites": [
-      { "source": "/api/**", "destination": "https://<cloud-run-service>" }
-    ]
-  }
-}
-```
+The build is a static export (`out/`). The repo-root `firebase.json` serves
+`apps/web/out` on Firebase Hosting and rewrites `/api/**` to the Cloud Run
+service `demand-radar-api`, so the browser talks to the API without CORS.
+Deploy with `infra/deploy.sh web` from the repo root.
 
 ## Decisions & extensions to the shared contract
 

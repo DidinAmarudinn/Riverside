@@ -10,7 +10,7 @@ All data is synthetic.
 ## Layout
 
 ```
-apps/web/        React + Vite: kiosk, manager dashboard, judges page
+apps/web/        Next.js (static export): kiosk, manager dashboard, judges page
 services/api/    FastAPI + ADK agents, tools, extraction, demo sandbox
 data/            product master, simulator (sim/), scenarios
 sql/             BigQuery DDL, views, ARIMA_PLUS models, evaluation
@@ -25,7 +25,7 @@ docs/            architecture, API contract, experiment results
 make setup            # venv + Python deps + npm install
 make product-master   # (re)build data/product_master.csv (214 SKUs)
 make api              # http://localhost:8080/api/healthz
-make web              # http://localhost:5173
+make web              # http://localhost:3000
 ```
 
 Copy `.env.example` to `.env` and fill in the GCP values to enable Gemini and the `gcp` backend.

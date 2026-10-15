@@ -5,9 +5,9 @@ frontend. Owner: frontend. Newest decisions added at the bottom of each section.
 
 ## Scope & stack
 
-- **Single Next.js app at the repo root** (not the `apps/web` monorepo layout in
-  the build plan §3), because this repo is frontend-only and the backend lives
-  in a separate repo/service.
+- **Next.js app in `apps/web/`** of the monorepo (build plan §3). It replaced
+  the earlier Vite scaffold. Build output is `out/`, served by the repo-root
+  `firebase.json`.
 - **Next.js App Router, TypeScript strict, Tailwind CSS v4** (design tokens in
   `src/app/globals.css` via `@theme`), shadcn-style primitives built on Radix,
   `lucide-react`, `recharts`, `@tanstack/react-query`, `zod`, `vitest`.
