@@ -1,0 +1,10 @@
+{
+  "wapeA": 0.42,
+  "wapeB": 0.19,
+  "stockoutDaysA": 21,
+  "stockoutDaysB": 6,
+  "overstockUnitsA": 0,
+  "overstockUnitsB": 812,
+  "horizonDays": 14,
+  "note": "Placeholder figures. Replace with the data team's backtest output (WAPE A vs B over a 14-day horizon)."
+}
