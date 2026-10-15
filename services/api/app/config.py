@@ -27,7 +27,11 @@ class Settings:
     # -1 = leave it to the model (dynamic thinking), N > 0 = cap.
     gemini_thinking_budget: int = int(os.getenv("GEMINI_THINKING_BUDGET", "0"))
     pubsub_topic: str = os.getenv("PUBSUB_TOPIC", "conversations")
-    firestore_collection: str = os.getenv("FIRESTORE_COLLECTION", "signals_live")
+    # OIDC check on /pubsub/extract: audience = this service's Cloud Run URL, email = the push service account.
+    pubsub_audience: str = os.getenv("PUBSUB_AUDIENCE", "")
+    pubsub_invoker_email: str = os.getenv(
+        "PUBSUB_INVOKER_EMAIL", f"dr-pubsub-invoker@{os.getenv('GCP_PROJECT', '')}.iam.gserviceaccount.com"
+    )
     # "local" = CSVs in data/out + in-memory state; "gcp" = BigQuery + Firestore + Pub/Sub
     backend: str = os.getenv("DATA_BACKEND", "local")
     # Service account the manager agent's free-form SQL runs as (read-only on the views). When set, the API
@@ -40,7 +44,7 @@ class Settings:
     # Repo `data/` directory (product master, seed_scenarios.yaml, and simulator output in data/out)
     data_dir: Path = Path(os.getenv("DATA_DIR", Path(__file__).resolve().parents[3] / "data"))
     cors_origins: tuple[str, ...] = tuple(
-        o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if o.strip()
+        o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()
     )
 
 

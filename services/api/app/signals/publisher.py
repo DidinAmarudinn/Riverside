@@ -31,9 +31,14 @@ class ConversationEvent:
     channel: str
     transcript: list[dict]
     tool_calls: list[dict] = field(default_factory=list)
+    sandbox_id: str | None = None  # per-visitor sandbox (docs/api-contract.md §2); None outside the demo
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self), ensure_ascii=False)
+        """Top-level keys are camelCase like every other JSON in the contract; tool results keep the tools' own keys."""
+        d = asdict(self)
+        keys = {"conversation_id": "conversationId", "store_id": "storeId", "sandbox_id": "sandboxId",
+                "tool_calls": "toolCalls"}
+        return json.dumps({keys.get(k, k): v for k, v in d.items()}, ensure_ascii=False)
 
 
 class Publisher(Protocol):

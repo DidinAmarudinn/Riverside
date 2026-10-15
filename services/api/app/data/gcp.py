@@ -18,8 +18,11 @@ def _haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
 
 
 def _pack_label(value, unit) -> str:
+    """'65 ml' from the catalog. `pack_size` is a label string in the current schema; older loads stored a number."""
     if value is None:
         return ""
+    if isinstance(value, str):
+        return value.strip()
     return f"{value:g} {unit or ''}".strip()
 
 

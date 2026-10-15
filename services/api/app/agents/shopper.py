@@ -116,6 +116,7 @@ def log_request(callback_context):
         turn=turn,
         ts=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         store_id=state.get("store_id", ""),
+        sandbox_id=state.get("sandbox_id"),
         channel="chat",
         transcript=transcript,
         tool_calls=list(state.get("turn_tool_calls", [])),
@@ -127,6 +128,7 @@ def log_request(callback_context):
         log.exception("log_request failed for conversation %s", event.conversation_id)
     state["transcript"] = transcript
     state["turn"] = turn
+    state["last_turn"] = {"tool_calls": list(state.get("turn_tool_calls", []))}  # read by the API layer
     state["turn_tool_calls"] = []
     state["turn_reply"] = ""
     return None

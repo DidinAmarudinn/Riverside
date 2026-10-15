@@ -76,3 +76,39 @@ def publisher():
     reset_publisher_cache()
     yield get_publisher()
     reset_publisher_cache()
+
+
+@pytest.fixture(autouse=True)
+def _hermetic(tmp_path, monkeypatch):
+    """No test may reach Vertex AI or BigQuery, whatever DATA_BACKEND the developer's .env says.
+
+    Default repository = the tiny fixture world, default BigQuery runner = a fake, default agents = scripted
+    models that answer "ok". Tests that need something else install their own (they all do so explicitly).
+    """
+    from app import main
+    from app.agents.manager import build_manager_agent
+    from app.agents.runtime import AgentRuntime
+    from app.agents.shopper import build_shopper_agent
+    from app.tools.bq import set_runner
+
+    from .fake_bq import FakeRunner
+    from .fake_llm import ScriptedLlm, say
+
+    set_repo(LocalRepo(write_world(tmp_path)))
+    set_runner(FakeRunner())
+    reset_publisher_cache()
+
+    class Ok(ScriptedLlm):
+        async def generate_content_async(self, llm_request, stream=False):
+            from google.adk.models.llm_response import LlmResponse
+            from google.genai import types
+
+            yield LlmResponse(content=types.Content(role="model", parts=[types.Part(text="ok")]))
+
+    monkeypatch.setattr(main, "_shopper_runtime", AgentRuntime(build_shopper_agent(model=Ok([])), "h-shopper"))
+    monkeypatch.setattr(main, "_manager_runtime", AgentRuntime(build_manager_agent(model=Ok([])), "h-manager"))
+    main._kiosk_sessions.clear()
+    yield
+    set_repo(None)
+    set_runner(None)
+    reset_publisher_cache()

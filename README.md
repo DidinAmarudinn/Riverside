@@ -10,7 +10,7 @@ All data is synthetic.
 ## Layout
 
 ```
-apps/web/        React + Vite: kiosk, manager dashboard, judges page
+apps/web/        Next.js (static export): kiosk, manager dashboard, judges page
 services/api/    FastAPI + ADK agents, tools, extraction, demo sandbox
 data/            product master, simulator (sim/), scenarios
 sql/             BigQuery DDL, views, ARIMA_PLUS models, evaluation
@@ -24,11 +24,18 @@ docs/            architecture, API contract, experiment results
 ```bash
 make setup            # venv + Python deps + npm install
 make product-master   # (re)build data/product_master.csv (214 SKUs)
-make api              # http://localhost:8080/api/health
-make web              # http://localhost:5173
+make api              # http://localhost:8080/api/healthz
+make web              # http://localhost:3000
 ```
 
 Copy `.env.example` to `.env` and fill in the GCP values to enable Gemini and the `gcp` backend.
+
+## Deploy
+
+Every push to `main` deploys the API (Cloud Run) and web (Firebase Hosting) via `.github/workflows/deploy.yml`;
+it can also be run by hand from the Actions tab (`all`, `api` or `web`). Pushes after the submission deadline
+(`DEPLOY_CUTOFF` in the workflow) skip the deploy; to stop it entirely, disable the workflow in the Actions tab. One-time GCP setup for the workflow:
+`GCP_PROJECT=riverside-511503 infra/github-wif.sh`. Manual deploy: `GCP_PROJECT=riverside-511503 infra/deploy.sh all`.
 
 ## Status
 

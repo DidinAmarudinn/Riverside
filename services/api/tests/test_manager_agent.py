@@ -125,22 +125,44 @@ def test_model_failure_degrades_to_a_friendly_reply():
     assert r.error == "TimeoutError" and r.reply
 
 
-def test_endpoint_adds_store_and_sku_context_and_returns_citations(monkeypatch):
+def test_endpoint_returns_contract_citations_and_clean_reply(monkeypatch):
+    import uuid
+
+    sandbox = {"X-Sandbox-Id": str(uuid.uuid4())}
     llm = ScriptedLlm([call("get_sku_detail", store_id="S01", sku="SNT-001"), say("SNT-001 is out of stock [E1].")])
     monkeypatch.setattr(main, "_manager_runtime", AgentRuntime(build_manager_agent(model=llm), app_name="api"))
-    r = TestClient(main.app).post("/api/manager/chat", json={
-        "session_id": "x", "message": "why?", "store_id": "S02", "sku": "SNT-001"}).json()
-    assert r["reply"] == "SNT-001 is out of stock [E1]." and r["error"] is None
-    assert r["citations"][0]["id"] == "E1" and r["unverified_numbers"] == []
-    assert r["tool_calls"][0]["name"] == "get_sku_detail"
-    user_text = str(llm.seen_requests[0].contents[0])
-    assert "store_id=S02" in user_text and "SKU on screen: SNT-001" in user_text
-
-
-def test_endpoint_validates_input(monkeypatch):
     c = TestClient(main.app)
-    assert c.post("/api/manager/chat", json={"session_id": "x", "message": ""}).status_code == 422
-    assert c.post("/api/manager/chat", json={"message": "hi"}).status_code == 422
+    r = c.post("/api/manager/S02/chat", json={"message": "why?"}, headers=sandbox).json()
+    assert r["reply"] == "SNT-001 is out of stock."  # markers are for the citations list, not for display
+    assert r["citations"][0] == {"label": "Nyiur Santan Kotak 65 ml", "sku": "SNT-001"}
+    assert uuid.UUID(r["sessionId"]) and "unverified_numbers" not in r
+    assert "store_id=S02" in str(llm.seen_requests[0].contents[0])  # the store comes from the path
+
+
+def test_endpoint_keeps_the_session_and_isolates_sandboxes(monkeypatch):
+    import uuid
+
+    a, b = {"X-Sandbox-Id": str(uuid.uuid4())}, {"X-Sandbox-Id": str(uuid.uuid4())}
+    llm = ScriptedLlm([say("first"), say("second"), say("third")])
+    rt = AgentRuntime(build_manager_agent(model=llm), app_name="api")
+    monkeypatch.setattr(main, "_manager_runtime", rt)
+    c = TestClient(main.app)
+    sid = c.post("/api/manager/S01/chat", json={"message": "hi"}, headers=a).json()["sessionId"]
+    c.post("/api/manager/S01/chat", json={"message": "again", "sessionId": sid}, headers=a)
+    c.post("/api/manager/S01/chat", json={"message": "hi", "sessionId": sid}, headers=b)  # same id, other visitor
+    get = lambda key: asyncio.run(rt.sessions.get_session(app_name="api", user_id="kiosk", session_id=key))  # noqa: E731
+    mine, theirs = get(f"{a['X-Sandbox-Id']}:{sid}"), get(f"{b['X-Sandbox-Id']}:{sid}")
+    assert mine and theirs and mine is not theirs  # same sessionId, two separate conversations
+    assert len(mine.events) > len(theirs.events)  # a had two turns, b had one
+
+
+def test_endpoint_validates_input():
+    import uuid
+
+    h = {"X-Sandbox-Id": str(uuid.uuid4())}
+    c = TestClient(main.app)
+    assert c.post("/api/manager/S01/chat", json={"message": "  "}, headers=h).status_code == 422
+    assert c.post("/api/manager/S01/chat", json={"message": "hi"}).status_code == 400  # no sandbox header
 
 
 def test_instruction_lists_the_live_view_columns_once():

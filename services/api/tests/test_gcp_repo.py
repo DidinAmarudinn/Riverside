@@ -74,6 +74,14 @@ def test_product_mapping(gcp):
     assert repo.get_product("NC-001") is None
 
 
+def test_pack_size_label_accepts_a_string_or_a_number():
+    from app.data.gcp import _pack_label
+
+    assert _pack_label("65 ml", "ml") == "65 ml"      # current schema: label string
+    assert _pack_label(65.0, "ml") == "65 ml"          # older loads: number + unit
+    assert _pack_label(None, "ml") == ""
+
+
 def test_distance_is_haversine_between_store_coordinates(gcp):
     repo, _ = gcp
     assert repo.distance_km("S01", "S01") == 0

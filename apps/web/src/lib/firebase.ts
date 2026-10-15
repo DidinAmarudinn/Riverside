@@ -1,19 +1,24 @@
-// Read-only Firestore listener for live demand signals. Falls back to null when
-// Firebase is not configured (the UI then polls /api/signals/recent instead).
-import { initializeApp } from "firebase/app";
-import { collection, getFirestore, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { getApps, initializeApp } from "firebase/app";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { env } from "@/lib/env";
 
-const config = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-};
+/**
+ * Lazily initialised Firestore client for live realtime (read-only; rules in
+ * infra/firestore.rules). Returns null during static prerender or when the
+ * NEXT_PUBLIC_FIREBASE_* config is missing.
+ */
+let db: Firestore | null | undefined;
 
-export const firebaseEnabled = Boolean(config.projectId && config.apiKey);
-const db = firebaseEnabled ? getFirestore(initializeApp(config)) : null;
-
-export function listenToSignals(onData: (docs: Record<string, unknown>[]) => void, n = 20): () => void {
-  if (!db) return () => {};
-  const q = query(collection(db, "signals_live"), orderBy("ts", "desc"), limit(n));
-  return onSnapshot(q, (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
+export function firestore(): Firestore | null {
+  if (db !== undefined) return db;
+  if (typeof window === "undefined") return null;
+  const { apiKey, projectId, appId } = env.firebase;
+  if (!apiKey || !projectId) {
+    console.warn("[realtime] Firebase is not configured; live updates are off.");
+    db = null;
+    return db;
+  }
+  const app = getApps()[0] ?? initializeApp({ apiKey, projectId, appId });
+  db = getFirestore(app);
+  return db;
 }
