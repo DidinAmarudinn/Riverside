@@ -62,6 +62,8 @@ class FakeRunner:
             return [dict(r) for r in self.recs if r["store_id"] == p["s"] and r["sku"] == p["k"]]
         if "stockout_days_7d" in sql and "WITH d AS" in sql:  # observed-risk fallback
             return [dict(r) for r in OBSERVED][: p["n"]]
+        if "product_master WHERE NOT is_carried" in sql:  # gap names -> catalog name
+            return [dict(name="Oat Milk", category="Beverages", synonyms=["oat milk", "susu oat", "oatmilk", "oat mulk"])]
         if "product_master WHERE is_carried AND sku = @k" in sql:
             return [{"sku": HERO["sku"], "name": HERO["name"]}] if p["k"] == "SKU-0001" else []
         if "LOWER(p.name) LIKE @q" in sql:
@@ -92,14 +94,17 @@ class FakeRunner:
                     dict(date="2026-10-11", store_id="S01", sku="SKU-0001", name="Santan Kotak Kara 65 ml",
                          unmet_qty=2, price_idr=4500, lost_revenue_idr=9000)]
         if "DATE_DIFF(d.d, s.date, DAY)" in sql:  # gaps: daily counts
-            return [dict(normalized_name="oat milk", ago=0, c=2), dict(normalized_name="oat milk", ago=9, c=1)]
+            return [dict(normalized_name="oat milk", ago=0, c=2), dict(normalized_name="oat milk", ago=9, c=1),
+                    dict(normalized_name="oat mulk", ago=0, c=1)]
         if "APPROX_QUANTILES" in sql:
             return [dict(category="Beverages", m=8500)]
         if "v_assortment_gaps" in sql:
             return [dict(normalized_name="oat milk", category=None, requests=12, first_seen="2026-07-18",
                          last_seen="2026-09-30", sample_requests=["a", "b", "c", "d"]),
                     dict(normalized_name="es teh", category="Beverages", requests=4, first_seen="2026-08-01",
-                         last_seen="2026-10-01", sample_requests=[])]
+                         last_seen="2026-10-01", sample_requests=[]),
+                    dict(normalized_name="oat mulk", category=None, requests=3, first_seen="2026-07-01",
+                         last_seen="2026-10-02", sample_requests=["e"])]
         raise AssertionError(f"unrouted SQL: {sql}")
 
     # free-form agent SQL ---------------------------------------------------------------------------
