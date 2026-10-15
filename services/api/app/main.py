@@ -109,7 +109,8 @@ def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = Depends(
 
 @app.get("/api/manager/{store_id}/overview")
 def manager_overview(store_id: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    return {"storeId": store_id, "kpis": {}, "topRisks": []}
+    # Shapes: docs/api-contract.md §3.1 (Metrics, Recommendation).
+    return {"storeId": store_id, "kpis": {"lostRevenueToday": 0, "unmetToday": 0, "stockoutSkus": 0}, "topRisks": []}
 
 
 @app.get("/api/manager/{store_id}/recommendations")
@@ -119,8 +120,16 @@ def manager_recommendations(store_id: str, risk: str | None = None, sandbox: str
 
 @app.get("/api/manager/{store_id}/sku/{sku}")
 def manager_sku(store_id: str, sku: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    return {"storeId": store_id, "sku": sku, "sales": [], "forecastA": [], "forecastB": [], "unmetDaily": [],
-            "evidence": [], "reason": None}
+    # Shape: docs/api-contract.md §3.1 SkuDetail. Series stay separate; the UI merges them by date.
+    return {
+        "storeId": store_id, "sku": sku,
+        "product": {"name": sku, "brand": "", "category": "", "packSize": "", "priceIdr": 0, "aisle": ""},
+        "riskType": "reorder",
+        "kpis": {"onHand": 0, "lostRevenueIdr": 0, "lostRevenueUnits": 0, "unmetRequests": 0, "stockoutDays": 0},
+        "sales": [], "forecastA": [], "forecastB": [], "unmetDaily": [],
+        "evidence": {"total": 0, "items": []},
+        "reason": {"recommendedQtyA": 0, "recommendedQtyB": 0, "reasonText": ""},
+    }
 
 
 @app.post("/api/manager/{store_id}/chat")
@@ -131,7 +140,8 @@ def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sand
 
 @app.get("/api/manager/{store_id}/gaps")
 def manager_gaps(store_id: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    return {"storeId": store_id, "categories": []}
+    # Shape: docs/api-contract.md §3.1 GapItem; the UI builds the per-category summary.
+    return {"storeId": store_id, "items": []}
 
 
 # ---------- demo ----------

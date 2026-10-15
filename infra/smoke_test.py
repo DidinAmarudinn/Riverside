@@ -300,6 +300,8 @@ def check_sku_evidence(sandbox: str, sku: str) -> None:
     status, text, secs = http("GET", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/sku/{sku}", sandbox=sandbox)
     body = as_json(text) or {}
     evidence = body.get("evidence") if isinstance(body, dict) else None
+    if isinstance(evidence, dict):  # contract §3.1: {total, items}
+        evidence = evidence.get("items")
     record(status == 200 and bool(evidence), "SKU detail has conversation evidence",
            f"HTTP {status}, {len(evidence or [])} quote(s), {secs:.1f}s")
 
