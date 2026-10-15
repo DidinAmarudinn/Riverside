@@ -29,6 +29,14 @@ def test_search_handles_slang_and_spelling(world):
     assert names(search_products("mie goreng"))[0].startswith("Mi Goreng")
 
 
+def test_search_ranks_the_size_the_shopper_asked_for_first(world):
+    assert names(search_products("santan kotak 65"))[0] == "Santan Kotak Kara 65 ml"  # bare number, no unit
+    assert names(search_products("santan kotak 0.2 liter"))[0].endswith("200 ml")
+    assert names(search_products("ada santan kotak kecil?"))[0].endswith("65 ml")
+    assert names(search_products("santan kotak besar"))[0].endswith("200 ml")
+    assert names(search_products("santan kotak 100 ml"))[0].endswith("65 ml")  # not stocked: nearest size
+
+
 def test_search_ignores_filler_words(world):
     assert names(search_products("kak ada santan kecil dong"))[0].startswith("Santan Kotak")
 

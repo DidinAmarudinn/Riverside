@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import math
+import re
 
 from rapidfuzz.distance import DamerauLevenshtein
 
 from ..data import get_repo
+from .text import pack_of
 from .text import tokens as _tokens
 
 # Words that say nothing about which product is meant: greetings, particles, "is it in stock / where is it"
@@ -29,6 +31,40 @@ CONFIDENT_SCORE = 0.8
 
 
 _LONG_STOPWORDS = [w for w in _STOPWORDS if len(w) >= 5]
+_SIZE = re.compile(r"^(\d+(?:\.\d+)?)(ml|l|kg|g|pcs)?$")
+_BASE = {"l": ("ml", 1000.0), "kg": ("g", 1000.0)}  # compare sizes in ml / g
+
+
+def _base(value: float, unit: str) -> tuple[float, str]:
+    unit_to, factor = _BASE.get(unit, (unit, 1.0))
+    return value * factor, unit_to
+
+
+def _size_order(query_tokens: list[str], product: dict) -> tuple[int, float]:
+    """Tie-break among equally good name matches by the size the shopper gave: (0 if it fits else 1, then the
+    nearest size; smallest first for "kecil", largest first for "besar"). "65" matches 65 ml or 65 g; "1l"
+    matches 1000 ml."""
+    pack = pack_of(product)
+    if pack is None:
+        return 1, 0.0
+    value, unit = _base(*pack)
+    fits, gaps = False, []
+    for t in query_tokens:
+        m = _SIZE.match(t)
+        if not m:
+            continue
+        q_value = float(m.group(1))
+        if m.group(2) is None:  # bare number: compare with the label as printed ("65" vs "65 ml")
+            fits |= q_value == pack[0]
+            gaps.append(abs(q_value - pack[0]))
+        else:
+            q_base, q_unit = _base(q_value, m.group(2))
+            fits |= (q_base, q_unit) == (value, unit)
+            if q_unit == unit:
+                gaps.append(abs(q_base - value))
+    if gaps:
+        return (0 if fits else 1), min(gaps)
+    return 1, value if "kecil" in query_tokens else -value if "besar" in query_tokens else 0.0
 
 
 def _is_filler(tok: str) -> bool:
@@ -104,15 +140,19 @@ def search_products(query: str, limit: int = 5) -> dict:
         {sku, name, brand, category, pack_size, price_idr, shelf_location, match_score}.
     """
     idx = _index()
+    all_tokens = _tokens(query)
     qt = [
-        t for t in _tokens(query)
-        if not _is_filler(t) and not t.isdigit() and (t not in _SIZE_WORDS or t in idx.idf)
+        t for t in all_tokens
+        # sizes ("65", "100ml", "1l") only order the results (_size_order): a size the catalog lacks must not
+        # sink an otherwise good name match below MIN_SCORE
+        if not _is_filler(t) and not _SIZE.match(t) and (t not in _SIZE_WORDS or t in idx.idf)
     ]
     if not qt:
         return {"status": "no_match", "matches": [], "query": query}
     scored = [(idx.score(qt, d), p) for d, p in zip(idx.docs, idx.products)]
     scored = [(s, p) for s, p in scored if s >= MIN_SCORE]
-    scored.sort(key=lambda sp: (-sp[0], sp[1]["name"]))
+    # name match first; among ties, the size the shopper asked for ("65", "1 liter", "kecil")
+    scored.sort(key=lambda sp: (-round(sp[0], 2), *_size_order(all_tokens, sp[1]), sp[1]["name"]))
     matches = [
         {
             "sku": p["sku"], "name": p["name"], "brand": p["brand"], "category": p["category"],
