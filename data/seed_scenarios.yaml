@@ -11,6 +11,11 @@ simulation:
     - {id: S01, name: "Radar Mart Cipete",        city: "Jakarta Selatan",  lat: -6.2800, lng: 106.7970, size_factor: 1.00}
     - {id: S02, name: "Radar Mart BSD",           city: "Tangerang Selatan", lat: -6.3020, lng: 106.6520, size_factor: 0.80}
     - {id: S03, name: "Radar Mart Kelapa Gading", city: "Jakarta Utara",    lat: -6.1580, lng: 106.9070, size_factor: 0.90}
+  # Approximate road distance between branches (km), symmetric. Used by the shopper agent to
+  # suggest the nearest branch that has stock. Synthetic, like everything else here.
+  store_distances_km:
+    S01: {S02: 21, S03: 24}
+    S02: {S03: 39}
 
   # Demand shape ------------------------------------------------------------
   weekday_factors: [0.90, 0.88, 0.92, 0.97, 1.12, 1.25, 1.15]   # Mon..Sun

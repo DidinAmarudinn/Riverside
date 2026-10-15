@@ -1,6 +1,7 @@
 """Demand Radar API (FastAPI). Routes follow docs/api-contract.md §3.
 
-Scaffold stage: endpoints return placeholder payloads in the contract's shape; real logic is wired in later.
+Kiosk messages run the shopper agent and manager chat runs the manager agent; the manager GET routes read BigQuery.
+Demo, sandbox and Pub/Sub extract endpoints are still placeholders.
 """
 from __future__ import annotations
 
@@ -8,6 +9,7 @@ import base64
 import binascii
 import datetime as dt
 import json
+import logging
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -18,7 +20,13 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import contract, manager_api
+from .agents.manager import manager_agent
+from .agents.runtime import AgentRuntime
+from .agents.shopper import shopper_agent
 from .config import settings
+from .data import get_repo
+from .tools.products import search_products
 
 app = FastAPI(title="Demand Radar API", version="0.2.0")
 app.add_middleware(  # local dev only; in production Hosting rewrites /api/** so no CORS is needed
@@ -86,66 +94,138 @@ def healthz() -> dict:
     return {"ok": True, "backend": settings.backend, "model": settings.gemini_model}
 
 
+def bigquery(fn, *args):
+    """Run a BigQuery-backed lookup; a missing store/SKU is a 404, any other failure a uniform 503."""
+    try:
+        return fn(*args)
+    except manager_api.NotFound:
+        raise HTTPException(404, "not_found") from None
+    except HTTPException:
+        raise
+    except Exception:
+        logging.getLogger(__name__).exception("BigQuery lookup failed: %s", getattr(fn, "__name__", fn))
+        raise HTTPException(503, "data_unavailable") from None
+
+
+def _product(p: dict) -> dict:
+    out = {"sku": p["sku"], "name": p["name"], "brand": p["brand"], "category": p["category"],
+           "packSize": p["pack_size"], "priceIdr": p["price_idr"], "aisle": p["shelf_location"], "isCarried": True}
+    if p.get("unit"):
+        out["unit"] = p["unit"]
+    return out
+
+
 @app.get("/api/stores")
 def stores() -> dict:
-    return {"items": []}
+    return {"items": [{"storeId": s["id"], "name": s["name"], "city": s.get("city") or "",
+                       "lat": s.get("lat") or 0, "lng": s.get("lng") or 0} for s in get_repo().stores()]}
 
 
 @app.get("/api/products")
 def products(q: str = "") -> dict:
-    return {"items": []}
+    repo = get_repo()
+    if q.strip():
+        found = [repo.get_product(m["sku"]) for m in search_products(q, limit=20)["matches"]]
+        return {"items": [_product(p) for p in found if p]}
+    return {"items": [_product(p) for p in repo.products()]}
 
 
 # ---------- kiosk (shopper agent) ----------
 
+_shopper_runtime: AgentRuntime | None = None
+_kiosk_sessions: dict[str, dict] = {}  # sessionId -> {storeId, sandboxId}; chat history lives in the agent runtime
+
+
+def shopper_runtime() -> AgentRuntime:
+    global _shopper_runtime
+    if _shopper_runtime is None:
+        _shopper_runtime = AgentRuntime(shopper_agent, app_name="shopper")
+    return _shopper_runtime
+
+
 @app.post("/api/kiosk/sessions")
 def kiosk_session(body: KioskSessionIn, sandbox: str = Depends(sandbox_id)) -> dict:
-    return {"sessionId": str(uuid.uuid4())}
+    if get_repo().get_store(body.storeId) is None:
+        raise HTTPException(404, "store_not_found")
+    session_id = str(uuid.uuid4())
+    _kiosk_sessions[session_id] = {"storeId": body.storeId, "sandboxId": sandbox}
+    return {"sessionId": session_id}
 
 
 @app.post("/api/kiosk/sessions/{session_id}/messages")
-def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = Depends(sandbox_id)) -> dict:
-    # TODO: shopper agent (ADK) + publish {sandboxId, storeId, transcript, tool results} to Pub/Sub.
-    return {"reply": "(shopper agent not wired yet)", "products": [], "alternatives": [], "nearestBranch": None}
+async def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = Depends(sandbox_id)) -> dict:
+    session = _kiosk_sessions.get(session_id)
+    if session is None or session["sandboxId"] != sandbox:  # another visitor's session looks like a missing one
+        raise HTTPException(404, "session_not_found")
+    if body.imageBase64 or body.audioBase64:
+        raise HTTPException(400, "unsupported_input")  # image/audio lists are optional in the contract; not built yet
+    if not body.text.strip() or len(body.text) > 1000:
+        raise HTTPException(422, "invalid_request")
+    store = get_repo().get_store(session["storeId"])
+    result = await shopper_runtime().run_turn(
+        session_id, body.text,
+        {"store_id": store["id"], "store_name": store["name"], "sandbox_id": sandbox},
+    )
+    last = result.state.get("last_turn", {})
+    return {"reply": result.reply, **contract.kiosk_payload(last.get("tool_calls", []))}
 
 
 # ---------- manager ----------
 
+def _known_store(store_id: str) -> None:
+    if get_repo().get_store(store_id) is None:
+        raise HTTPException(404, "store_not_found")
+
+
 @app.get("/api/manager/{store_id}/overview")
 def manager_overview(store_id: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    # Shapes: docs/api-contract.md §3.1 (Metrics, Recommendation).
-    return {"storeId": store_id, "kpis": {"lostRevenueToday": 0, "unmetToday": 0, "stockoutSkus": 0}, "topRisks": []}
+    _known_store(store_id)
+    return bigquery(manager_api.overview, store_id)
 
 
 @app.get("/api/manager/{store_id}/recommendations")
 def manager_recommendations(store_id: str, risk: str | None = None, sandbox: str = Depends(sandbox_id)) -> dict:
-    return {"storeId": store_id, "items": []}
+    _known_store(store_id)
+    return bigquery(manager_api.recommendations, store_id, risk)
 
 
 @app.get("/api/manager/{store_id}/sku/{sku}")
 def manager_sku(store_id: str, sku: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    # Shape: docs/api-contract.md §3.1 SkuDetail. Series stay separate; the UI merges them by date.
-    return {
-        "storeId": store_id, "sku": sku,
-        "product": {"name": sku, "brand": "", "category": "", "packSize": "", "priceIdr": 0, "aisle": ""},
-        "riskType": "reorder",
-        "kpis": {"onHand": 0, "lostRevenueIdr": 0, "lostRevenueUnits": 0, "unmetRequests": 0, "stockoutDays": 0},
-        "sales": [], "forecastA": [], "forecastB": [], "unmetDaily": [],
-        "evidence": {"total": 0, "items": []},
-        "reason": {"recommendedQtyA": 0, "recommendedQtyB": 0, "reasonText": ""},
-    }
+    _known_store(store_id)
+    return bigquery(manager_api.sku_detail, store_id, sku)
+
+
+_manager_runtime: AgentRuntime | None = None
+
+
+def manager_runtime() -> AgentRuntime:
+    global _manager_runtime
+    if _manager_runtime is None:
+        _manager_runtime = AgentRuntime(manager_agent, app_name="manager")
+    return _manager_runtime
 
 
 @app.post("/api/manager/{store_id}/chat")
-def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id)) -> dict:
-    # TODO: manager agent (ADK) with read-only BigQuery tools; answers cite numbers and sources.
-    return {"reply": "(manager agent not wired yet)", "citations": [], "sessionId": body.sessionId or str(uuid.uuid4())}
+async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id)) -> dict:
+    if not body.message.strip() or len(body.message) > 1000:
+        raise HTTPException(422, "invalid_request")
+    session_id = body.sessionId or str(uuid.uuid4())
+    # the agent session is namespaced by sandbox so one visitor cannot continue another's conversation
+    result = await manager_runtime().run_turn(
+        f"{sandbox}:{session_id}", f"{body.message}\n\n(context: store_id={store_id})", {"sandbox_id": sandbox}
+    )
+    last = result.state.get("last_turn", {})
+    return {
+        "reply": contract.strip_markers(result.reply),
+        "citations": contract.citations(last.get("citations", [])),
+        "sessionId": session_id,
+    }
 
 
 @app.get("/api/manager/{store_id}/gaps")
 def manager_gaps(store_id: str, sandbox: str = Depends(sandbox_id)) -> dict:
-    # Shape: docs/api-contract.md §3.1 GapItem; the UI builds the per-category summary.
-    return {"storeId": store_id, "items": []}
+    _known_store(store_id)
+    return bigquery(manager_api.gaps, store_id)
 
 
 # ---------- demo ----------

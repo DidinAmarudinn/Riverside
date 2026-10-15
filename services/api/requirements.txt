@@ -11,3 +11,6 @@ google-genai>=1.0
 google-cloud-bigquery>=3.25
 google-cloud-firestore>=2.19
 google-cloud-pubsub>=2.23
+python-dotenv>=1.0
+rapidfuzz>=3.9
+sqlglot>=25.0
