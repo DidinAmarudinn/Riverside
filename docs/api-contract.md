@@ -70,7 +70,7 @@ created on first use. The browser creates the id on first visit, keeps it in loc
 | `GET /api/manager/{storeId}/overview` | | `{storeId, kpis: Metrics, topRisks: [Recommendation]}` |
 | `GET /api/manager/{storeId}/recommendations` | `?risk=` | `{storeId, items: [Recommendation]}`, most at-risk first |
 | `GET /api/manager/{storeId}/sku/{sku}` | | **SkuDetail** (§3.1) |
-| `POST /api/manager/{storeId}/chat` | `{sessionId?, message}` | `{reply, citations: [Citation], sessionId}` |
+| `POST /api/manager/{storeId}/chat` | `{sessionId?, message, sku?}` (`sku`: the product on screen, if any) | `{reply, citations: [Citation], sessionId}` |
 | `GET /api/manager/{storeId}/gaps` | | `{storeId, items: [GapItem]}`, most requested first |
 | `GET /api/manager/{storeId}/trends` (optional) | | rising new demand |
 | `POST /api/manager/recommendations/{id}/approve` (optional) | | draft PO |

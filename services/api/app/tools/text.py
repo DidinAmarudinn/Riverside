@@ -5,6 +5,24 @@ import re
 
 # Spelling/slang normalisation applied to queries and catalog text alike.
 SPELLING = {"mie": "mi", "telor": "telur", "cabe": "cabai", "saos": "saus", "santen": "santan", "migor": "minyak goreng"}
+# English product words a manager may type -> the Bahasa Indonesia names used in the catalog.
+# Longest phrases first so "coconut milk" wins over "milk".
+EN_TO_ID = {
+    "coconut milk": "santan", "cooking oil": "minyak goreng", "instant noodles": "mi instan",
+    "soy sauce": "kecap", "sweet soy sauce": "kecap manis", "chili sauce": "saus sambal", "brown sugar": "gula merah",
+    "mineral water": "air mineral", "chicken nuggets": "nugget ayam", "beef": "daging sapi", "chicken": "ayam",
+    "rice": "beras", "eggs": "telur", "egg": "telur", "sugar": "gula", "salt": "garam", "coffee": "kopi",
+    "tea": "teh", "flour": "tepung", "noodles": "mi", "detergent": "deterjen", "toothpaste": "pasta gigi",
+    "shallots": "bawang merah", "garlic": "bawang putih", "chili": "cabai", "potato": "kentang",
+}
+_EN = re.compile(r"\b(" + "|".join(sorted(map(re.escape, EN_TO_ID), key=len, reverse=True)) + r")\b", re.I)
+
+
+def to_indonesian(text: str) -> str:
+    """Swap English product words for the catalog's Indonesian ones ("coconut milk 65 ml" -> "santan 65 ml")."""
+    return _EN.sub(lambda m: EN_TO_ID[m.group(1).lower()], text)
+
+
 UNITS = {"liter": "l", "ltr": "l", "lt": "l", "gram": "g", "gr": "g", "kilo": "kg", "kilogram": "kg"}
 _NYA = re.compile(r"\b(\w{3,}?)nya\b")  # "stoknya" / "50gnya" -> "stok" / "50g"
 _QTY_UNIT = re.compile(r"(\d+(?:[.,]\d+)?)\s*(ml|liter|ltr|lt|l|kg|kilogram|kilo|gram|gr|g|pcs)\b")

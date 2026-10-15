@@ -16,6 +16,7 @@ import { useToast } from "@/components/ui/toast";
 import { formatDateTimeWib } from "@/lib/format";
 
 const JURY_QUESTION = "Why should I order 60 boxes of coconut milk?";
+const HERO_SKU = "SKU-0001"; // Santan Kotak Kara 65 ml (data/seed_scenarios.yaml hero_santan)
 
 export function JuryActions() {
   const router = useRouter();
@@ -104,7 +105,7 @@ export function JuryActions() {
           </span>
         </button>
         <ScenarioLink
-          href={`/manager?q=${encodeURIComponent(JURY_QUESTION)}`}
+          href={`/manager?q=${encodeURIComponent(JURY_QUESTION)}&sku=${HERO_SKU}`}
           icon={MessageSquareMore}
           title="Ask the manager agent"
           description="“Why should I order 60 boxes of coconut milk?”"

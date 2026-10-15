@@ -18,13 +18,15 @@ import { CitationChip } from "./citation-chip";
 
 export function AgentChat({
   initialQuestion,
+  sku,
   className,
 }: {
   initialQuestion?: string;
+  sku?: string;
   className?: string;
 }) {
   const { storeId } = useStore();
-  const { messages, send, isSending, error } = useAgentChat(storeId);
+  const { messages, send, isSending, error } = useAgentChat(storeId, sku);
   const [collapsed, setCollapsed] = useState(false);
   const [input, setInput] = useState("");
   const bodyRef = useRef<HTMLDivElement>(null);

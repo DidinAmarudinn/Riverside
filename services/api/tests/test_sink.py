@@ -27,3 +27,13 @@ def test_live_signal_doc_names_substitute_and_skips_unknown_sku():
     assert "matchedName" not in doc
     assert doc["substituteName"] == "Santan Kotak Sasa 65 ml"
     assert not isinstance(doc["ts"], dt.datetime)  # server timestamp sentinel
+
+
+def test_decide_counts_a_shopper_once_across_turns_and_redeliveries():
+    from app.extract.sink import decide
+
+    assert decide(None, "out_of_stock", 1) == (True, True)  # first turn, unmet: write + count
+    assert decide({"turn": 1, "outcome": "out_of_stock"}, "out_of_stock", 1) == (True, False)  # redelivery
+    assert decide({"turn": 1, "outcome": "out_of_stock"}, "substituted", 2) == (True, False)  # accepted an alternative
+    assert decide({"turn": 1, "outcome": "low_confidence"}, "out_of_stock", 2) == (True, True)  # product named later
+    assert decide({"turn": 3, "outcome": "substituted"}, "out_of_stock", 2) == (False, False)  # late, older turn

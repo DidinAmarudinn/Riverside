@@ -161,6 +161,8 @@ def gaps(store_id: str) -> dict:
     items = fetch_gaps(runner, store_id, GAP_LIMIT)
     names = [it["normalized_name"] for it in items]
     series: dict[str, list[int]] = {n: [0] * 14 for n in names}
+    # signals carry the raw spelling; fetch_gaps merged those under one name
+    alias_of = {a: it["normalized_name"] for it in items for a in it.get("aliases", [])}
     if names:
         rows = runner.rows(
             f"WITH d AS (SELECT MAX(date) AS d FROM {fq}.v_signals) "
@@ -168,8 +170,9 @@ def gaps(store_id: str) -> dict:
             f"FROM {fq}.v_signals s, d WHERE s.outcome = 'not_carried' "
             f"AND s.store_id = @s AND s.date > DATE_SUB(d.d, INTERVAL 14 DAY) GROUP BY 1, 2", {"s": store_id})
         for r in rows:
-            if r["normalized_name"] in series and 0 <= r["ago"] < 14:
-                series[r["normalized_name"]][13 - r["ago"]] = r["c"]  # oldest first
+            name = alias_of.get(r["normalized_name"], r["normalized_name"])
+            if name in series and 0 <= r["ago"] < 14:
+                series[name][13 - r["ago"]] += r["c"]  # oldest first
     price = {r["category"]: r["m"] for r in runner.rows(
         f"SELECT category, CAST(APPROX_QUANTILES(price_idr, 2)[OFFSET(1)] AS INT64) AS m "
         f"FROM {fq}.product_master WHERE is_carried GROUP BY category", {})}

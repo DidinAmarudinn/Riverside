@@ -20,7 +20,8 @@ function nextId() {
   return `chat-${Date.now()}-${counter}`;
 }
 
-export function useAgentChat(storeId: string) {
+/** `sku`: the product the chat is about (e.g. from the jury link), sent as context with every message. */
+export function useAgentChat(storeId: string, sku?: string) {
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ export function useAgentChat(storeId: string) {
           storeId,
           sessionId: sessionIdRef.current,
           message,
+          sku,
         });
         sessionIdRef.current = res.sessionId;
         setMessages((prev) => [
@@ -61,7 +63,7 @@ export function useAgentChat(storeId: string) {
         setIsSending(false);
       }
     },
-    [storeId],
+    [storeId, sku],
   );
 
   const reset = useCallback(() => {

@@ -10,6 +10,7 @@ import binascii
 import datetime as dt
 import json
 import logging
+import re
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -82,6 +83,7 @@ class KioskMessageIn(BaseModel):
 class ManagerChatIn(BaseModel):
     sessionId: str | None = None
     message: str
+    sku: str | None = None  # the product on screen, if any; lets "why 60?" work without naming it
 
 
 class NextMorningIn(BaseModel):
@@ -206,6 +208,12 @@ def manager_runtime() -> AgentRuntime:
     return _manager_runtime
 
 
+def _chat_context(store_id: str, sku: str | None) -> str:
+    sku = (sku or "").strip()
+    # SKU codes only (e.g. SKU-0001), so the field cannot smuggle instructions into the prompt
+    return f"store_id={store_id}, sku={sku}" if re.fullmatch(r"[A-Za-z0-9-]{1,32}", sku) else f"store_id={store_id}"
+
+
 @app.post("/api/manager/{store_id}/chat")
 async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id)) -> dict:
     if not body.message.strip() or len(body.message) > 1000:
@@ -213,7 +221,8 @@ async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depend
     session_id = body.sessionId or str(uuid.uuid4())
     # the agent session is namespaced by sandbox so one visitor cannot continue another's conversation
     result = await manager_runtime().run_turn(
-        f"{sandbox}:{session_id}", f"{body.message}\n\n(context: store_id={store_id})", {"sandbox_id": sandbox}
+        f"{sandbox}:{session_id}", f"{body.message}\n\n(context: {_chat_context(store_id, body.sku)})",
+        {"sandbox_id": sandbox}
     )
     last = result.state.get("last_turn", {})
     return {
@@ -290,10 +299,33 @@ def process_pubsub_message(data: dict) -> None:
     conv = _conversation_from_message(data)
     if conv is None:
         return
-    row = extract_one(conv, load_catalog(), model_version=EXTRACTOR_VERSION)
+    catalog = load_catalog()
+    # Rules first: they settle the clear cases in milliseconds (99% outcome accuracy on the eval set).
+    # Gemini reads the chats the rules are unsure about (slang, abbreviations: "bawput", "roit").
+    row = extract_one(conv, catalog, model_version=f"{EXTRACTOR_VERSION}-rules")
+    if row["outcome"] == "low_confidence" and settings.backend == "gcp" and settings.live_extract_llm:
+        llm = _gemini_item(conv, catalog)
+        if llm is not None:
+            second = extract_one(conv, catalog, llm, model_version=f"{EXTRACTOR_VERSION}-gemini")
+            if second["outcome"] != "low_confidence":
+                row = second
+    row["turn"] = int(data.get("turn") or 0)  # later turns of the same chat update the same signal
     if settings.backend == "gcp":
         from .extract import sink
         sink.write_signal(row)
+
+
+def _gemini_item(conv: dict, catalog) -> dict | None:
+    """Gemini structured extraction for one kiosk chat: a single short call without thinking, so the signal
+    still lands in a few seconds. None on timeout/error/no item; the rules' answer then stands."""
+    from .extract.client import extract_item, live_client
+
+    try:
+        return extract_item(live_client(), settings.gemini_model, conv["transcript"], catalog, retries=1,
+                            thinking_budget=settings.gemini_thinking_budget)
+    except Exception:  # never lose the signal because the model call failed
+        logging.getLogger(__name__).warning("live gemini extraction failed; using rules", exc_info=True)
+        return None
 
 
 @app.post("/pubsub/extract", status_code=204)

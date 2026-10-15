@@ -117,17 +117,44 @@ def test_lost_revenue_rejects_negative_days(runner):
 
 
 # -- get_assortment_gaps -------------------------------------------------------------------------
+def _gaps_call(runner):
+    return next((sql, params) for sql, params in runner.calls if "v_assortment_gaps" in sql)
+
+
 def test_gaps_for_a_store_keep_three_quotes_each(runner):
     res = get_assortment_gaps("S01", limit=3)
-    assert res["status"] == "ok" and res["items"][0]["normalized_name"] == "oat milk"
-    assert res["items"][0]["sample_requests"] == ["a", "b", "c"]
-    assert res["evidence"][0] == {"type": "gap", "store_id": "S01", "normalized_name": "oat milk",
-                                  "requests": 12, "quotes": ["a", "b", "c"]}
-    sql, params = runner.calls[0]
-    assert "WHERE g.store_id = @store_id" in sql and params["n"] == 3
+    oat = res["items"][0]
+    assert res["status"] == "ok" and oat["normalized_name"] == "Oat Milk"
+    assert oat["sample_requests"] == ["a", "b", "c"]
+    assert res["evidence"][0] == {"type": "gap", "store_id": "S01", "normalized_name": "Oat Milk",
+                                  "requests": 15, "quotes": ["a", "b", "c"]}
+    sql, _ = _gaps_call(runner)
+    assert "WHERE g.store_id = @store_id" in sql and len(res["items"]) <= 3
+
+
+def test_gap_spellings_merge_under_the_catalog_name(runner):
+    oat = get_assortment_gaps("S01")["items"][0]
+    assert oat["requests"] == 12 + 3 and oat["category"] == "Beverages"  # "oat milk" + "oat mulk"
+    assert oat["aliases"] == ["oat milk", "oat mulk"]
+    assert oat["first_seen"] == "2026-07-01" and oat["last_seen"] == "2026-10-02"
 
 
 def test_gaps_across_all_stores_aggregate_by_product(runner):
-    get_assortment_gaps("", limit=500)
-    sql, params = runner.calls[0]
-    assert "GROUP BY g.normalized_name" in sql and "store_id =" not in sql and params["n"] == 20  # capped
+    res = get_assortment_gaps("", limit=500)
+    sql, _ = _gaps_call(runner)
+    assert "GROUP BY g.normalized_name" in sql and "store_id =" not in sql and len(res["items"]) <= 20  # capped
+
+
+def test_sku_detail_accepts_english_product_names(runner):
+    res = get_sku_detail("S01", "coconut milk")  # catalog names are Indonesian ("santan")
+    assert res["status"] == "ambiguous" and res["candidates"][0]["sku"] == "SKU-0001"
+
+
+def test_canonical_gap_handles_trailing_words_and_typos():
+    from app.tools.gaps import canonical_gap
+
+    table = [(("sambal", "hijau"), "Sambal Ijo Instan", "Cooking Essentials"),
+             (("almond", "milk"), "Almond Milk", "Beverages")]
+    assert canonical_gap("sambal hijau tidak", table) == ("Sambal Ijo Instan", "Cooking Essentials")
+    assert canonical_gap("almond miilk", table) == ("Almond Milk", "Beverages")
+    assert canonical_gap("kopi luwak", table) is None

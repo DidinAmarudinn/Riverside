@@ -25,7 +25,14 @@ deploy_api() {
     --set-env-vars "GCP_PROJECT=$GCP_PROJECT,GCP_LOCATION=$REGION,DATA_BACKEND=gcp,GOOGLE_GENAI_USE_VERTEXAI=TRUE,PUBLISHER=pubsub,PUBSUB_AUDIENCE=https://demand-radar-api-$number.$REGION.run.app"
 }
 deploy_web() {
-  (cd "$ROOT/apps/web" && npm ci && npm run build)
+  # The deployed site always runs live (real API + Firestore); mock mode is only for local UI work.
+  # Firebase web config is public by design: Firestore rules are read-only (infra/firestore.rules).
+  (cd "$ROOT/apps/web" && npm ci &&
+    NEXT_PUBLIC_DATA_MODE=live \
+    NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDHVnDGF4pVWsda0QpELLSFq_Xx--pPVUM \
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID="$GCP_PROJECT" \
+    NEXT_PUBLIC_FIREBASE_APP_ID=1:770198971909:web:2f26c77d612a838e831e6c \
+    npm run build)
   (cd "$ROOT" && firebase deploy --project "$GCP_PROJECT" --only hosting,firestore:rules)
 }
 

@@ -15,6 +15,8 @@ export const env = {
   defaultStoreId: process.env.NEXT_PUBLIC_DEFAULT_STORE_ID ?? "S01",
   apiProxyTarget: process.env.NEXT_PUBLIC_API_PROXY_TARGET ?? "",
   featureMultimodal: process.env.NEXT_PUBLIC_FEATURE_MULTIMODAL === "true",
+  // One-click reorder approval is out of scope for now; the buttons stay hidden until it is built.
+  featureApprove: process.env.NEXT_PUBLIC_FEATURE_APPROVE === "true",
   videoUrl: process.env.NEXT_PUBLIC_VIDEO_URL ?? "",
   githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL ?? "",
   firebase: {

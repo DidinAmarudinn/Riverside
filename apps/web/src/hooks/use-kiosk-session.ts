@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { realtime } from "@/lib/realtime";
 import type { KioskMessageResponse } from "@/lib/api/types";
 
 export type KioskMessage =
@@ -92,6 +93,25 @@ export function useKioskSession(storeId: string) {
     setError(null);
     setSessionEpoch((e) => e + 1);
   }, []);
+
+  // "Reset demo" (often clicked in another tab) deletes this sandbox's kiosk chats on the server, so the
+  // old session would 404. Start a fresh chat when a reset is newer than the current session.
+  const sessionCreatedAt = useRef(0);
+  useEffect(() => {
+    sessionCreatedAt.current = sessionQuery.dataUpdatedAt;
+  }, [sessionQuery.dataUpdatedAt]);
+  useEffect(() => {
+    let handled: string | undefined;
+    return realtime.subscribeDemoState((state) => {
+      const resetAt = state.lastResetAt;
+      if (!resetAt || resetAt === handled) return;
+      // no session yet: the next one is created after this reset anyway
+      if (sessionCreatedAt.current && Date.parse(resetAt) > sessionCreatedAt.current) {
+        handled = resetAt;
+        startNew();
+      }
+    });
+  }, [startNew]);
 
   return {
     sessionId,

@@ -25,13 +25,34 @@ def make_client(project: str | None, location: str | None):
     return genai.Client(vertexai=True, project=project, location=location or "global")
 
 
+LIVE_TIMEOUT_MS = int(os.getenv("GEMINI_LIVE_TIMEOUT_MS", "6000"))  # measured 1.6-3.1 s per call
+
+
+def live_client():
+    """Cached Vertex client for the live /pubsub/extract path: one short-timeout call per kiosk turn."""
+    global _live
+    if _live is None:
+        from google import genai
+        from google.genai import types
+
+        from ..config import settings
+
+        _live = genai.Client(vertexai=True, project=settings.gcp_project, location=settings.gcp_location,
+                             http_options=types.HttpOptions(timeout=LIVE_TIMEOUT_MS))
+    return _live
+
+
+_live = None
+
+
 def _flatten(transcript) -> str:
     turns = parse_turns(transcript)
     return "\n".join(f"{'Shopper' if t.get('role') == 'shopper' else 'Agent'}: {t.get('text', '')}"
                      for t in turns)
 
 
-def extract_item(client, model: str, transcript, catalog: Catalog, retries: int = 5) -> dict | None:
+def extract_item(client, model: str, transcript, catalog: Catalog, retries: int = 5,
+                 thinking_budget: int | None = None) -> dict | None:
     """Call Gemini once for a conversation; return the first item dict, or None on repeated failure."""
     from google.genai import types
 
@@ -41,6 +62,8 @@ def extract_item(client, model: str, transcript, catalog: Catalog, retries: int 
         response_mime_type="application/json",
         response_schema=ExtractionResult,
         temperature=0.0,
+        # live path passes 0 (no thinking: lower latency); batch keeps the model default
+        thinking_config=types.ThinkingConfig(thinking_budget=thinking_budget) if thinking_budget is not None else None,
     )
     user = build_user_prompt(_flatten(transcript), cat_dicts)
     for attempt in range(retries):

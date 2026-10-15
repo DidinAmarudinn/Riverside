@@ -23,6 +23,8 @@ class Settings:
     gcp_location: str = os.getenv("GCP_LOCATION", "us-central1")
     bq_dataset: str = os.getenv("BQ_DATASET", "demand_radar")
     gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    # Live /pubsub/extract asks Gemini when the offline rules are unsure (low confidence); 0 = rules only.
+    live_extract_llm: bool = os.getenv("LIVE_EXTRACT_LLM", "1") != "0"
     # Gemini 2.5 thinking budget in tokens: 0 = off (default: much lower latency, see docs/limits.md),
     # -1 = leave it to the model (dynamic thinking), N > 0 = cap.
     gemini_thinking_budget: int = int(os.getenv("GEMINI_THINKING_BUDGET", "0"))

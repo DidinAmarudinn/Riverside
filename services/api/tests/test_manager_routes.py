@@ -106,10 +106,11 @@ def test_gaps_shape_series_trend_and_revenue():
     assert body["storeId"] == "S01"
     oat, tea = body["items"]
     assert {"name", "category", "requests", "firstSeen", "lastSeen", "daily", "trend7dPct"} <= oat.keys()
-    assert oat["name"] == "oat milk" and oat["category"] == "Other" and oat["requests"] == 12
-    assert len(oat["daily"]) == 14 and oat["daily"][13] == 2 and oat["daily"][4] == 1  # oldest first
-    assert oat["trend7dPct"] == 100  # 2 requests in the last 7 days vs 1 in the 7 before
-    assert oat["quote"] == "a" and "estRevenueIdr" not in oat  # no category -> no revenue guess
+    # "oat milk" (12) and "oat mulk" (3) merge under the catalog name, with the catalog category
+    assert oat["name"] == "Oat Milk" and oat["category"] == "Beverages" and oat["requests"] == 15
+    assert len(oat["daily"]) == 14 and oat["daily"][13] == 3 and oat["daily"][4] == 1  # oldest first, both spellings
+    assert oat["trend7dPct"] == 200  # 3 requests in the last 7 days vs 1 in the 7 before
+    assert oat["quote"] == "a" and oat["estRevenueIdr"] == 15 * 8500
     assert tea["category"] == "Beverages" and tea["estRevenueIdr"] == 4 * 8500 and "quote" not in tea
 
 
