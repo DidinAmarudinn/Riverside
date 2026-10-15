@@ -16,11 +16,13 @@ deploy_api() {
       --repository-format docker --description "Demand Radar images"
   gcloud builds submit "$ROOT" --project "$GCP_PROJECT" \
     --config "$ROOT/infra/cloudbuild.yaml" --substitutions "_IMAGE=$image"
+  # One warm instance keeps the first kiosk turn and the live signal under the < 5 s target (no cold start).
+  # PUBLISHER=pubsub sends kiosk turns to the conversations topic (infra/pubsub.sh); the default is in-memory.
   gcloud run deploy demand-radar-api --project "$GCP_PROJECT" --region "$REGION" \
     --image "$image" --allow-unauthenticated \
     --service-account "dr-api@$GCP_PROJECT.iam.gserviceaccount.com" \
-    --min-instances "${MIN_INSTANCES:-0}" --max-instances "${MAX_INSTANCES:-3}" \
-    --set-env-vars "GCP_PROJECT=$GCP_PROJECT,GCP_LOCATION=$REGION,DATA_BACKEND=gcp,GOOGLE_GENAI_USE_VERTEXAI=TRUE,PUBSUB_AUDIENCE=https://demand-radar-api-$number.$REGION.run.app"
+    --min-instances "${MIN_INSTANCES:-1}" --max-instances "${MAX_INSTANCES:-3}" \
+    --set-env-vars "GCP_PROJECT=$GCP_PROJECT,GCP_LOCATION=$REGION,DATA_BACKEND=gcp,GOOGLE_GENAI_USE_VERTEXAI=TRUE,PUBLISHER=pubsub,PUBSUB_AUDIENCE=https://demand-radar-api-$number.$REGION.run.app"
 }
 deploy_web() {
   (cd "$ROOT/apps/web" && npm ci && npm run build)
