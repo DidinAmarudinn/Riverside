@@ -109,10 +109,9 @@ export function ManagerDashboard() {
             variant="primary"
             onClick={() =>
               nextMorning.mutate(undefined, {
-                onSuccess: (state) =>
+                onSuccess: () =>
                   toast({
                     title: "Rekomendasi dihitung ulang",
-                    description: `Skenario: ${state.scenario}`,
                     variant: "success",
                   }),
                 onError: () =>

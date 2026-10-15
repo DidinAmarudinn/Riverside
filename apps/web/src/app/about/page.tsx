@@ -33,8 +33,8 @@ const ROLES = [
   },
   {
     icon: Globe,
-    title: "Firebase Hosting",
-    body: "Serves this static frontend and rewrites /api/** to Cloud Run so the browser talks to the API without CORS configuration.",
+    title: "Firebase Hosting + Firestore",
+    body: "Hosting serves this static frontend and rewrites /api/** to Cloud Run. Firestore pushes alerts, the live demand feed and KPIs to the dashboard in real time.",
   },
 ];
 
@@ -81,8 +81,9 @@ export default function AboutPage() {
             ))}
           </div>
           <p className="mt-4 text-caption text-on-surface-variant">
-            Note: this build keeps the platform serverless but replaces Firestore
-            listeners with HTTP polling against the API — see
+            Real-time updates (alerts, live demand feed, KPIs) come from
+            read-only Firestore listeners scoped to each visitor&apos;s demo
+            sandbox — see
             {" "}
             <code className="rounded bg-surface-container-low px-1 py-0.5 font-label-mono">
               docs/fe-decisions.md

@@ -27,10 +27,10 @@ export function JuryActions() {
   const handleReset = () => {
     if (!window.confirm("Reset demo ke kondisi awal (Selasa malam)?")) return;
     resetDemo.mutate(undefined, {
-      onSuccess: (state) =>
+      onSuccess: () =>
         toast({
           title: "Demo direset",
-          description: `Skenario: ${state.scenario}`,
+          description: "Skenario: Selasa malam",
           variant: "success",
         }),
       onError: () =>
@@ -40,10 +40,10 @@ export function JuryActions() {
 
   const handleNextMorning = () => {
     nextMorning.mutate(undefined, {
-      onSuccess: (state) => {
+      onSuccess: () => {
         toast({
           title: "Next morning dijalankan",
-          description: `Skenario: ${state.scenario}. Santan: A = 0, B = 60.`,
+          description: "Santan: A = 0, B = 60.",
           variant: "success",
         });
         router.push("/manager");

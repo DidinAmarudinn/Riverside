@@ -1,13 +1,27 @@
 import { z } from "zod";
 
 /**
- * Zod schemas for the backend contract (build plan §4.2 & §4.3).
- * Raw payloads are snake_case; adapters.ts maps them to camelCase domain types.
- * Any response that fails validation surfaces as an error state.
+ * Zod schemas for the backend contract (docs/api-contract.md).
+ * API and Firestore payloads are camelCase (column names from §1 camelCased:
+ * `price_idr` → `priceIdr`, `forecast_a_7d` → `forecastA7d`). adapters.ts maps
+ * them to the UI domain types. Any response that fails validation surfaces as
+ * an error state.
  */
 
+const riskType = z.enum(["stockout_risk", "overstock", "reorder", "unmet_spike"]);
+const outcome = z.enum(["purchased", "out_of_stock", "not_carried", "substituted"]);
+
+/** Firestore Timestamp (has toDate) or ISO string → ISO string. */
+const timestamp = z.preprocess(
+  (v) =>
+    v && typeof v === "object" && "toDate" in v
+      ? (v as { toDate: () => Date }).toDate().toISOString()
+      : v,
+  z.string(),
+);
+
 export const storeSchema = z.object({
-  store_id: z.string(),
+  storeId: z.string(),
   name: z.string(),
   city: z.string(),
   lat: z.number(),
@@ -19,90 +33,101 @@ export const productSchema = z.object({
   name: z.string(),
   brand: z.string().optional().default(""),
   category: z.string().optional().default(""),
-  pack_size: z.string().optional(),
+  packSize: z.string().optional(),
   unit: z.string().optional(),
-  price_idr: z.number(),
+  priceIdr: z.number(),
   aisle: z.string().optional(),
   synonyms: z.array(z.string()).optional(),
-  is_carried: z.boolean().optional().default(true),
-  in_stock: z.boolean().optional(),
-  stock_qty: z.number().optional(),
+  isCarried: z.boolean().optional().default(true),
+  inStock: z.boolean().optional(),
+  stockQty: z.number().optional(),
 });
 
 const kioskCardSchema = z.object({
   sku: z.string(),
   name: z.string(),
   subtitle: z.string().optional(),
-  price_idr: z.number().optional(),
-  in_stock: z.boolean(),
+  priceIdr: z.number().optional(),
+  inStock: z.boolean(),
   aisle: z.string().optional(),
-  stock_qty: z.number().optional(),
+  stockQty: z.number().optional(),
 });
 
 export const kioskMessageSchema = z.object({
   reply: z.string(),
   products: z.array(kioskCardSchema).default([]),
   alternatives: z.array(kioskCardSchema).default([]),
-  nearest_branch: z
+  nearestBranch: z
     .object({
-      store_id: z.string(),
+      storeId: z.string(),
       name: z.string(),
-      distance_km: z.number(),
-      stock_qty: z.number(),
+      distanceKm: z.number(),
+      stockQty: z.number(),
     })
-    .optional(),
+    .nullish(),
 });
 
 export const recommendationSchema = z.object({
-  store_id: z.string(),
+  storeId: z.string(),
   sku: z.string(),
   name: z.string().optional().default(""),
   category: z.string().optional().default(""),
-  on_hand: z.number(),
-  forecast_a_7d: z.number(),
-  forecast_b_7d: z.number(),
-  unmet_7d: z.number().optional().default(0),
-  recommended_qty_b: z.number(),
-  recommended_qty_a: z.number().optional().default(0),
-  risk_type: z.enum(["stockout_risk", "overstock", "reorder", "unmet_spike"]),
-  lost_revenue_idr: z.number().optional().default(0),
-  reason_text: z.string().optional().default(""),
+  onHand: z.number(),
+  forecastA7d: z.number(),
+  forecastB7d: z.number(),
+  unmet7d: z.number().optional().default(0),
+  recommendedQtyB: z.number(),
+  recommendedQtyA: z.number().optional().default(0),
+  riskType,
+  lostRevenueIdr: z.number().optional().default(0),
+  reasonText: z.string().optional().default(""),
 });
 
+/** KPI row: `metrics/{storeId}` and `sandboxes/{id}/metrics/{storeId}` (delta). */
 export const metricsSchema = z.object({
-  store_id: z.string(),
-  lost_revenue_today: z.number(),
-  unmet_today: z.number(),
-  stockout_skus: z.number(),
-  pos_refreshed_at: z.string().optional(),
+  lostRevenueToday: z.number().default(0),
+  unmetToday: z.number().default(0),
+  stockoutSkus: z.number().default(0),
+  posRefreshedAt: timestamp.optional(),
 });
 
 export const overviewSchema = z.object({
-  metrics: metricsSchema,
-  top_risks: z.array(recommendationSchema).default([]),
+  storeId: z.string(),
+  kpis: metricsSchema,
+  topRisks: z.array(recommendationSchema).default([]),
 });
 
+/** `sandboxes/{id}/alerts/{id}` (Firestore). */
 export const alertSchema = z.object({
   id: z.string(),
-  store_id: z.string(),
+  storeId: z.string(),
   sku: z.string().optional(),
-  type: z.enum(["stockout_risk", "overstock", "reorder", "unmet_spike"]),
+  type: riskType,
   severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
   title: z.string(),
   body: z.string().optional().default(""),
-  created_at: z.string(),
+  createdAt: timestamp,
 });
 
+/** `sandboxes/{id}/liveSignals/{id}` (Firestore). */
 export const liveSignalSchema = z.object({
   id: z.string(),
-  store_id: z.string(),
-  ts: z.string(),
-  requested_text: z.string(),
-  sku: z.string().optional(),
-  matched_name: z.string().optional(),
-  substitute_name: z.string().optional(),
-  outcome: z.enum(["purchased", "out_of_stock", "not_carried", "substituted"]),
+  storeId: z.string().optional(),
+  ts: timestamp,
+  requestedText: z.string(),
+  sku: z.string().nullish(),
+  matchedName: z.string().optional(),
+  substituteName: z.string().optional(),
+  // low_confidence signals are stored but never shown as demand (§1).
+  outcome: z.union([outcome, z.literal("low_confidence")]),
   source: z.string().optional(),
+});
+
+/** `sandboxes/{id}` (Firestore). */
+export const demoStateSchema = z.object({
+  scenario: z.string().default("Selasa malam"),
+  lastResetAt: timestamp.optional(),
+  createdAt: timestamp.optional(),
 });
 
 export const citationSchema = z.object({
@@ -113,21 +138,21 @@ export const citationSchema = z.object({
 });
 
 export const managerChatSchema = z.object({
-  session_id: z.string(),
+  sessionId: z.string(),
   reply: z.string(),
   citations: z.array(citationSchema).default([]),
 });
 
 const forecastPointSchema = z.object({
   date: z.string(),
-  pos_sales: z.number(),
-  forecast_a: z.number(),
-  forecast_a_lower: z.number().optional(),
-  forecast_a_upper: z.number().optional(),
-  forecast_b: z.number(),
-  forecast_b_lower: z.number().optional(),
-  forecast_b_upper: z.number().optional(),
-  is_stockout: z.boolean().default(false),
+  posSales: z.number(),
+  forecastA: z.number(),
+  forecastALower: z.number().optional(),
+  forecastAUpper: z.number().optional(),
+  forecastB: z.number(),
+  forecastBLower: z.number().optional(),
+  forecastBUpper: z.number().optional(),
+  isStockout: z.boolean().default(false),
 });
 
 const unmetPointSchema = z.object({
@@ -140,8 +165,8 @@ const evidenceSchema = z.object({
   ts: z.string(),
   channel: z.string(),
   text: z.string(),
-  matched_name: z.string().optional(),
-  outcome: z.enum(["purchased", "out_of_stock", "not_carried", "substituted"]),
+  matchedName: z.string().optional(),
+  outcome,
   confidence: z.number(),
   intent: z.string().optional(),
 });
@@ -152,25 +177,25 @@ export const skuDetailSchema = z.object({
   brand: z.string().optional(),
   category: z.string().optional().default(""),
   barcode: z.string().optional(),
-  price_idr: z.number(),
-  risk_type: z.enum(["stockout_risk", "overstock", "reorder", "unmet_spike"]),
+  priceIdr: z.number(),
+  riskType,
   kpis: z.object({
-    on_hand: z.number(),
-    on_hand_note: z.string().optional(),
-    lost_revenue_idr: z.number(),
-    lost_revenue_units: z.number().optional(),
-    unmet_requests: z.number(),
-    stockout_days: z.number(),
-    stockout_since: z.string().optional(),
+    onHand: z.number(),
+    onHandNote: z.string().optional(),
+    lostRevenueIdr: z.number(),
+    lostRevenueUnits: z.number().optional(),
+    unmetRequests: z.number(),
+    stockoutDays: z.number(),
+    stockoutSince: z.string().optional(),
   }),
   series: z.array(forecastPointSchema).default([]),
-  daily_unmet: z.array(unmetPointSchema).default([]),
+  unmetDaily: z.array(unmetPointSchema).default([]),
   recommendation: z.object({
-    recommended_qty: z.number(),
-    recommended_qty_a: z.number().optional().default(0),
-    reason_text: z.string().optional().default(""),
+    recommendedQtyB: z.number(),
+    recommendedQtyA: z.number().optional().default(0),
+    reasonText: z.string().optional().default(""),
     vendor: z.string().optional(),
-    lead_time_days: z.number().optional(),
+    leadTimeDays: z.number().optional(),
     urgency: z.enum(["low", "medium", "high"]).optional(),
   }),
   evidence: z.object({
@@ -185,8 +210,8 @@ export const gapItemSchema = z.object({
   subtitle: z.string().optional(),
   category: z.string(),
   requests: z.number(),
-  trend_7d: z.string(),
-  trend_direction: z.enum(["up", "down", "flat"]).default("flat"),
+  trend7d: z.string(),
+  trendDirection: z.enum(["up", "down", "flat"]).default("flat"),
   spark: z.array(z.number()).default([]),
   quote: z.string(),
 });
@@ -194,8 +219,8 @@ export const gapItemSchema = z.object({
 export const gapsSchema = z.object({
   items: z.array(gapItemSchema).default([]),
   summary: z.object({
-    total_requests: z.number(),
-    lost_revenue_exposure_idr: z.number(),
+    totalRequests: z.number(),
+    lostRevenueExposureIdr: z.number(),
     categories: z.array(
       z.object({
         name: z.string(),
@@ -206,11 +231,6 @@ export const gapsSchema = z.object({
   }),
 });
 
-export const demoStateSchema = z.object({
-  scenario: z.string(),
-  last_reset_at: z.string(),
-});
-
 export const sessionSchema = z.object({
-  session_id: z.string(),
+  sessionId: z.string(),
 });

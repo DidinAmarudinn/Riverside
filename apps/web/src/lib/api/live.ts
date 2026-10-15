@@ -3,24 +3,18 @@ import { API_BASE } from "@/lib/env";
 import { apiFetch } from "./client";
 import type { ApiClient } from "./contract";
 import {
-  adaptAlert,
-  adaptDemoState,
   adaptGaps,
   adaptKioskMessage,
   adaptManagerChat,
   adaptOverview,
   adaptProduct,
   adaptRecommendation,
-  adaptSignal,
   adaptSkuDetail,
   adaptStore,
 } from "./adapters";
 import {
-  alertSchema,
-  demoStateSchema,
   gapsSchema,
   kioskMessageSchema,
-  liveSignalSchema,
   managerChatSchema,
   overviewSchema,
   productSchema,
@@ -31,44 +25,38 @@ import {
 } from "./schemas";
 
 /**
- * Live adapter. Calls the FastAPI backend behind the `/api` prefix (build plan
- * §4.3). Responses are validated with zod and mapped to camelCase.
- *
- * NOTE: list endpoints are assumed to return envelopes ({ stores }, { ... }).
- * See docs/fe-decisions.md for the list of assumed endpoints to confirm.
+ * Live adapter. Calls the FastAPI backend behind the `/api` prefix
+ * (docs/api-contract.md §3). Every request carries `X-Sandbox-Id` (client.ts).
+ * Responses are validated with zod; list endpoints return `{ items }`.
+ * Alerts, live signals, KPI deltas and demo state come from Firestore
+ * (src/lib/realtime/live.ts), not from this adapter.
  */
 
-const storeListSchema = z.object({ stores: z.array(storeSchema) });
-const productListSchema = z.object({ products: z.array(productSchema) });
-const recommendationListSchema = z.object({
-  recommendations: z.array(recommendationSchema),
-});
-const alertListSchema = z.object({ alerts: z.array(alertSchema) });
-const signalListSchema = z.object({ signals: z.array(liveSignalSchema) });
+const items = <T extends z.ZodType>(schema: T) =>
+  z.object({ items: z.array(schema) });
 
 export const liveApi: ApiClient = {
   async getStores() {
     const raw = await apiFetch(`${API_BASE}/stores`, {
-      schema: storeListSchema,
+      schema: items(storeSchema),
     });
-    return raw.stores.map(adaptStore);
+    return raw.items.map(adaptStore);
   },
 
   async getProducts(q) {
     const raw = await apiFetch(
       `${API_BASE}/products?q=${encodeURIComponent(q)}`,
-      { schema: productListSchema },
+      { schema: items(productSchema) },
     );
-    return raw.products.map(adaptProduct);
+    return raw.items.map(adaptProduct);
   },
 
   async createKioskSession(storeId) {
-    const raw = await apiFetch(`${API_BASE}/kiosk/sessions`, {
+    return apiFetch(`${API_BASE}/kiosk/sessions`, {
       method: "POST",
       body: { storeId },
       schema: sessionSchema,
     });
-    return { sessionId: raw.session_id };
   },
 
   async sendKioskMessage({ sessionId, text }) {
@@ -94,9 +82,9 @@ export const liveApi: ApiClient = {
     const query = risk ? `?risk=${risk}` : "";
     const raw = await apiFetch(
       `${API_BASE}/manager/${storeId}/recommendations${query}`,
-      { schema: recommendationListSchema },
+      { schema: items(recommendationSchema) },
     );
-    return raw.recommendations.map(adaptRecommendation);
+    return raw.items.map(adaptRecommendation);
   },
 
   async getSkuDetail(storeId, sku) {
@@ -123,43 +111,14 @@ export const liveApi: ApiClient = {
     return adaptGaps(raw);
   },
 
-  async getDemoState() {
-    const raw = await apiFetch(`${API_BASE}/demo/state`, {
-      schema: demoStateSchema,
-    });
-    return adaptDemoState(raw);
-  },
-
   async resetDemo() {
-    const raw = await apiFetch(`${API_BASE}/demo/reset`, {
-      method: "POST",
-      schema: demoStateSchema,
-    });
-    return adaptDemoState(raw);
+    await apiFetch(`${API_BASE}/demo/reset`, { method: "POST" });
   },
 
   async nextMorning(storeId) {
-    const raw = await apiFetch(`${API_BASE}/demo/next-morning`, {
+    await apiFetch(`${API_BASE}/demo/next-morning`, {
       method: "POST",
       body: { storeId },
-      schema: demoStateSchema,
     });
-    return adaptDemoState(raw);
-  },
-};
-
-// Exposed for the realtime polling adapter (no Firestore in this build).
-export const liveRealtimeFetchers = {
-  async alerts(storeId: string) {
-    const raw = await apiFetch(`${API_BASE}/manager/${storeId}/alerts`, {
-      schema: alertListSchema,
-    });
-    return raw.alerts.map(adaptAlert);
-  },
-  async signals(storeId: string) {
-    const raw = await apiFetch(`${API_BASE}/manager/${storeId}/live-signals`, {
-      schema: signalListSchema,
-    });
-    return raw.signals.map(adaptSignal);
   },
 };

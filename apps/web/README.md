@@ -43,14 +43,16 @@ npm run dev                  # http://localhost:3000
 
 - **`mock`** (default): fixtures + a simulated realtime emitter. Complete demo
   scenarios run without any backend. Simulated latency 300–1200ms.
-- **`live`**: calls `/api/**`, validates every response with `zod`, and maps
-  `snake_case` → `camelCase` in one adapter. Realtime uses HTTP polling (there is
-  no Firestore in this build — see `docs/fe-decisions.md`).
+- **`live`**: calls `/api/**` with an `X-Sandbox-Id` header, validates every
+  response with `zod` and maps it to UI types in one adapter. Realtime uses
+  read-only Firestore listeners on the visitor's sandbox (see
+  `docs/fe-decisions.md`).
 
 ## Environment
 
-See `.env.example`. All variables are `NEXT_PUBLIC_*` (no secrets). There is no
-Firebase configuration in this build.
+See `.env.example`. All variables are `NEXT_PUBLIC_*` (no secrets). Live mode
+needs the `NEXT_PUBLIC_FIREBASE_*` web config for realtime; Firestore rules
+(`infra/firestore.rules`) allow reads only.
 
 ## Demo flow (mock)
 
@@ -85,8 +87,10 @@ src/
 ├─ hooks/               # data + realtime + domain hooks
 ├─ lib/
 │  ├─ api/              # client, contract, schemas, adapters, mock, live, index
-│  ├─ realtime/         # mock emitter, live polling, index
+│  ├─ realtime/         # mock emitter, live Firestore listeners, index
 │  ├─ format.ts         # IDR, Asia/Jakarta dates, relative time
+│  ├─ firebase.ts       # lazy Firestore client (live mode)
+│  ├─ sandbox.ts        # per-visitor X-Sandbox-Id
 │  └─ env.ts
 └─ mocks/               # fixtures + in-memory demo state (hero scenario)
 ```
@@ -100,6 +104,6 @@ Deploy with `infra/deploy.sh web` from the repo root.
 
 ## Decisions & extensions to the shared contract
 
-See `docs/fe-decisions.md` (stack, static export, SKU route, no-Firebase
-realtime, removed internal names, disabled optional features) and
+See `docs/fe-decisions.md` (stack, static export, SKU route, Firestore
+realtime, response shapes to agree, removed internal names, disabled optional features) and
 `docs/api-usage.md` (endpoints used and mock behaviours).

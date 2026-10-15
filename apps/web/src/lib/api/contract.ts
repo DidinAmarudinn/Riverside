@@ -37,9 +37,10 @@ export interface ApiClient {
     message: string;
   }): Promise<ManagerChatResponse>;
   getGaps(storeId: string): Promise<GapsResponse>;
-  getDemoState(): Promise<DemoState>;
-  resetDemo(): Promise<DemoState>;
-  nextMorning(storeId: string): Promise<DemoState>;
+  /** Deletes this visitor's sandbox content (204). State arrives via realtime. */
+  resetDemo(): Promise<void>;
+  /** Recomputes the hero scenario into the sandbox. State arrives via realtime. */
+  nextMorning(storeId: string): Promise<void>;
 }
 
 export interface RealtimeClient {

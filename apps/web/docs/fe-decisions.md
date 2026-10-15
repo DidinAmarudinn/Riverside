@@ -25,33 +25,54 @@ frontend. Owner: frontend. Newest decisions added at the bottom of each section.
   static export works for every SKU. Deep links from chat citations use
   `/manager/sku?code=...&evidence=open`.
 
-## Data layer (no Firebase)
+## Data layer (follows docs/api-contract.md)
 
-- **Firestore/Firebase are intentionally not used** (team decision). The PRD's
-  `onSnapshot` realtime layer is replaced behind the same `RealtimeClient`
-  interface:
+- **Contract first.** The FE adapts to the repo-root `docs/api-contract.md`;
+  contract changes go through a PR. An earlier draft of this app replaced
+  Firestore with polling against invented endpoints (`/api/demo/state`,
+  `/api/manager/{storeId}/alerts`, `/live-signals`); that was reverted.
+- **Sandbox.** `src/lib/sandbox.ts` creates a UUID v4 on first visit, keeps it in
+  localStorage and `client.ts` sends it as `X-Sandbox-Id` on every request (the
+  API returns 400 without it). Firestore listeners use the same id.
+- **Realtime** sits behind `RealtimeClient` (`src/lib/realtime/index.ts`):
   - `mock` mode: an in-memory emitter (`src/mocks/state.ts`) that fires on kiosk
     signals, "next morning" and reset.
-  - `live` mode: **HTTP polling** every 5s (`src/lib/realtime/live.ts`).
-  Components depend only on `src/lib/realtime/index.ts`, so swapping in
-  Firestore later requires no component changes.
-- All raw API payloads are `snake_case` and validated with `zod`
-  (`src/lib/api/schemas.ts`); conversion to `camelCase` happens only in
-  `src/lib/api/adapters.ts`. The UI never reads `true_demand` or `gt_*` fields.
+  - `live` mode: read-only Firestore `onSnapshot` (`src/lib/realtime/live.ts`):
+    `sandboxes/{id}/alerts`, `sandboxes/{id}/liveSignals`, `metrics/{storeId}`
+    + `sandboxes/{id}/metrics/{storeId}` (baseline + delta), and
+    `sandboxes/{id}` for the demo state. Feeds are ordered by
+    `createdAt` / `ts` and filtered by store client-side (no composite index).
+    Without `NEXT_PUBLIC_FIREBASE_*`, only the KPI row loads, once, from
+    `/overview`.
+- **Payloads are camelCase** (as in contract §2–3: `sessionId`, `inStock`,
+  `nearestBranch`, `lostRevenueToday`); field names from BigQuery are
+  camelCased (`price_idr` → `priceIdr`, `forecast_a_7d` → `forecastA7d`). Lists
+  are `{ items: [...] }`. All responses are validated with `zod`
+  (`src/lib/api/schemas.ts`) and mapped to UI types in `adapters.ts`. The UI
+  never reads `true_demand` or `gt_*` fields; `low_confidence` signals are
+  dropped from the live feed.
+- `POST /api/demo/reset` returns 204 and `POST /api/demo/next-morning` returns
+  `{ storeId, updated }`; the UI ignores both bodies and picks up the new state
+  from Firestore.
 - `NEXT_PUBLIC_DATA_MODE` selects the adapter (`mock` default).
 
-## Assumed API endpoints (to confirm with backend)
+## Response shapes still to agree with backend
 
-These were not fully specified in the build plan (they previously lived in
-Firestore). The frontend assumes:
+The contract names these responses but not their fields. The FE shapes are in
+`src/lib/api/schemas.ts`; they must be agreed with the backend owner and then
+written into `docs/api-contract.md` by PR:
 
-- `GET /api/demo/state` → `{ scenario, last_reset_at }`
-- `GET /api/manager/{storeId}/alerts` → `{ alerts: [...] }`
-- `GET /api/manager/{storeId}/live-signals` → `{ signals: [...] }`
-- List endpoints return envelopes (`{ stores }`, `{ products }`,
-  `{ recommendations }`, `{ alerts }`, `{ signals }`).
-- `POST /api/demo/reset` and `POST /api/demo/next-morning` return the new
-  `{ scenario, last_reset_at }`.
+- `GET /overview` → `{ storeId, kpis: {lostRevenueToday, unmetToday,
+  stockoutSkus}, topRisks: [recommendation] }` (matches the backend stub).
+- `GET /sku/{sku}`: the FE needs product info, `riskType`, `kpis`, a merged
+  `series` (sales + A/B with bands + `isStockout`), `unmetDaily`,
+  `recommendation` and `evidence: {total, items}`. The backend stub returns
+  separate `sales` / `forecastA` / `forecastB` arrays and `reason`.
+- `GET /gaps`: the FE needs `{ items, summary: {totalRequests,
+  lostRevenueExposureIdr, categories} }`; the stub returns `{ categories }`.
+- `citations` in `/chat`: FE assumes `{ label, sku?, date?, snippet? }`.
+- Alert `severity` and live-signal `matchedName` / `substituteName` /
+  `source` are FE additions to the Firestore documents in contract §2.
 
 ## Design fidelity
 
@@ -84,7 +105,6 @@ Firestore). The frontend assumes:
 
 - The jury page has no Stitch reference; it reuses the Manager visual language.
 - `/about` describes the platform roles (Cloud Run, Gemini, BigQuery/BQML,
-  Firebase Hosting) and notes that realtime uses API polling instead of
-  Firestore.
+  Firebase Hosting + Firestore).
 - Mock serves the same dataset for every store (Toko 2/3 relabel), sufficient
   for the demo; live mode uses `storeId` from the API.

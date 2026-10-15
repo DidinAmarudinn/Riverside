@@ -1,6 +1,6 @@
 /**
  * Domain types used across the UI. All names are camelCase.
- * The API contract (build plan §4) is snake_case; conversion happens in
+ * Payloads follow docs/api-contract.md; mapping to these types happens in
  * src/lib/api/adapters.ts only.
  */
 
@@ -220,7 +220,7 @@ export interface GapsResponse {
 
 export interface DemoState {
   scenario: string;
-  lastResetAt: string;
+  lastResetAt?: string;
 }
 
 export interface EvidenceDrawerTarget {

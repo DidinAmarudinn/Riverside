@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { sandboxId } from "@/lib/sandbox";
 
 export const REQUEST_TIMEOUT_MS = 20_000;
 
@@ -43,7 +44,10 @@ async function rawFetch<T>(
   try {
     const res = await fetch(path, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
+      headers: {
+        "X-Sandbox-Id": sandboxId(),
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
       body: body ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
@@ -60,6 +64,8 @@ async function rawFetch<T>(
         status: res.status,
       });
     }
+
+    if (res.status === 204) return undefined as T;
 
     if (schema) {
       const parsed = schema.safeParse(json);

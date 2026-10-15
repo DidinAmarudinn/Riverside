@@ -6,22 +6,36 @@ adapter based on `NEXT_PUBLIC_DATA_MODE` (`mock` | `live`). Components call
 
 ## Endpoints used (live mode)
 
-| Method & path | Used by | Notes |
+Contract: repo-root `docs/api-contract.md` §3. Every request carries
+`X-Sandbox-Id` (UUID v4 from `src/lib/sandbox.ts`).
+
+| Method & path | Used by | Response |
 |---|---|---|
-| `GET /api/stores` | Kiosk/Manager store selector | `{ stores: [...] }` |
-| `GET /api/products?q=` | product search | `{ products: [...] }` |
-| `POST /api/kiosk/sessions` | kiosk mount | `{ storeId }` → `{ session_id }` |
-| `POST /api/kiosk/sessions/{id}/messages` | kiosk send | `{ text }` → products, alternatives, branch |
-| `GET /api/manager/{storeId}/overview` | dashboard KPIs | `{ metrics, top_risks }` |
-| `GET /api/manager/{storeId}/recommendations?risk=` | dashboard table | `{ recommendations }` |
-| `GET /api/manager/{storeId}/sku/{sku}` | SKU detail | series, daily unmet, evidence |
-| `POST /api/manager/{storeId}/chat` | agent chat | `{ sessionId?, message }` → reply + citations |
+| `GET /api/stores` | Kiosk/Manager store selector | `{ items: [...] }` |
+| `GET /api/products?q=` | product search | `{ items: [...] }` |
+| `POST /api/kiosk/sessions` | kiosk mount | `{ storeId }` → `{ sessionId }` |
+| `POST /api/kiosk/sessions/{id}/messages` | kiosk send | `{ text }` → `{ reply, products, alternatives, nearestBranch? }` |
+| `GET /api/manager/{storeId}/overview` | dashboard KPIs (fallback without Firebase) | `{ storeId, kpis, topRisks }` |
+| `GET /api/manager/{storeId}/recommendations?risk=` | dashboard table | `{ items: [...] }` |
+| `GET /api/manager/{storeId}/sku/{sku}` | SKU detail | series, `unmetDaily`, recommendation, evidence |
+| `POST /api/manager/{storeId}/chat` | agent chat | `{ sessionId?, message }` → `{ reply, citations, sessionId }` |
 | `GET /api/manager/{storeId}/gaps` | gaps | items + summary |
-| `GET /api/demo/state` | jury status chip | `{ scenario, last_reset_at }` |
-| `POST /api/demo/reset` | reset demo | returns new demo state |
-| `POST /api/demo/next-morning` | next morning | `{ storeId }` → new demo state |
-| `GET /api/manager/{storeId}/alerts` | realtime alerts | polled every 5s (assumed) |
-| `GET /api/manager/{storeId}/live-signals` | realtime feed | polled every 5s (assumed) |
+| `POST /api/demo/reset` | reset demo | 204 |
+| `POST /api/demo/next-morning` | next morning | `{ storeId }` → body ignored |
+
+Field shapes for `/overview`, `/sku`, `/gaps` and `citations` are not yet in the
+contract; see `docs/fe-decisions.md` → "Response shapes still to agree".
+
+## Firestore listeners (live mode)
+
+Contract §2, read-only, in `src/lib/realtime/live.ts`:
+
+| Path | Used by |
+|---|---|
+| `sandboxes/{sandboxId}/alerts` (latest 20 by `createdAt`) | alerts panel |
+| `sandboxes/{sandboxId}/liveSignals` (latest 20 by `ts`) | live demand feed |
+| `metrics/{storeId}` + `sandboxes/{sandboxId}/metrics/{storeId}` | KPI row (baseline + delta) |
+| `sandboxes/{sandboxId}` | jury page scenario / last reset |
 
 `GET` requests are retried once. All requests time out after 20s. Errors are
 normalized to `{ error: { code, message } }`; HTTP 429 shows "Terlalu cepat,

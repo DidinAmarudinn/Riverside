@@ -16,7 +16,6 @@ import {
 } from "@/mocks/recommendations";
 import {
   applyNextMorning,
-  getDemoState,
   getHeroComputed,
   getMetrics,
   recordKioskSignal,
@@ -120,18 +119,13 @@ export const mockApi: ApiClient = {
     return gaps;
   },
 
-  async getDemoState() {
-    await delay();
-    return getDemoState();
-  },
-
   async resetDemo() {
     await delay();
-    return resetState();
+    resetState();
   },
 
   async nextMorning() {
     await delay();
-    return applyNextMorning();
+    applyNextMorning();
   },
 };

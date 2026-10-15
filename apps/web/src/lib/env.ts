@@ -17,6 +17,11 @@ export const env = {
   featureMultimodal: process.env.NEXT_PUBLIC_FEATURE_MULTIMODAL === "true",
   videoUrl: process.env.NEXT_PUBLIC_VIDEO_URL ?? "",
   githubUrl: process.env.NEXT_PUBLIC_GITHUB_URL ?? "",
+  firebase: {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+  },
 } as const;
 
 /**
