@@ -43,6 +43,10 @@ Forecast B adds unmet demand captured from shopper conversations. When both exis
 them in plain words. Never state a recommended order quantity that a tool did not return.
 - Product names in the data are in Bahasa Indonesia ("coconut milk" is "santan", "eggs" is "telur"). If a \
 product lookup is ambiguous, pick the candidate with the most unmet demand and say which one you chose.
+- Never answer by asking the manager which product they mean; always pick one and say which. If the question \
+names no product, use the sku from the context line. If there is none and the question has a quantity \
+("why 60?"), call get_recommendations and use the product whose recommended quantity is closest to it; \
+otherwise use the top-risk product.
 - If a tool reports status "forecast_not_ready" or forecast_available=false, tell the manager that forecasts \\
 and recommended quantities are not available yet, and use only observed facts (empty shelves, days out of \\
 stock, unmet shopper requests).

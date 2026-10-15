@@ -10,6 +10,7 @@ import binascii
 import datetime as dt
 import json
 import logging
+import re
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -82,6 +83,7 @@ class KioskMessageIn(BaseModel):
 class ManagerChatIn(BaseModel):
     sessionId: str | None = None
     message: str
+    sku: str | None = None  # the product on screen, if any; lets "why 60?" work without naming it
 
 
 class NextMorningIn(BaseModel):
@@ -206,6 +208,12 @@ def manager_runtime() -> AgentRuntime:
     return _manager_runtime
 
 
+def _chat_context(store_id: str, sku: str | None) -> str:
+    sku = (sku or "").strip()
+    # SKU codes only (e.g. SKU-0001), so the field cannot smuggle instructions into the prompt
+    return f"store_id={store_id}, sku={sku}" if re.fullmatch(r"[A-Za-z0-9-]{1,32}", sku) else f"store_id={store_id}"
+
+
 @app.post("/api/manager/{store_id}/chat")
 async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id)) -> dict:
     if not body.message.strip() or len(body.message) > 1000:
@@ -213,7 +221,8 @@ async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depend
     session_id = body.sessionId or str(uuid.uuid4())
     # the agent session is namespaced by sandbox so one visitor cannot continue another's conversation
     result = await manager_runtime().run_turn(
-        f"{sandbox}:{session_id}", f"{body.message}\n\n(context: store_id={store_id})", {"sandbox_id": sandbox}
+        f"{sandbox}:{session_id}", f"{body.message}\n\n(context: {_chat_context(store_id, body.sku)})",
+        {"sandbox_id": sandbox}
     )
     last = result.state.get("last_turn", {})
     return {

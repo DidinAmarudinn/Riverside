@@ -131,3 +131,8 @@ def test_gaps_across_all_stores_aggregate_by_product(runner):
     get_assortment_gaps("", limit=500)
     sql, params = runner.calls[0]
     assert "GROUP BY g.normalized_name" in sql and "store_id =" not in sql and params["n"] == 20  # capped
+
+
+def test_sku_detail_accepts_english_product_names(runner):
+    res = get_sku_detail("S01", "coconut milk")  # catalog names are Indonesian ("santan")
+    assert res["status"] == "ambiguous" and res["candidates"][0]["sku"] == "SKU-0001"

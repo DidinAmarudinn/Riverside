@@ -312,7 +312,8 @@ def check_demo_flow(sku: str) -> None:
 
     # 5. manager agent explains the number
     status, text, secs = http("POST", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/chat",
-                              {"sessionId": None, "message": WHY_QUESTION}, box, timeout=AGENT_TIMEOUT)
+                              {"sessionId": None, "message": WHY_QUESTION, "sku": sku or None}, box,
+                              timeout=AGENT_TIMEOUT)  # the jury link sends the hero SKU as context
     body = as_json(text) or {}
     reply, citations = str(body.get("reply", "")), body.get("citations") or []
     quoted = any(isinstance(c, dict) and c.get("quote") for c in citations)

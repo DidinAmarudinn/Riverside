@@ -35,6 +35,8 @@ export interface ApiClient {
     storeId: string;
     sessionId?: string;
     message: string;
+    /** The product on screen, if any, so "why 60?" works without naming it. */
+    sku?: string;
   }): Promise<ManagerChatResponse>;
   getGaps(storeId: string): Promise<GapsResponse>;
   /** Deletes this visitor's sandbox content (204). State arrives via realtime. */

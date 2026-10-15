@@ -13,6 +13,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 
 from .bq import get_runner
+from .text import to_indonesian
 
 _MAX_LIST = 10
 _AS_OF = "(SELECT MAX(date) FROM {fq}.stock_events)"
@@ -85,15 +86,23 @@ def _resolve_sku(runner, store_id: str, sku: str) -> tuple[str | None, list[dict
                         {"k": sku.strip().upper()})
     if exact:
         return exact[0]["sku"], []
-    like = runner.rows(
+    query = sku.strip().lower()
+    like = _match_name(runner, store_id, query)
+    if not like and to_indonesian(query) != query:  # the manager wrote in English ("coconut milk")
+        like = _match_name(runner, store_id, to_indonesian(query))
+    return (like[0]["sku"], []) if len(like) == 1 else (None, like)
+
+
+def _match_name(runner, store_id: str, query: str) -> list[dict]:
+    fq = runner.fq
+    return runner.rows(
         f"SELECT p.sku, p.name, COALESCE(SUM(u.unmet_qty), 0) AS unmet_requests_total "
         f"FROM {fq}.product_master p LEFT JOIN {fq}.v_unmet_daily u "
         f"ON u.sku = p.sku AND u.store_id = @s AND u.outcome = 'out_of_stock' "
         f"WHERE p.is_carried AND (LOWER(p.name) LIKE @q OR EXISTS "
         f"(SELECT 1 FROM UNNEST(p.synonyms) y WHERE LOWER(y) LIKE @q)) "
         f"GROUP BY p.sku, p.name ORDER BY unmet_requests_total DESC, p.sku LIMIT 5",
-        {"s": store_id, "q": f"%{sku.strip().lower()}%"})
-    return (like[0]["sku"], []) if len(like) == 1 else (None, like)
+        {"s": store_id, "q": f"%{query}%"})
 
 
 def get_sku_detail(store_id: str, sku: str) -> dict:

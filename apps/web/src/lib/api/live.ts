@@ -95,10 +95,10 @@ export const liveApi: ApiClient = {
     return adaptSkuDetail(raw);
   },
 
-  async managerChat({ storeId, sessionId, message }) {
+  async managerChat({ storeId, sessionId, message, sku }) {
     const raw = await apiFetch(`${API_BASE}/manager/${storeId}/chat`, {
       method: "POST",
-      body: { sessionId, message },
+      body: { sessionId, message, sku },
       schema: managerChatSchema,
     });
     return adaptManagerChat(raw);

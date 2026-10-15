@@ -35,6 +35,7 @@ export function ManagerDashboard() {
   const searchParams = useSearchParams();
   const riskParam = searchParams.get("risk") as RiskType | null;
   const prefillQuestion = searchParams.get("q") ?? undefined;
+  const chatSku = searchParams.get("sku") ?? undefined;
   const { toast } = useToast();
 
   const overview = useOverview();
@@ -296,7 +297,7 @@ export function ManagerDashboard() {
       </div>
 
       <div className="fixed bottom-6 right-6 z-40">
-        <AgentChat initialQuestion={prefillQuestion} />
+        <AgentChat initialQuestion={prefillQuestion} sku={chatSku} />
       </div>
     </div>
   );
