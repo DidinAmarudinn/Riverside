@@ -1,6 +1,6 @@
 """Product catalog for signal extraction (build plan §6.2).
 
-The catalog holds only `is_carried = true` products (CLAUDE.md note 2): items the store does not
+The catalog holds only `is_carried = true` products (build plan note): items the store does not
 sell must come back as `sku = null` so the outcome rules can label them `not_carried`. It drives both
 the Gemini prompt (a compact `sku | name | synonyms` list) and an offline fuzzy matcher used by the
 template extractor and as a fallback when Gemini is unavailable.

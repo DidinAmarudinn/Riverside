@@ -4,8 +4,8 @@
     python -m app.extract.eval
 
 Compares data/out/demand_signals.csv against conversations.gt_sku / gt_outcome and reports outcome
-accuracy + confusion matrix, two-level SKU accuracy (exact and item+size, ignoring brand — CLAUDE.md
-note 4), not_carried recall/precision, confidence spread vs the 0.7 threshold, and failure examples.
+accuracy + confusion matrix, two-level SKU accuracy (exact and item+size, ignoring brand — per the
+build plan), not_carried recall/precision, confidence spread vs the 0.7 threshold, and failure examples.
 Writes docs/extraction-eval.md. Exits 1 if any metric is below the Definition-of-Done threshold.
 """
 from __future__ import annotations

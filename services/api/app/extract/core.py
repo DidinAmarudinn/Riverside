@@ -2,7 +2,7 @@
 
 What the shopper asked for (text, sku, normalized_name, category, qty) comes from Gemini when
 available, else from the offline catalog matcher. The **outcome** is always decided by rules, not by
-the model. On the batch path the rules read the kiosk's replies in the transcript (CLAUDE.md note 1:
+the model. On the batch path the rules read the kiosk's replies in the transcript (build plan note:
 daily stock_events can't tell a morning purchase from an afternoon stockout); the live path can pass
 real-time stock instead via `schema.decide_outcome`.
 """
