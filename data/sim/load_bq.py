@@ -53,9 +53,18 @@ def _render(sql: str, project: str, dataset: str) -> str:
     return sql.replace("${PROJECT}", project).replace("${DATASET}", dataset)
 
 
+def _strip_comments(sql: str) -> str:
+    """Drop `-- ...` comments (full-line and trailing) so they don't swallow adjacent statements."""
+    out = []
+    for line in sql.splitlines():
+        idx = line.find("--")
+        out.append(line if idx == -1 else line[:idx])
+    return "\n".join(out)
+
+
 def _run_sql_file(client, path: Path, project: str, dataset: str) -> None:
-    text = _render(path.read_text(encoding="utf-8"), project, dataset)
-    statements = [s.strip() for s in text.split(";") if s.strip() and not s.strip().startswith("--")]
+    text = _strip_comments(_render(path.read_text(encoding="utf-8"), project, dataset))
+    statements = [s.strip() for s in text.split(";") if s.strip()]
     print(f"  {path.name}: {len(statements)} statement(s)")
     for stmt in statements:
         client.query(stmt).result()
