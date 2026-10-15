@@ -124,12 +124,26 @@ export const liveRealtime: RealtimeClient = {
         }),
       );
 
+    let active = true;
     const offBase = onSnapshot(
       doc(db, "metrics", storeId),
       (s) => {
-        base = parse(metricsSchema, s.data(), "metrics") ?? empty;
-        baseLoaded = true;
-        emit();
+        if (s.exists()) {
+          base = parse(metricsSchema, s.data(), "metrics") ?? empty;
+          baseLoaded = true;
+          emit();
+          return;
+        }
+        // No baseline doc in Firestore: the API overview (BigQuery) is the baseline.
+        liveApi
+          .getOverview(storeId)
+          .then((o) => {
+            if (!active) return;
+            base = o.metrics;
+            baseLoaded = true;
+            emit();
+          })
+          .catch((err) => console.error("[realtime] overview failed", err));
       },
       onError("metrics"),
     );
@@ -142,6 +156,7 @@ export const liveRealtime: RealtimeClient = {
       onError("sandbox metrics"),
     );
     return () => {
+      active = false;
       offBase();
       offDelta();
     };
