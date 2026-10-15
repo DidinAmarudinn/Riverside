@@ -31,24 +31,31 @@ Views hold base data only; agent tools merge them with the visitor's sandbox dat
 
 | Collection | Content | Used by |
 |---|---|---|
-| `recommendations/{storeId}_{sku}` | baseline summary: on_hand, A, B, recommended, reason, unmet_7d | dashboard table |
-| `metrics/{storeId}` | baseline lostRevenueToday, unmetToday, stockoutSkus | KPI row |
+| `recommendations/{storeId}_{sku}` | a **Recommendation** (§3.1) | dashboard table |
+| `metrics/{storeId}` | **Metrics** (§3.1): lostRevenueToday, unmetToday, stockoutSkus, posRefreshedAt? | KPI row |
 
 **Per-visitor data** (sandbox):
 
 | Collection | Content | Used by |
 |---|---|---|
 | `sandboxes/{sandboxId}` | scenario, createdAt, lastResetAt | judges page |
-| `sandboxes/{sandboxId}/alerts/{id}` | storeId, sku, type (`stockout_risk`, `overstock`, `reorder`, `unmet_spike`), severity, title, body, createdAt | real-time dashboard |
-| `sandboxes/{sandboxId}/liveSignals/{id}` | latest signals (requested text, SKU, outcome, ts) | "what shoppers ask for now" feed |
-| `sandboxes/{sandboxId}/metrics/{storeId}` | delta from baseline caused by demo activity | KPI row (baseline + delta) |
-| `sandboxes/{sandboxId}/recommendations/{storeId}_{sku}` | "next morning" results that override the baseline | dashboard table |
+| `sandboxes/{sandboxId}/alerts/{id}` | storeId, sku?, type (`stockout_risk`, `overstock`, `reorder`, `unmet_spike`), severity (`low`, `medium`, `high`, `critical`), title, body, createdAt (Timestamp) | real-time dashboard |
+| `sandboxes/{sandboxId}/liveSignals/{id}` | storeId, ts (Timestamp), requestedText, sku?, matchedName? (product name of `sku`), outcome, substituteName?, source? (e.g. `Kiosk`) | "what shoppers ask for now" feed |
+| `sandboxes/{sandboxId}/metrics/{storeId}` | **Metrics** delta from baseline caused by demo activity (same fields, added to the baseline) | KPI row (baseline + delta) |
+| `sandboxes/{sandboxId}/recommendations/{storeId}_{sku}` | a **Recommendation**: "next morning" result that overrides the baseline | dashboard table |
 | `sandboxes/{sandboxId}/sessions/{id}/messages/{id}` | kiosk and manager chat history, including agent session state | backend only |
+
+The client reads the latest 20 alerts (by `createdAt`) and liveSignals (by `ts`) and filters by `storeId` itself, so no
+composite index is needed. `low_confidence` signals may be written but are never shown.
 
 Rules: public **read** for base data and `sandboxes/{sandboxId}/**` except `sessions`. `sandboxId` is a random UUID, so it
 cannot be guessed. All client **writes are denied**; the backend writes with the Admin SDK.
 
 ## 3. API (FastAPI behind `/api`)
+
+**Naming:** every JSON body and Firestore document is camelCase. Fields that come from a §1 column use the camelCased
+column name (`price_idr` → `priceIdr`, `forecast_a_7d` → `forecastA7d`). IDs are the data's own: stores `S01`–`S03`,
+SKUs `SKU-0001`… (the hero is `S01` / `SKU-0001`). Lists are wrapped as `{items: [...]}`.
 
 Every kiosk, manager and demo endpoint reads the `X-Sandbox-Id` header (UUID v4, validated by the backend). A sandbox is
 created on first use. The browser creates the id on first visit, keeps it in localStorage and sends it on every request.
@@ -56,22 +63,48 @@ created on first use. The browser creates the id on first visit, keeps it in loc
 | Method & path | Request | Response |
 |---|---|---|
 | `GET /api/healthz` | | `{ok}` |
-| `GET /api/stores` | | list of stores |
-| `GET /api/products?q=` | | product search results |
+| `GET /api/stores` | | `{items: [Store]}` |
+| `GET /api/products?q=` | | `{items: [Product]}` |
 | `POST /api/kiosk/sessions` | `{storeId}` | `{sessionId}` |
-| `POST /api/kiosk/sessions/{id}/messages` | `{text}` (optional: `imageBase64`, `audioBase64`) | `{reply, products: [{sku, name, inStock, aisle}], alternatives: [], nearestBranch?}` |
-| `GET /api/manager/{storeId}/overview` | | KPIs + top risks |
-| `GET /api/manager/{storeId}/recommendations` | `?risk=` | recommendation list |
-| `GET /api/manager/{storeId}/sku/{sku}` | | forecast A/B series + sales, daily unmet, evidence (quotes) |
-| `POST /api/manager/{storeId}/chat` | `{sessionId?, message}` | `{reply, citations: [], sessionId}` |
-| `GET /api/manager/{storeId}/gaps` | | products asked for but not carried, by category |
+| `POST /api/kiosk/sessions/{id}/messages` | `{text}` (optional: `imageBase64`, `audioBase64`) | `{reply, products: [KioskProduct], alternatives: [KioskProduct], nearestBranch: Branch \| null}` |
+| `GET /api/manager/{storeId}/overview` | | `{storeId, kpis: Metrics, topRisks: [Recommendation]}` |
+| `GET /api/manager/{storeId}/recommendations` | `?risk=` | `{storeId, items: [Recommendation]}`, most at-risk first |
+| `GET /api/manager/{storeId}/sku/{sku}` | | **SkuDetail** (§3.1) |
+| `POST /api/manager/{storeId}/chat` | `{sessionId?, message}` | `{reply, citations: [Citation], sessionId}` |
+| `GET /api/manager/{storeId}/gaps` | | `{storeId, items: [GapItem]}`, most requested first |
 | `GET /api/manager/{storeId}/trends` (optional) | | rising new demand |
 | `POST /api/manager/recommendations/{id}/approve` (optional) | | draft PO |
 | `POST /api/demo/reset` | | deletes this visitor's sandbox content; base data untouched |
-| `POST /api/demo/next-morning` | `{storeId}` | recomputes the hero scenario's recommendations with the reorder formula (build plan §7); results go to the sandbox |
+| `POST /api/demo/next-morning` | `{storeId}` → `{storeId, updated}` | recomputes the hero scenario's recommendations with the reorder formula (build plan §7); results go to the sandbox |
 | `POST /pubsub/extract` | Pub/Sub push envelope (valid OIDC token required) | 204; 401 if the token is invalid |
 
 Uniform error format: `{"error": {"code", "message"}}`. Every response < 10 s; anything slower shows a loading state.
 
 Firebase Hosting rewrites **only** `/api/**` to Cloud Run. Pub/Sub pushes straight to the Cloud Run URL
 (`/pubsub/extract`), never through Hosting.
+
+### 3.1 Response objects
+
+`?` marks an optional field (omit it or send `null`). Dates are `YYYY-MM-DD`, timestamps ISO 8601 (Timestamp in
+Firestore). Amounts in IDR are integers.
+
+| Object | Fields |
+|---|---|
+| Store | storeId, name, city, lat, lng |
+| Product | sku, name, brand, category, packSize, unit?, priceIdr, aisle, isCarried, inStock? |
+| KioskProduct | sku, name, inStock, aisle, priceIdr?, stockQty? |
+| Branch | storeId, name, distanceKm, stockQty |
+| Metrics | lostRevenueToday, unmetToday, stockoutSkus, posRefreshedAt? |
+| Recommendation | storeId, sku, name, category, onHand, forecastA7d, forecastB7d, unmet7d, recommendedQtyA, recommendedQtyB, riskType, lostRevenueIdr, reasonText |
+| SkuDetail | storeId, sku, product: {name, brand, category, packSize, priceIdr, aisle}, riskType, kpis: {onHand, lostRevenueIdr, lostRevenueUnits, unmetRequests, stockoutDays, stockoutSince?}, sales: [{date, qty, isStockout}], forecastA: [{date, qty, lower?, upper?}], forecastB: [same], unmetDaily: [{date, count}], evidence: {total, items: [Evidence]}, reason: {recommendedQtyA, recommendedQtyB, reasonText, leadTimeDays?} |
+| Evidence | id (conversation_id), ts, channel, quote (what the shopper said), outcome, confidence |
+| Citation | label, sku? (links to that SKU's evidence drawer), date?, quote? |
+| GapItem | name (normalized_name), category, requests, firstSeen, lastSeen, daily: [counts for the last 14 days, oldest first], trend7dPct (last 7 days vs the 7 before, %), quote? (one shopper quote), estRevenueIdr? (requests × typical category price) |
+
+Notes:
+- **SkuDetail** keeps sales and the two forecasts as separate series on their own dates (A and B may cover history and
+  the horizon); the UI merges them by date. `kpis.lostRevenueUnits` is the estimated unmet units behind
+  `lostRevenueIdr`. Evidence never includes `gt_*` columns, `low_confidence` signals or `true_demand`.
+- **GapItem**: the UI ranks items and computes the per-category summary (count, share) and total exposure itself.
+- `riskType`, `outcome` and alert `type` use the enums from §1–2.
+

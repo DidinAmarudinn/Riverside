@@ -20,7 +20,7 @@ class Settings:
     # "local" = CSVs in data/out + in-memory state; "gcp" = BigQuery + Firestore + Pub/Sub
     backend: str = os.getenv("DATA_BACKEND", "local")
     cors_origins: tuple[str, ...] = tuple(
-        o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if o.strip()
+        o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()
     )
 
 

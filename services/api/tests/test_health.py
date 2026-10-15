@@ -28,6 +28,22 @@ def test_kiosk_message_shape():
     assert {"reply", "products", "alternatives", "nearestBranch"} <= r.json().keys()
 
 
+def test_manager_response_shapes():
+    # docs/api-contract.md §3.1; the web app validates these with zod.
+    overview = client.get("/api/manager/S01/overview", headers=SANDBOX).json()
+    assert {"storeId", "kpis", "topRisks"} <= overview.keys()
+    assert {"lostRevenueToday", "unmetToday", "stockoutSkus"} <= overview["kpis"].keys()
+    assert "items" in client.get("/api/manager/S01/recommendations", headers=SANDBOX).json()
+    sku = client.get("/api/manager/S01/sku/SKU-0001", headers=SANDBOX).json()
+    assert {"product", "riskType", "kpis", "sales", "forecastA", "forecastB", "unmetDaily", "evidence",
+            "reason"} <= sku.keys()
+    assert {"total", "items"} <= sku["evidence"].keys()
+    assert {"recommendedQtyA", "recommendedQtyB", "reasonText"} <= sku["reason"].keys()
+    assert "items" in client.get("/api/manager/S01/gaps", headers=SANDBOX).json()
+    chat = client.post("/api/manager/S01/chat", json={"message": "Why 60?"}, headers=SANDBOX).json()
+    assert {"reply", "citations", "sessionId"} <= chat.keys()
+
+
 def test_demo_reset_is_204():
     assert client.post("/api/demo/reset", headers=SANDBOX).status_code == 204
 
