@@ -8,9 +8,9 @@ simulation:
   end_date: 2026-10-12        # last simulated day (the dashboard "today" is the day after)
   days: 90
   stores:
-    - {id: S01, name: "Radar Mart Cipete",        size_factor: 1.00}
-    - {id: S02, name: "Radar Mart BSD",           size_factor: 0.80}
-    - {id: S03, name: "Radar Mart Kelapa Gading", size_factor: 0.90}
+    - {id: S01, name: "Radar Mart Cipete",        city: "Jakarta Selatan",  lat: -6.2800, lng: 106.7970, size_factor: 1.00}
+    - {id: S02, name: "Radar Mart BSD",           city: "Tangerang Selatan", lat: -6.3020, lng: 106.6520, size_factor: 0.80}
+    - {id: S03, name: "Radar Mart Kelapa Gading", city: "Jakarta Utara",    lat: -6.1580, lng: 106.9070, size_factor: 0.90}
 
   # Demand shape ------------------------------------------------------------
   weekday_factors: [0.90, 0.88, 0.92, 0.97, 1.12, 1.25, 1.15]   # Mon..Sun
@@ -34,6 +34,14 @@ simulation:
       categories: [Snacks, Beverages]
       multiplier: 1.30
 
+  # Calendar context ---------------------------------------------------------
+  # Public holidays inside the simulation window. Ramadan/Lebaran fall outside Jul-Oct 2026,
+  # so those windows are omitted (calendar flags stay false) but can be added here if the window moves.
+  holidays:
+    - {date: 2026-08-17, name: "Hari Kemerdekaan RI"}
+    - {date: 2026-08-25, name: "Maulid Nabi Muhammad"}
+  weather: {sunny: 0.5, cloudy: 0.3, rain: 0.2}   # seeded daily draw
+
   # Stock policy ("same as last week" naive reorder driven by POS) ----------
   stock:
     lead_time_days: 1
@@ -49,7 +57,7 @@ simulation:
     p_substitute: 0.30         # unmet chats where shopper accepts an alternative
     not_stocked_per_store_day: 3.5
     no_demand_share: 0.04      # chit-chat ("where is the toilet?")
-    multi_item_share: 0.06     # two items in one conversation
+    multi_item_share: 0.0      # keep one demand item per conversation (contract: scalar gt_sku/gt_outcome)
 
   # Assumption used by forecast B to turn kiosk signals into estimated unmet units.
   # Deliberately a parameter, not a fact: the notebook runs a sensitivity sweep.
@@ -64,6 +72,7 @@ scenarios:
     ends_days_before_end: 0       # window runs through the last simulated day
     days: 14
     base_units_override: 8.0      # make it a fast mover at this store
+    unmet_conversations: 38       # pin exactly 38 unmet kiosk chats across the stockout window
     demo:
       live_stock: 0               # kiosk sandbox starts with the shelf empty
       restock_units: 60

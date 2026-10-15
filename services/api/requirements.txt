@@ -4,6 +4,7 @@ pydantic>=2.7
 pandas>=2.2
 numpy>=1.26
 pyyaml>=6.0
+rapidfuzz>=3.0            # fuzzy SKU matching in extraction (falls back to difflib if absent)
 google-adk>=1.0
 google-genai>=1.0
 google-cloud-bigquery>=3.25

@@ -1,215 +1,230 @@
-sku,name,brand,category,subcategory,pack_size,price_idr,shelf_life_days,perishable,shelf_location
-SKU-0001,Santan Kotak Kara 65 ml,Kara,Cooking Essentials,Coconut Milk,65 ml,4500,270,0,A1-2
-SKU-0002,Santan Kotak Kara 200 ml,Kara,Cooking Essentials,Coconut Milk,200 ml,11500,270,0,A1-3
-SKU-0003,Santan Kotak Kara 1 L,Kara,Cooking Essentials,Coconut Milk,1 L,42000,270,0,A1-4
-SKU-0004,Santan Kotak Sasa 65 ml,Sasa,Cooking Essentials,Coconut Milk,65 ml,4200,270,0,A1-1
-SKU-0005,Santan Kotak Sasa 200 ml,Sasa,Cooking Essentials,Coconut Milk,200 ml,10500,270,0,A1-2
-SKU-0006,Minyak Goreng Bimoli 1 L,Bimoli,Cooking Essentials,Cooking Oil,1 L,19000,540,0,A2-3
-SKU-0007,Minyak Goreng Bimoli 2 L,Bimoli,Cooking Essentials,Cooking Oil,2 L,37000,540,0,A2-4
-SKU-0008,Minyak Goreng Bimoli 5 L,Bimoli,Cooking Essentials,Cooking Oil,5 L,90000,540,0,A2-1
-SKU-0009,Minyak Goreng Filma 1 L,Filma,Cooking Essentials,Cooking Oil,1 L,18500,540,0,A2-2
-SKU-0010,Minyak Goreng Filma 2 L,Filma,Cooking Essentials,Cooking Oil,2 L,36000,540,0,A2-3
-SKU-0011,Minyak Goreng Sania 1 L,Sania,Cooking Essentials,Cooking Oil,1 L,19500,540,0,A2-4
-SKU-0012,Minyak Goreng Sania 2 L,Sania,Cooking Essentials,Cooking Oil,2 L,38000,540,0,A2-1
-SKU-0013,Gula Pasir Gulaku 500 g,Gulaku,Cooking Essentials,Sugar,500 g,8500,720,0,A3-2
-SKU-0014,Gula Pasir Gulaku 1 kg,Gulaku,Cooking Essentials,Sugar,1 kg,16500,720,0,A3-3
-SKU-0015,Tepung Terigu Segitiga Biru 500 g,Segitiga Biru,Cooking Essentials,Flour,500 g,8000,365,0,A3-4
-SKU-0016,Tepung Terigu Segitiga Biru 1 kg,Segitiga Biru,Cooking Essentials,Flour,1 kg,14500,365,0,A3-1
-SKU-0017,Tepung Terigu Cakra Kembar 1 kg,Cakra Kembar,Cooking Essentials,Flour,1 kg,15000,365,0,A3-2
-SKU-0018,Garam Dapur Refina 250 g,Refina,Cooking Essentials,Salt,250 g,4000,1000,0,A3-3
-SKU-0019,Garam Dapur Refina 500 g,Refina,Cooking Essentials,Salt,500 g,6500,1000,0,A3-4
-SKU-0020,Kecap Manis Bango 135 ml,Bango,Cooking Essentials,Soy Sauce,135 ml,8500,540,0,A4-1
-SKU-0021,Kecap Manis Bango 275 ml,Bango,Cooking Essentials,Soy Sauce,275 ml,15500,540,0,A4-2
-SKU-0022,Kecap Manis Bango 600 ml,Bango,Cooking Essentials,Soy Sauce,600 ml,30000,540,0,A4-3
-SKU-0023,Kecap Manis ABC 135 ml,ABC,Cooking Essentials,Soy Sauce,135 ml,7500,540,0,A4-4
-SKU-0024,Kecap Manis ABC 275 ml,ABC,Cooking Essentials,Soy Sauce,275 ml,14000,540,0,A4-1
-SKU-0025,Saus Sambal ABC 135 ml,ABC,Cooking Essentials,Chili Sauce,135 ml,8000,540,0,A4-2
-SKU-0026,Saus Sambal ABC 275 ml,ABC,Cooking Essentials,Chili Sauce,275 ml,14500,540,0,A4-3
-SKU-0027,Saus Sambal Indofood 140 ml,Indofood,Cooking Essentials,Chili Sauce,140 ml,7500,540,0,A4-4
-SKU-0028,Saus Sambal Indofood 340 ml,Indofood,Cooking Essentials,Chili Sauce,340 ml,15000,540,0,A4-1
-SKU-0029,Saus Tomat Del Monte 340 g,Del Monte,Cooking Essentials,Tomato Sauce,340 g,14000,540,0,A4-2
-SKU-0030,Saus Tomat Del Monte 1 kg,Del Monte,Cooking Essentials,Tomato Sauce,1 kg,33000,540,0,A4-3
-SKU-0031,Bumbu Nasi Goreng Indofood 20 g,Indofood,Cooking Essentials,Seasoning,20 g,2500,365,0,A5-4
-SKU-0032,Bumbu Nasi Goreng Indofood 50 g,Indofood,Cooking Essentials,Seasoning,50 g,5500,365,0,A5-1
-SKU-0033,Bumbu Ayam Goreng Sajiku 20 g,Sajiku,Cooking Essentials,Seasoning,20 g,2800,365,0,A5-2
-SKU-0034,Bumbu Ayam Goreng Sajiku 50 g,Sajiku,Cooking Essentials,Seasoning,50 g,6000,365,0,A5-3
-SKU-0035,Kaldu Bubuk Ayam Royco 100 g,Royco,Cooking Essentials,Seasoning,100 g,6500,365,0,A5-4
-SKU-0036,Kaldu Bubuk Ayam Royco 230 g,Royco,Cooking Essentials,Seasoning,230 g,13500,365,0,A5-1
-SKU-0037,Penyedap Rasa Masako 100 g,Masako,Cooking Essentials,Seasoning,100 g,4500,365,0,A5-2
-SKU-0038,Penyedap Rasa Masako 250 g,Masako,Cooking Essentials,Seasoning,250 g,10000,365,0,A5-3
-SKU-0039,Beras Premium Rojolele 5 kg,Rojolele,Cooking Essentials,Rice,5 kg,72000,180,0,A6-4
-SKU-0040,Beras Premium Rojolele 10 kg,Rojolele,Cooking Essentials,Rice,10 kg,140000,180,0,A6-1
-SKU-0041,Beras Pandan Wangi Cianjur 5 kg,Cianjur,Cooking Essentials,Rice,5 kg,78000,180,0,A6-2
-SKU-0042,Susu UHT Full Cream Ultra Milk 200 ml,Ultra Milk,Dairy & Eggs,UHT Milk,200 ml,5500,270,0,B1-3
-SKU-0043,Susu UHT Full Cream Ultra Milk 1 L,Ultra Milk,Dairy & Eggs,UHT Milk,1 L,19500,270,0,B1-4
-SKU-0044,Susu UHT Coklat Indomilk 190 ml,Indomilk,Dairy & Eggs,UHT Milk,190 ml,5000,270,0,B1-1
-SKU-0045,Susu UHT Coklat Indomilk 1 L,Indomilk,Dairy & Eggs,UHT Milk,1 L,18500,270,0,B1-2
-SKU-0046,Susu Kental Manis Frisian Flag 370 g,Frisian Flag,Dairy & Eggs,Condensed Milk,370 g,13000,365,0,B2-3
-SKU-0047,Telur Ayam Peternak Lokal 10 pcs,Peternak Lokal,Dairy & Eggs,Eggs,10 pcs,24000,21,1,B3-4
-SKU-0048,Telur Ayam Peternak Lokal 30 pcs,Peternak Lokal,Dairy & Eggs,Eggs,30 pcs,68000,21,1,B3-1
-SKU-0049,Yogurt Plain Cimory 120 ml,Cimory,Dairy & Eggs,Yogurt,120 ml,9000,21,1,B4-2
-SKU-0050,Yogurt Plain Cimory 250 ml,Cimory,Dairy & Eggs,Yogurt,250 ml,15000,21,1,B4-3
-SKU-0051,Keju Slice Cheddar Kraft 12 slices,Kraft,Dairy & Eggs,Cheese,12 slices,28000,180,0,B4-4
-SKU-0052,Mentega Blue Band 200 g,Blue Band,Dairy & Eggs,Butter & Margarine,200 g,14000,270,0,B5-1
-SKU-0053,Mentega Blue Band 500 g,Blue Band,Dairy & Eggs,Butter & Margarine,500 g,31000,270,0,B5-2
-SKU-0054,Mi Goreng Indomie 85 g,Indomie,Instant Food,Instant Noodles,85 g,3500,270,0,C1-3
-SKU-0055,Mi Goreng Indomie 5 pcs,Indomie,Instant Food,Instant Noodles,5 pcs,17000,270,0,C1-4
-SKU-0056,Mi Soto Indomie 70 g,Indomie,Instant Food,Instant Noodles,70 g,3300,270,0,C1-1
-SKU-0057,Mi Soto Indomie 5 pcs,Indomie,Instant Food,Instant Noodles,5 pcs,16000,270,0,C1-2
-SKU-0058,Mi Kuah Ayam Bawang Mie Sedaap 75 g,Mie Sedaap,Instant Food,Instant Noodles,75 g,3200,270,0,C1-3
-SKU-0059,Mi Kuah Ayam Bawang Mie Sedaap 5 pcs,Mie Sedaap,Instant Food,Instant Noodles,5 pcs,15500,270,0,C1-4
-SKU-0060,Mi Goreng Mie Sedaap 90 g,Mie Sedaap,Instant Food,Instant Noodles,90 g,3400,270,0,C1-1
-SKU-0061,Mi Goreng Mie Sedaap 5 pcs,Mie Sedaap,Instant Food,Instant Noodles,5 pcs,16500,270,0,C1-2
-SKU-0062,Bubur Instan Ayam Sun 45 g,Sun,Instant Food,Porridge,45 g,5500,365,0,C2-3
-SKU-0063,Sarden Saus Tomat ABC 155 g,ABC,Instant Food,Canned Fish,155 g,12500,720,0,C2-4
-SKU-0064,Sarden Saus Tomat ABC 425 g,ABC,Instant Food,Canned Fish,425 g,27000,720,0,C2-1
-SKU-0065,Air Mineral Aqua 600 ml,Aqua,Beverages,Water,600 ml,3500,540,0,D1-2
-SKU-0066,Air Mineral Aqua 1.5 L,Aqua,Beverages,Water,1.5 L,6500,540,0,D1-3
-SKU-0067,Air Mineral Aqua 19 L Galon,Aqua,Beverages,Water,19 L Galon,22000,540,0,D1-4
-SKU-0068,Air Mineral Le Minerale 600 ml,Le Minerale,Beverages,Water,600 ml,3300,540,0,D1-1
-SKU-0069,Air Mineral Le Minerale 1.5 L,Le Minerale,Beverages,Water,1.5 L,6000,540,0,D1-2
-SKU-0070,Teh Celup Sariwangi 25 bags,Sariwangi,Beverages,Tea,25 bags,7500,540,0,D2-3
-SKU-0071,Teh Botol Sosro 350 ml,Sosro,Beverages,Ready-to-drink Tea,350 ml,5500,360,0,D3-4
-SKU-0072,Teh Kotak Jasmine Teh Pucuk 350 ml,Teh Pucuk,Beverages,Ready-to-drink Tea,350 ml,4500,360,0,D3-1
-SKU-0073,Teh Kotak Jasmine Teh Pucuk 1.5 L,Teh Pucuk,Beverages,Ready-to-drink Tea,1.5 L,9500,360,0,D3-2
-SKU-0074,Kopi Sachet Kapal Api 10 sachets,Kapal Api,Beverages,Coffee,10 sachets,14000,540,0,D2-3
-SKU-0075,Kopi 3in1 Indocafe 10 sachets,Indocafe,Beverages,Coffee,10 sachets,16500,540,0,D2-4
-SKU-0076,Minuman Isotonik Pocari Sweat 500 ml,Pocari Sweat,Beverages,Sports Drink,500 ml,8500,540,0,D3-1
-SKU-0077,Sirup Cocopandan Marjan 460 ml,Marjan,Beverages,Syrup,460 ml,22000,540,0,D4-2
-SKU-0078,Minuman Soda Coca-Cola 390 ml,Coca-Cola,Beverages,Soft Drink,390 ml,6000,360,0,D3-3
-SKU-0079,Minuman Soda Coca-Cola 1.5 L,Coca-Cola,Beverages,Soft Drink,1.5 L,15000,360,0,D3-4
-SKU-0080,Susu Kedelai V-Soy 200 ml,V-Soy,Beverages,Plant Milk,200 ml,6500,270,0,D5-1
-SKU-0081,Keripik Kentang Chitato 68 g,Chitato,Snacks,Chips,68 g,11000,180,0,E1-2
-SKU-0082,Keripik Kentang Chitato 140 g,Chitato,Snacks,Chips,140 g,21000,180,0,E1-3
-SKU-0083,Biskuit Kelapa Roma 300 g,Roma,Snacks,Biscuits,300 g,12500,270,0,E2-4
-SKU-0084,Biskuit Marie Regal 250 g,Regal,Snacks,Biscuits,250 g,11000,270,0,E2-1
-SKU-0085,Wafer Coklat Tango 130 g,Tango,Snacks,Wafer,130 g,9500,270,0,E2-2
-SKU-0086,Kerupuk Udang Finna 200 g,Finna,Snacks,Crackers,200 g,15000,180,0,E3-3
-SKU-0087,Coklat Batang SilverQueen 58 g,SilverQueen,Snacks,Chocolate,58 g,14000,360,0,E4-4
-SKU-0088,Coklat Batang SilverQueen 100 g,SilverQueen,Snacks,Chocolate,100 g,23000,360,0,E4-1
-SKU-0089,Kacang Garing Dua Kelinci 200 g,Dua Kelinci,Snacks,Nuts,200 g,13500,270,0,E3-2
-SKU-0090,Bawang Merah 250 g,,Fresh Produce,Vegetables,250 g,12000,14,1,F1-3
-SKU-0091,Bawang Merah 500 g,,Fresh Produce,Vegetables,500 g,23000,14,1,F1-4
-SKU-0092,Bawang Putih 250 g,,Fresh Produce,Vegetables,250 g,10000,21,1,F1-1
-SKU-0093,Bawang Putih 500 g,,Fresh Produce,Vegetables,500 g,19000,21,1,F1-2
-SKU-0094,Cabai Merah Keriting 100 g,,Fresh Produce,Vegetables,100 g,8000,5,1,F1-3
-SKU-0095,Cabai Merah Keriting 250 g,,Fresh Produce,Vegetables,250 g,19000,5,1,F1-4
-SKU-0096,Cabai Rawit 100 g,,Fresh Produce,Vegetables,100 g,9000,5,1,F1-1
-SKU-0097,Cabai Rawit 250 g,,Fresh Produce,Vegetables,250 g,21000,5,1,F1-2
-SKU-0098,Tomat 500 g,,Fresh Produce,Vegetables,500 g,9000,6,1,F2-3
-SKU-0099,Kentang 500 g,,Fresh Produce,Vegetables,500 g,10000,21,1,F2-4
-SKU-0100,Kentang 1 kg,,Fresh Produce,Vegetables,1 kg,19000,21,1,F2-1
-SKU-0101,Wortel 500 g,,Fresh Produce,Vegetables,500 g,8500,10,1,F2-2
-SKU-0102,Bayam 1 ikat,,Fresh Produce,Vegetables,1 ikat,4000,3,1,F3-3
-SKU-0103,Kangkung 1 ikat,,Fresh Produce,Vegetables,1 ikat,3500,3,1,F3-4
-SKU-0104,Pisang Cavendish 1 sisir,,Fresh Produce,Fruit,1 sisir,22000,5,1,F4-1
-SKU-0105,Jeruk Mandarin 1 kg,,Fresh Produce,Fruit,1 kg,32000,10,1,F4-2
-SKU-0106,Tempe Segar Pak Haji 1 papan,Pak Haji,Fresh Produce,Tofu & Tempeh,1 papan,6000,3,1,F5-3
-SKU-0107,Tahu Putih Pak Haji 10 pcs,Pak Haji,Fresh Produce,Tofu & Tempeh,10 pcs,8000,3,1,F5-4
-SKU-0108,Ayam Potong Segar Fresh Farm 500 g,Fresh Farm,Meat & Seafood,Chicken,500 g,24000,3,1,G1-1
-SKU-0109,Ayam Potong Segar Fresh Farm 1 kg,Fresh Farm,Meat & Seafood,Chicken,1 kg,46000,3,1,G1-2
-SKU-0110,Daging Sapi Giling Fresh Farm 250 g,Fresh Farm,Meat & Seafood,Beef,250 g,38000,3,1,G2-3
-SKU-0111,Ikan Bandeng Presto Fresh Farm 1 ekor,Fresh Farm,Meat & Seafood,Fish,1 ekor,28000,3,1,G3-4
-SKU-0112,Sosis Ayam Champ 375 g,Champ,Frozen,Frozen Meat,375 g,32000,180,0,H1-1
-SKU-0113,Nugget Ayam Fiesta 500 g,Fiesta,Frozen,Frozen Meat,500 g,45000,180,0,H1-2
-SKU-0114,Bakso Sapi Pronas 500 g,Pronas,Frozen,Frozen Meat,500 g,38000,180,0,H1-3
-SKU-0115,Roti Tawar Jumbo Sari Roti 1 pack,Sari Roti,Bakery,Bread,1 pack,17000,5,1,I1-4
-SKU-0116,Roti Tawar Kupas Sari Roti 1 pack,Sari Roti,Bakery,Bread,1 pack,19500,5,1,I1-1
-SKU-0117,Deterjen Bubuk Rinso 800 g,Rinso,Household,Laundry,800 g,22000,720,0,J1-2
-SKU-0118,Deterjen Bubuk Rinso 1.8 kg,Rinso,Household,Laundry,1.8 kg,45000,720,0,J1-3
-SKU-0119,Sabun Cuci Piring Sunlight 400 ml,Sunlight,Household,Dishwashing,400 ml,11000,720,0,J1-4
-SKU-0120,Sabun Cuci Piring Sunlight 800 ml,Sunlight,Household,Dishwashing,800 ml,20000,720,0,J1-1
-SKU-0121,Pembersih Lantai Wipol 780 ml,Wipol,Household,Cleaning,780 ml,18500,720,0,J2-2
-SKU-0122,Tisu Wajah Paseo 250 sheets,Paseo,Household,Tissue,250 sheets,14000,720,0,J3-3
-SKU-0123,Tisu Wajah Paseo 2x250 sheets,Paseo,Household,Tissue,2x250 sheets,26000,720,0,J3-4
-SKU-0124,Kantong Sampah Hippo 20 pcs,Hippo,Household,Cleaning,20 pcs,12000,1000,0,J2-1
-SKU-0125,Sabun Mandi Batang Lifebuoy 3x80 g,Lifebuoy,Personal Care,Soap,3x80 g,11000,720,0,K1-2
-SKU-0126,Sampo Anti Ketombe Clear 160 ml,Clear,Personal Care,Hair Care,160 ml,22000,720,0,K2-3
-SKU-0127,Sampo Anti Ketombe Clear 340 ml,Clear,Personal Care,Hair Care,340 ml,39000,720,0,K2-4
-SKU-0128,Pasta Gigi Pepsodent 75 g,Pepsodent,Personal Care,Oral Care,75 g,9500,720,0,K3-1
-SKU-0129,Pasta Gigi Pepsodent 190 g,Pepsodent,Personal Care,Oral Care,190 g,19000,720,0,K3-2
-SKU-0130,Popok Bayi Celana MamyPoko M 24 pcs,MamyPoko,Baby,Diapers,M 24 pcs,68000,1000,0,L1-3
-SKU-0131,Popok Bayi Celana MamyPoko L 22 pcs,MamyPoko,Baby,Diapers,L 22 pcs,68000,1000,0,L1-4
-SKU-0132,Susu Formula Tahap 3 SGM 400 g,SGM,Baby,Formula,400 g,62000,540,0,L2-1
-SKU-0133,Susu Formula Tahap 3 SGM 900 g,SGM,Baby,Formula,900 g,125000,540,0,L2-2
-SKU-0134,Minyak Goreng Tropical 1 L,Tropical,Cooking Essentials,Cooking Oil,1 L,18800,540,0,A2-3
-SKU-0135,Minyak Goreng Tropical 2 L,Tropical,Cooking Essentials,Cooking Oil,2 L,36500,540,0,A2-4
-SKU-0136,Minyak Goreng Tropical 5 L,Tropical,Cooking Essentials,Cooking Oil,5 L,89000,540,0,A2-1
-SKU-0137,Gula Pasir Rose Brand 500 g,Rose Brand,Cooking Essentials,Sugar,500 g,8700,720,0,A3-2
-SKU-0138,Gula Pasir Rose Brand 1 kg,Rose Brand,Cooking Essentials,Sugar,1 kg,16800,720,0,A3-3
-SKU-0139,Gula Pasir Rose Brand 2 kg,Rose Brand,Cooking Essentials,Sugar,2 kg,32500,720,0,A3-4
-SKU-0140,Gula Merah Aren Asli 250 g,Aren Asli,Cooking Essentials,Sugar,250 g,9000,360,0,A3-1
-SKU-0141,Gula Merah Aren Asli 500 g,Aren Asli,Cooking Essentials,Sugar,500 g,17000,360,0,A3-2
-SKU-0142,Tepung Beras Rose Brand 500 g,Rose Brand,Cooking Essentials,Flour,500 g,7500,365,0,A3-3
-SKU-0143,Tepung Bumbu Serbaguna Sajiku 75 g,Sajiku,Cooking Essentials,Flour,75 g,4800,365,0,A5-4
-SKU-0144,Tepung Bumbu Serbaguna Sajiku 200 g,Sajiku,Cooking Essentials,Flour,200 g,11000,365,0,A5-1
-SKU-0145,Kecap Asin Sari Murni 150 ml,Sari Murni,Cooking Essentials,Soy Sauce,150 ml,7000,540,0,A4-2
-SKU-0146,Kecap Asin Sari Murni 620 ml,Sari Murni,Cooking Essentials,Soy Sauce,620 ml,20000,540,0,A4-3
-SKU-0147,Saus Tiram Lee Kum Kee 118 ml,Lee Kum Kee,Cooking Essentials,Sauces,118 ml,12500,540,0,A4-4
-SKU-0148,Saus Tiram Lee Kum Kee 510 g,Lee Kum Kee,Cooking Essentials,Sauces,510 g,31000,540,0,A4-1
-SKU-0149,Terasi Udang Jawara 50 g,Jawara,Cooking Essentials,Seasoning,50 g,6500,365,0,A5-2
-SKU-0150,Merica Bubuk Ladaku 15 g,Ladaku,Cooking Essentials,Seasoning,15 g,4500,540,0,A5-3
-SKU-0151,Merica Bubuk Ladaku 50 g,Ladaku,Cooking Essentials,Seasoning,50 g,11500,540,0,A5-4
-SKU-0152,Beras Medium Bulog 5 kg,Bulog,Cooking Essentials,Rice,5 kg,62000,180,0,A6-1
-SKU-0153,Beras Medium Bulog 10 kg,Bulog,Cooking Essentials,Rice,10 kg,118000,180,0,A6-2
-SKU-0154,Susu UHT Low Fat Greenfields 250 ml,Greenfields,Dairy & Eggs,UHT Milk,250 ml,7500,270,0,B1-3
-SKU-0155,Susu UHT Low Fat Greenfields 1 L,Greenfields,Dairy & Eggs,UHT Milk,1 L,22000,270,0,B1-4
-SKU-0156,Susu UHT Stroberi Frisian Flag 225 ml,Frisian Flag,Dairy & Eggs,UHT Milk,225 ml,6000,270,0,B1-1
-SKU-0157,Susu UHT Stroberi Frisian Flag 1 L,Frisian Flag,Dairy & Eggs,UHT Milk,1 L,19000,270,0,B1-2
-SKU-0158,Telur Bebek Asin Brebes 4 pcs,Brebes,Dairy & Eggs,Eggs,4 pcs,18000,30,1,B3-3
-SKU-0159,Krimer Kental Manis Indomilk 370 g,Indomilk,Dairy & Eggs,Condensed Milk,370 g,12500,365,0,B2-4
-SKU-0160,Mi Instan Kari Ayam Indomie 72 g,Indomie,Instant Food,Instant Noodles,72 g,3300,270,0,C1-1
-SKU-0161,Mi Instan Kari Ayam Indomie 5 pcs,Indomie,Instant Food,Instant Noodles,5 pcs,16000,270,0,C1-2
-SKU-0162,Mi Instan Ayam Spesial Indomie 69 g,Indomie,Instant Food,Instant Noodles,69 g,3200,270,0,C1-3
-SKU-0163,Mi Instan Ayam Spesial Indomie 5 pcs,Indomie,Instant Food,Instant Noodles,5 pcs,15500,270,0,C1-4
-SKU-0164,Pop Mie Rasa Ayam Pop Mie 75 g,Pop Mie,Instant Food,Instant Noodles,75 g,6500,270,0,C1-1
-SKU-0165,Sarden Cabe Botan 155 g,Botan,Instant Food,Canned Fish,155 g,11500,720,0,C2-2
-SKU-0166,Kornet Sapi Pronas 198 g,Pronas,Instant Food,Canned Meat,198 g,29000,720,0,C2-3
-SKU-0167,Teh Celup Tong Tji 25 bags,Tong Tji,Beverages,Tea,25 bags,8500,540,0,D2-4
-SKU-0168,Kopi Bubuk Kapal Api 165 g,Kapal Api,Beverages,Coffee,165 g,17000,540,0,D2-1
-SKU-0169,Kopi Bubuk Kapal Api 380 g,Kapal Api,Beverages,Coffee,380 g,36000,540,0,D2-2
-SKU-0170,Susu Coklat Bubuk Milo 300 g,Milo,Beverages,Malt Drink,300 g,32000,540,0,D2-3
-SKU-0171,Susu Coklat Bubuk Milo 1 kg,Milo,Beverages,Malt Drink,1 kg,82000,540,0,D2-4
-SKU-0172,Minuman Isotonik Mizone 500 ml,Mizone,Beverages,Sports Drink,500 ml,5500,540,0,D3-1
-SKU-0173,Jus Buah Jambu Buavita 250 ml,Buavita,Beverages,Juice,250 ml,7500,270,0,D3-2
-SKU-0174,Jus Buah Jambu Buavita 1 L,Buavita,Beverages,Juice,1 L,22000,270,0,D3-3
-SKU-0175,Soda Lemon Sprite 390 ml,Sprite,Beverages,Soft Drink,390 ml,6000,360,0,D3-4
-SKU-0176,Soda Lemon Sprite 1.5 L,Sprite,Beverages,Soft Drink,1.5 L,15000,360,0,D3-1
-SKU-0177,Keripik Singkong Maicih 100 g,Maicih,Snacks,Chips,100 g,15000,180,0,E1-2
-SKU-0178,Keripik Kentang Lay's 68 g,Lay's,Snacks,Chips,68 g,11500,180,0,E1-3
-SKU-0179,Keripik Kentang Lay's 140 g,Lay's,Snacks,Chips,140 g,22000,180,0,E1-4
-SKU-0180,Coklat Wafer Beng-Beng 1 pc 20 g,Beng-Beng,Snacks,Wafer,1 pc 20 g,2500,270,0,E2-1
-SKU-0181,Coklat Wafer Beng-Beng 10 pcs,Beng-Beng,Snacks,Wafer,10 pcs,22000,270,0,E2-2
-SKU-0182,Biskuit Sandwich Coklat Oreo 137 g,Oreo,Snacks,Biscuits,137 g,9500,270,0,E2-3
-SKU-0183,Biskuit Sandwich Coklat Oreo 259 g,Oreo,Snacks,Biscuits,259 g,15500,270,0,E2-4
-SKU-0184,Biskuit Gandum Good Time 80 g,Good Time,Snacks,Biscuits,80 g,8500,270,0,E2-1
-SKU-0185,Permen Mint Kopiko 27 g,Kopiko,Snacks,Candy,27 g,2500,360,0,E4-2
-SKU-0186,Permen Mint Kopiko 120 g,Kopiko,Snacks,Candy,120 g,9000,360,0,E4-3
-SKU-0187,Pisang Sale Gunung Sari 200 g,Gunung Sari,Snacks,Dried Fruit,200 g,18000,180,0,E3-4
-SKU-0188,Apel Fuji 500 g,,Fresh Produce,Fruit,500 g,24000,14,1,F4-1
-SKU-0189,Jeruk Nipis 250 g,,Fresh Produce,Fruit,250 g,7000,10,1,F4-2
-SKU-0190,Bawang Bombay 500 g,,Fresh Produce,Vegetables,500 g,14000,21,1,F1-3
-SKU-0191,Sawi Hijau 1 ikat,,Fresh Produce,Vegetables,1 ikat,4500,3,1,F3-4
-SKU-0192,Timun 500 g,,Fresh Produce,Vegetables,500 g,7000,7,1,F2-1
-SKU-0193,Jagung Manis 2 pcs,,Fresh Produce,Vegetables,2 pcs,9000,4,1,F2-2
-SKU-0194,Ayam Fillet Dada Fresh Farm 500 g,Fresh Farm,Meat & Seafood,Chicken,500 g,35000,3,1,G1-3
-SKU-0195,Udang Segar Fresh Farm 250 g,Fresh Farm,Meat & Seafood,Seafood,250 g,36000,2,1,G3-4
-SKU-0196,Ikan Lele Segar Fresh Farm 500 g,Fresh Farm,Meat & Seafood,Fish,500 g,22000,2,1,G3-1
-SKU-0197,French Fries McCain 450 g,McCain,Frozen,Frozen Snacks,450 g,38000,270,0,H2-2
-SKU-0198,Dimsum Ayam Belfoods 400 g,Belfoods,Frozen,Frozen Snacks,400 g,42000,180,0,H2-3
-SKU-0199,Roti Sobek Coklat Sari Roti 1 pack,Sari Roti,Bakery,Bread,1 pack,14500,5,1,I1-4
-SKU-0200,Roti Gandum Sari Roti 1 pack,Sari Roti,Bakery,Bread,1 pack,23000,5,1,I1-1
-SKU-0201,Pelembut Pakaian Molto 800 ml,Molto,Household,Laundry,800 ml,17500,720,0,J1-2
-SKU-0202,Pelembut Pakaian Molto 1.6 L,Molto,Household,Laundry,1.6 L,31000,720,0,J1-3
-SKU-0203,Deterjen Cair Attack 800 ml,Attack,Household,Laundry,800 ml,28000,720,0,J1-4
-SKU-0204,Sabun Cuci Tangan Lifebuoy 200 ml,Lifebuoy,Household,Cleaning,200 ml,14500,720,0,J2-1
-SKU-0205,Sabun Cuci Tangan Lifebuoy 400 ml refill,Lifebuoy,Household,Cleaning,400 ml refill,22000,720,0,J2-2
-SKU-0206,Obat Nyamuk Bakar Baygon 12 coils,Baygon,Household,Insecticide,12 coils,9500,1000,0,J2-3
-SKU-0207,Sikat Gigi Formula 1 pc,Formula,Personal Care,Oral Care,1 pc,8000,1000,0,K3-4
-SKU-0208,Sabun Mandi Cair Dettol 250 ml,Dettol,Personal Care,Soap,250 ml,26000,720,0,K1-1
-SKU-0209,Sabun Mandi Cair Dettol 450 ml refill,Dettol,Personal Care,Soap,450 ml refill,38000,720,0,K1-2
-SKU-0210,Deodoran Roll On Rexona 45 ml,Rexona,Personal Care,Deodorant,45 ml,17500,720,0,K2-3
-SKU-0211,Pembalut Wanita Laurier 20 pads,Laurier,Personal Care,Feminine Care,20 pads,15500,1000,0,K4-4
-SKU-0212,Pembalut Wanita Laurier 30 pads,Laurier,Personal Care,Feminine Care,30 pads,21000,1000,0,K4-1
-SKU-0213,Bubur Bayi Instan Milna 120 g,Milna,Baby,Baby Food,120 g,27000,365,0,L2-2
-SKU-0214,Tisu Basah Bayi Nuvo 50 sheets,Nuvo,Baby,Baby Care,50 sheets,14000,720,0,L1-3
+sku,name,brand,category,pack_size,unit,price_idr,shelf_life_days,aisle,synonyms,is_carried
+SKU-0001,Santan Kotak Kara 65 ml,Kara,Cooking Essentials,65 ml,ml,4500,270,A1-2,santan|santan kara|santan kotak,true
+SKU-0002,Santan Kotak Kara 200 ml,Kara,Cooking Essentials,200 ml,ml,11500,270,A1-3,santan|santan kara|santan kotak,true
+SKU-0003,Santan Kotak Kara 1 L,Kara,Cooking Essentials,1 L,L,42000,270,A1-4,santan|santan kara|santan kotak,true
+SKU-0004,Santan Kotak Sasa 65 ml,Sasa,Cooking Essentials,65 ml,ml,4200,270,A1-1,santan sasa,true
+SKU-0005,Santan Kotak Sasa 200 ml,Sasa,Cooking Essentials,200 ml,ml,10500,270,A1-2,santan sasa,true
+SKU-0006,Minyak Goreng Bimoli 1 L,Bimoli,Cooking Essentials,1 L,L,19000,540,A2-3,minyak|migor|minyak goreng,true
+SKU-0007,Minyak Goreng Bimoli 2 L,Bimoli,Cooking Essentials,2 L,L,37000,540,A2-4,minyak|migor|minyak goreng,true
+SKU-0008,Minyak Goreng Bimoli 5 L,Bimoli,Cooking Essentials,5 L,L,90000,540,A2-1,minyak|migor|minyak goreng,true
+SKU-0009,Minyak Goreng Filma 1 L,Filma,Cooking Essentials,1 L,L,18500,540,A2-2,migor filma,true
+SKU-0010,Minyak Goreng Filma 2 L,Filma,Cooking Essentials,2 L,L,36000,540,A2-3,migor filma,true
+SKU-0011,Minyak Goreng Sania 1 L,Sania,Cooking Essentials,1 L,L,19500,540,A2-4,migor sania,true
+SKU-0012,Minyak Goreng Sania 2 L,Sania,Cooking Essentials,2 L,L,38000,540,A2-1,migor sania,true
+SKU-0013,Gula Pasir Gulaku 500 g,Gulaku,Cooking Essentials,500 g,g,8500,720,A3-2,gula|gula pasir,true
+SKU-0014,Gula Pasir Gulaku 1 kg,Gulaku,Cooking Essentials,1 kg,kg,16500,720,A3-3,gula|gula pasir,true
+SKU-0015,Tepung Terigu Segitiga Biru 500 g,Segitiga Biru,Cooking Essentials,500 g,g,8000,365,A3-4,tepung|terigu|tepung segitiga,true
+SKU-0016,Tepung Terigu Segitiga Biru 1 kg,Segitiga Biru,Cooking Essentials,1 kg,kg,14500,365,A3-1,tepung|terigu|tepung segitiga,true
+SKU-0017,Tepung Terigu Cakra Kembar 1 kg,Cakra Kembar,Cooking Essentials,1 kg,kg,15000,365,A3-2,tepung cakra,true
+SKU-0018,Garam Dapur Refina 250 g,Refina,Cooking Essentials,250 g,g,4000,1000,A3-3,garam,true
+SKU-0019,Garam Dapur Refina 500 g,Refina,Cooking Essentials,500 g,g,6500,1000,A3-4,garam,true
+SKU-0020,Kecap Manis Bango 135 ml,Bango,Cooking Essentials,135 ml,ml,8500,540,A4-1,kecap|kecap bango,true
+SKU-0021,Kecap Manis Bango 275 ml,Bango,Cooking Essentials,275 ml,ml,15500,540,A4-2,kecap|kecap bango,true
+SKU-0022,Kecap Manis Bango 600 ml,Bango,Cooking Essentials,600 ml,ml,30000,540,A4-3,kecap|kecap bango,true
+SKU-0023,Kecap Manis ABC 135 ml,ABC,Cooking Essentials,135 ml,ml,7500,540,A4-4,kecap abc,true
+SKU-0024,Kecap Manis ABC 275 ml,ABC,Cooking Essentials,275 ml,ml,14000,540,A4-1,kecap abc,true
+SKU-0025,Saus Sambal ABC 135 ml,ABC,Cooking Essentials,135 ml,ml,8000,540,A4-2,saus sambal|sambal botol|saos sambal,true
+SKU-0026,Saus Sambal ABC 275 ml,ABC,Cooking Essentials,275 ml,ml,14500,540,A4-3,saus sambal|sambal botol|saos sambal,true
+SKU-0027,Saus Sambal Indofood 140 ml,Indofood,Cooking Essentials,140 ml,ml,7500,540,A4-4,sambal indofood,true
+SKU-0028,Saus Sambal Indofood 340 ml,Indofood,Cooking Essentials,340 ml,ml,15000,540,A4-1,sambal indofood,true
+SKU-0029,Saus Tomat Del Monte 340 g,Del Monte,Cooking Essentials,340 g,g,14000,540,A4-2,saus tomat|saos tomat,true
+SKU-0030,Saus Tomat Del Monte 1 kg,Del Monte,Cooking Essentials,1 kg,kg,33000,540,A4-3,saus tomat|saos tomat,true
+SKU-0031,Bumbu Nasi Goreng Indofood 20 g,Indofood,Cooking Essentials,20 g,g,2500,365,A5-4,bumbu nasi goreng|bumbu racik,true
+SKU-0032,Bumbu Nasi Goreng Indofood 50 g,Indofood,Cooking Essentials,50 g,g,5500,365,A5-1,bumbu nasi goreng|bumbu racik,true
+SKU-0033,Bumbu Ayam Goreng Sajiku 20 g,Sajiku,Cooking Essentials,20 g,g,2800,365,A5-2,bumbu ayam goreng|sajiku,true
+SKU-0034,Bumbu Ayam Goreng Sajiku 50 g,Sajiku,Cooking Essentials,50 g,g,6000,365,A5-3,bumbu ayam goreng|sajiku,true
+SKU-0035,Kaldu Bubuk Ayam Royco 100 g,Royco,Cooking Essentials,100 g,g,6500,365,A5-4,royco|kaldu ayam,true
+SKU-0036,Kaldu Bubuk Ayam Royco 230 g,Royco,Cooking Essentials,230 g,g,13500,365,A5-1,royco|kaldu ayam,true
+SKU-0037,Penyedap Rasa Masako 100 g,Masako,Cooking Essentials,100 g,g,4500,365,A5-2,masako|penyedap,true
+SKU-0038,Penyedap Rasa Masako 250 g,Masako,Cooking Essentials,250 g,g,10000,365,A5-3,masako|penyedap,true
+SKU-0039,Beras Premium Rojolele 5 kg,Rojolele,Cooking Essentials,5 kg,kg,72000,180,A6-4,beras|beras rojolele,true
+SKU-0040,Beras Premium Rojolele 10 kg,Rojolele,Cooking Essentials,10 kg,kg,140000,180,A6-1,beras|beras rojolele,true
+SKU-0041,Beras Pandan Wangi Cianjur 5 kg,Cianjur,Cooking Essentials,5 kg,kg,78000,180,A6-2,beras pandan wangi|pandan wangi,true
+SKU-0042,Susu UHT Full Cream Ultra Milk 200 ml,Ultra Milk,Dairy & Eggs,200 ml,ml,5500,270,B1-3,susu uht|susu ultra|susu full cream,true
+SKU-0043,Susu UHT Full Cream Ultra Milk 1 L,Ultra Milk,Dairy & Eggs,1 L,L,19500,270,B1-4,susu uht|susu ultra|susu full cream,true
+SKU-0044,Susu UHT Coklat Indomilk 190 ml,Indomilk,Dairy & Eggs,190 ml,ml,5000,270,B1-1,susu coklat|susu indomilk,true
+SKU-0045,Susu UHT Coklat Indomilk 1 L,Indomilk,Dairy & Eggs,1 L,L,18500,270,B1-2,susu coklat|susu indomilk,true
+SKU-0046,Susu Kental Manis Frisian Flag 370 g,Frisian Flag,Dairy & Eggs,370 g,g,13000,365,B2-3,skm|susu kental manis|kental manis,true
+SKU-0047,Telur Ayam Peternak Lokal 10 pcs,Peternak Lokal,Dairy & Eggs,10 pcs,pcs,24000,21,B3-4,telur|telor|telur ayam,true
+SKU-0048,Telur Ayam Peternak Lokal 30 pcs,Peternak Lokal,Dairy & Eggs,30 pcs,pcs,68000,21,B3-1,telur|telor|telur ayam,true
+SKU-0049,Yogurt Plain Cimory 120 ml,Cimory,Dairy & Eggs,120 ml,ml,9000,21,B4-2,yogurt|yoghurt,true
+SKU-0050,Yogurt Plain Cimory 250 ml,Cimory,Dairy & Eggs,250 ml,ml,15000,21,B4-3,yogurt|yoghurt,true
+SKU-0051,Keju Slice Cheddar Kraft 12 slices,Kraft,Dairy & Eggs,12 slices,slices,28000,180,B4-4,keju|keju slice,true
+SKU-0052,Mentega Blue Band 200 g,Blue Band,Dairy & Eggs,200 g,g,14000,270,B5-1,mentega|margarin|blue band,true
+SKU-0053,Mentega Blue Band 500 g,Blue Band,Dairy & Eggs,500 g,g,31000,270,B5-2,mentega|margarin|blue band,true
+SKU-0054,Mi Goreng Indomie 85 g,Indomie,Instant Food,85 g,g,3500,270,C1-3,indomie|indomie goreng|mie goreng|mi instan,true
+SKU-0055,Mi Goreng Indomie 5 pcs,Indomie,Instant Food,5 pcs,pcs,17000,270,C1-4,indomie|indomie goreng|mie goreng|mi instan,true
+SKU-0056,Mi Soto Indomie 70 g,Indomie,Instant Food,70 g,g,3300,270,C1-1,indomie soto|mie soto,true
+SKU-0057,Mi Soto Indomie 5 pcs,Indomie,Instant Food,5 pcs,pcs,16000,270,C1-2,indomie soto|mie soto,true
+SKU-0058,Mi Kuah Ayam Bawang Mie Sedaap 75 g,Mie Sedaap,Instant Food,75 g,g,3200,270,C1-3,mie sedaap|mie kuah,true
+SKU-0059,Mi Kuah Ayam Bawang Mie Sedaap 5 pcs,Mie Sedaap,Instant Food,5 pcs,pcs,15500,270,C1-4,mie sedaap|mie kuah,true
+SKU-0060,Mi Goreng Mie Sedaap 90 g,Mie Sedaap,Instant Food,90 g,g,3400,270,C1-1,sedaap goreng,true
+SKU-0061,Mi Goreng Mie Sedaap 5 pcs,Mie Sedaap,Instant Food,5 pcs,pcs,16500,270,C1-2,sedaap goreng,true
+SKU-0062,Bubur Instan Ayam Sun 45 g,Sun,Instant Food,45 g,g,5500,365,C2-3,bubur instan|bubur sun,true
+SKU-0063,Sarden Saus Tomat ABC 155 g,ABC,Instant Food,155 g,g,12500,720,C2-4,sarden|sarden abc,true
+SKU-0064,Sarden Saus Tomat ABC 425 g,ABC,Instant Food,425 g,g,27000,720,C2-1,sarden|sarden abc,true
+SKU-0065,Air Mineral Aqua 600 ml,Aqua,Beverages,600 ml,ml,3500,540,D1-2,aqua|air mineral|air putih|galon,true
+SKU-0066,Air Mineral Aqua 1.5 L,Aqua,Beverages,1.5 L,L,6500,540,D1-3,aqua|air mineral|air putih|galon,true
+SKU-0067,Air Mineral Aqua 19 L Galon,Aqua,Beverages,19 L Galon,L,22000,540,D1-4,aqua|air mineral|air putih|galon,true
+SKU-0068,Air Mineral Le Minerale 600 ml,Le Minerale,Beverages,600 ml,ml,3300,540,D1-1,le minerale|leminerale,true
+SKU-0069,Air Mineral Le Minerale 1.5 L,Le Minerale,Beverages,1.5 L,L,6000,540,D1-2,le minerale|leminerale,true
+SKU-0070,Teh Celup Sariwangi 25 bags,Sariwangi,Beverages,25 bags,bags,7500,540,D2-3,teh celup|sariwangi|teh,true
+SKU-0071,Teh Botol Sosro 350 ml,Sosro,Beverages,350 ml,ml,5500,360,D3-4,teh botol|teh sosro,true
+SKU-0072,Teh Kotak Jasmine Teh Pucuk 350 ml,Teh Pucuk,Beverages,350 ml,ml,4500,360,D3-1,teh pucuk,true
+SKU-0073,Teh Kotak Jasmine Teh Pucuk 1.5 L,Teh Pucuk,Beverages,1.5 L,L,9500,360,D3-2,teh pucuk,true
+SKU-0074,Kopi Sachet Kapal Api 10 sachets,Kapal Api,Beverages,10 sachets,sachets,14000,540,D2-3,kopi|kopi kapal api|kapal api,true
+SKU-0075,Kopi 3in1 Indocafe 10 sachets,Indocafe,Beverages,10 sachets,sachets,16500,540,D2-4,kopi 3in1|kopi sachet|indocafe,true
+SKU-0076,Minuman Isotonik Pocari Sweat 500 ml,Pocari Sweat,Beverages,500 ml,ml,8500,540,D3-1,pocari|pocari sweat,true
+SKU-0077,Sirup Cocopandan Marjan 460 ml,Marjan,Beverages,460 ml,ml,22000,540,D4-2,sirup|sirup marjan|marjan,true
+SKU-0078,Minuman Soda Coca-Cola 390 ml,Coca-Cola,Beverages,390 ml,ml,6000,360,D3-3,coca cola|cola|coke,true
+SKU-0079,Minuman Soda Coca-Cola 1.5 L,Coca-Cola,Beverages,1.5 L,L,15000,360,D3-4,coca cola|cola|coke,true
+SKU-0080,Susu Kedelai V-Soy 200 ml,V-Soy,Beverages,200 ml,ml,6500,270,D5-1,susu kedelai|soy milk,true
+SKU-0081,Keripik Kentang Chitato 68 g,Chitato,Snacks,68 g,g,11000,180,E1-2,chitato|keripik kentang|chiki,true
+SKU-0082,Keripik Kentang Chitato 140 g,Chitato,Snacks,140 g,g,21000,180,E1-3,chitato|keripik kentang|chiki,true
+SKU-0083,Biskuit Kelapa Roma 300 g,Roma,Snacks,300 g,g,12500,270,E2-4,biskuit roma|roma kelapa,true
+SKU-0084,Biskuit Marie Regal 250 g,Regal,Snacks,250 g,g,11000,270,E2-1,biskuit regal|marie regal,true
+SKU-0085,Wafer Coklat Tango 130 g,Tango,Snacks,130 g,g,9500,270,E2-2,wafer tango|tango,true
+SKU-0086,Kerupuk Udang Finna 200 g,Finna,Snacks,200 g,g,15000,180,E3-3,kerupuk|kerupuk udang|krupuk,true
+SKU-0087,Coklat Batang SilverQueen 58 g,SilverQueen,Snacks,58 g,g,14000,360,E4-4,silverqueen|coklat,true
+SKU-0088,Coklat Batang SilverQueen 100 g,SilverQueen,Snacks,100 g,g,23000,360,E4-1,silverqueen|coklat,true
+SKU-0089,Kacang Garing Dua Kelinci 200 g,Dua Kelinci,Snacks,200 g,g,13500,270,E3-2,kacang|kacang garing,true
+SKU-0090,Bawang Merah 250 g,,Fresh Produce,250 g,g,12000,14,F1-3,bawang merah|bawmer,true
+SKU-0091,Bawang Merah 500 g,,Fresh Produce,500 g,g,23000,14,F1-4,bawang merah|bawmer,true
+SKU-0092,Bawang Putih 250 g,,Fresh Produce,250 g,g,10000,21,F1-1,bawang putih|bawput,true
+SKU-0093,Bawang Putih 500 g,,Fresh Produce,500 g,g,19000,21,F1-2,bawang putih|bawput,true
+SKU-0094,Cabai Merah Keriting 100 g,,Fresh Produce,100 g,g,8000,5,F1-3,cabai|cabe|cabe merah|cabai merah,true
+SKU-0095,Cabai Merah Keriting 250 g,,Fresh Produce,250 g,g,19000,5,F1-4,cabai|cabe|cabe merah|cabai merah,true
+SKU-0096,Cabai Rawit 100 g,,Fresh Produce,100 g,g,9000,5,F1-1,cabe rawit|cabai rawit|rawit,true
+SKU-0097,Cabai Rawit 250 g,,Fresh Produce,250 g,g,21000,5,F1-2,cabe rawit|cabai rawit|rawit,true
+SKU-0098,Tomat 500 g,,Fresh Produce,500 g,g,9000,6,F2-3,tomat,true
+SKU-0099,Kentang 500 g,,Fresh Produce,500 g,g,10000,21,F2-4,kentang,true
+SKU-0100,Kentang 1 kg,,Fresh Produce,1 kg,kg,19000,21,F2-1,kentang,true
+SKU-0101,Wortel 500 g,,Fresh Produce,500 g,g,8500,10,F2-2,wortel,true
+SKU-0102,Bayam 1 ikat,,Fresh Produce,1 ikat,ikat,4000,3,F3-3,bayam,true
+SKU-0103,Kangkung 1 ikat,,Fresh Produce,1 ikat,ikat,3500,3,F3-4,kangkung,true
+SKU-0104,Pisang Cavendish 1 sisir,,Fresh Produce,1 sisir,sisir,22000,5,F4-1,pisang,true
+SKU-0105,Jeruk Mandarin 1 kg,,Fresh Produce,1 kg,kg,32000,10,F4-2,jeruk|jeruk mandarin,true
+SKU-0106,Tempe Segar Pak Haji 1 papan,Pak Haji,Fresh Produce,1 papan,papan,6000,3,F5-3,tempe|tempe segar,true
+SKU-0107,Tahu Putih Pak Haji 10 pcs,Pak Haji,Fresh Produce,10 pcs,pcs,8000,3,F5-4,tahu|tahu putih,true
+SKU-0108,Ayam Potong Segar Fresh Farm 500 g,Fresh Farm,Meat & Seafood,500 g,g,24000,3,G1-1,ayam|ayam potong|ayam segar,true
+SKU-0109,Ayam Potong Segar Fresh Farm 1 kg,Fresh Farm,Meat & Seafood,1 kg,kg,46000,3,G1-2,ayam|ayam potong|ayam segar,true
+SKU-0110,Daging Sapi Giling Fresh Farm 250 g,Fresh Farm,Meat & Seafood,250 g,g,38000,3,G2-3,daging giling|daging sapi|sapi giling,true
+SKU-0111,Ikan Bandeng Presto Fresh Farm 1 ekor,Fresh Farm,Meat & Seafood,1 ekor,ekor,28000,3,G3-4,bandeng|ikan bandeng,true
+SKU-0112,Sosis Ayam Champ 375 g,Champ,Frozen,375 g,g,32000,180,H1-1,sosis|sosis champ,true
+SKU-0113,Nugget Ayam Fiesta 500 g,Fiesta,Frozen,500 g,g,45000,180,H1-2,nugget|naget,true
+SKU-0114,Bakso Sapi Pronas 500 g,Pronas,Frozen,500 g,g,38000,180,H1-3,bakso|bakso sapi,true
+SKU-0115,Roti Tawar Jumbo Sari Roti 1 pack,Sari Roti,Bakery,1 pack,pack,17000,5,I1-4,roti tawar|sari roti|roti,true
+SKU-0116,Roti Tawar Kupas Sari Roti 1 pack,Sari Roti,Bakery,1 pack,pack,19500,5,I1-1,roti tawar kupas,true
+SKU-0117,Deterjen Bubuk Rinso 800 g,Rinso,Household,800 g,g,22000,720,J1-2,deterjen|rinso|sabun cuci,true
+SKU-0118,Deterjen Bubuk Rinso 1.8 kg,Rinso,Household,1.8 kg,kg,45000,720,J1-3,deterjen|rinso|sabun cuci,true
+SKU-0119,Sabun Cuci Piring Sunlight 400 ml,Sunlight,Household,400 ml,ml,11000,720,J1-4,sunlight|sabun cuci piring,true
+SKU-0120,Sabun Cuci Piring Sunlight 800 ml,Sunlight,Household,800 ml,ml,20000,720,J1-1,sunlight|sabun cuci piring,true
+SKU-0121,Pembersih Lantai Wipol 780 ml,Wipol,Household,780 ml,ml,18500,720,J2-2,wipol|pembersih lantai,true
+SKU-0122,Tisu Wajah Paseo 250 sheets,Paseo,Household,250 sheets,sheets,14000,720,J3-3,tisu|tissue|paseo,true
+SKU-0123,Tisu Wajah Paseo 2x250 sheets,Paseo,Household,2x250 sheets,sheets,26000,720,J3-4,tisu|tissue|paseo,true
+SKU-0124,Kantong Sampah Hippo 20 pcs,Hippo,Household,20 pcs,pcs,12000,1000,J2-1,kantong sampah|plastik sampah,true
+SKU-0125,Sabun Mandi Batang Lifebuoy 3x80 g,Lifebuoy,Personal Care,3x80 g,g,11000,720,K1-2,sabun mandi|lifebuoy,true
+SKU-0126,Sampo Anti Ketombe Clear 160 ml,Clear,Personal Care,160 ml,ml,22000,720,K2-3,sampo|shampoo|sampo clear,true
+SKU-0127,Sampo Anti Ketombe Clear 340 ml,Clear,Personal Care,340 ml,ml,39000,720,K2-4,sampo|shampoo|sampo clear,true
+SKU-0128,Pasta Gigi Pepsodent 75 g,Pepsodent,Personal Care,75 g,g,9500,720,K3-1,pasta gigi|odol|pepsodent,true
+SKU-0129,Pasta Gigi Pepsodent 190 g,Pepsodent,Personal Care,190 g,g,19000,720,K3-2,pasta gigi|odol|pepsodent,true
+SKU-0130,Popok Bayi Celana MamyPoko M 24 pcs,MamyPoko,Baby,M 24 pcs,pcs,68000,1000,L1-3,popok|pampers|diapers|mamypoko,true
+SKU-0131,Popok Bayi Celana MamyPoko L 22 pcs,MamyPoko,Baby,L 22 pcs,L,68000,1000,L1-4,popok|pampers|diapers|mamypoko,true
+SKU-0132,Susu Formula Tahap 3 SGM 400 g,SGM,Baby,400 g,g,62000,540,L2-1,susu formula|susu bayi|sgm,true
+SKU-0133,Susu Formula Tahap 3 SGM 900 g,SGM,Baby,900 g,g,125000,540,L2-2,susu formula|susu bayi|sgm,true
+SKU-0134,Minyak Goreng Tropical 1 L,Tropical,Cooking Essentials,1 L,L,18800,540,A2-3,migor tropical,true
+SKU-0135,Minyak Goreng Tropical 2 L,Tropical,Cooking Essentials,2 L,L,36500,540,A2-4,migor tropical,true
+SKU-0136,Minyak Goreng Tropical 5 L,Tropical,Cooking Essentials,5 L,L,89000,540,A2-1,migor tropical,true
+SKU-0137,Gula Pasir Rose Brand 500 g,Rose Brand,Cooking Essentials,500 g,g,8700,720,A3-2,gula rose brand,true
+SKU-0138,Gula Pasir Rose Brand 1 kg,Rose Brand,Cooking Essentials,1 kg,kg,16800,720,A3-3,gula rose brand,true
+SKU-0139,Gula Pasir Rose Brand 2 kg,Rose Brand,Cooking Essentials,2 kg,kg,32500,720,A3-4,gula rose brand,true
+SKU-0140,Gula Merah Aren Asli 250 g,Aren Asli,Cooking Essentials,250 g,g,9000,360,A3-1,gula merah|gula aren|gula jawa,true
+SKU-0141,Gula Merah Aren Asli 500 g,Aren Asli,Cooking Essentials,500 g,g,17000,360,A3-2,gula merah|gula aren|gula jawa,true
+SKU-0142,Tepung Beras Rose Brand 500 g,Rose Brand,Cooking Essentials,500 g,g,7500,365,A3-3,tepung beras,true
+SKU-0143,Tepung Bumbu Serbaguna Sajiku 75 g,Sajiku,Cooking Essentials,75 g,g,4800,365,A5-4,tepung bumbu|tepung crispy|tepung sajiku,true
+SKU-0144,Tepung Bumbu Serbaguna Sajiku 200 g,Sajiku,Cooking Essentials,200 g,g,11000,365,A5-1,tepung bumbu|tepung crispy|tepung sajiku,true
+SKU-0145,Kecap Asin Sari Murni 150 ml,Sari Murni,Cooking Essentials,150 ml,ml,7000,540,A4-2,kecap asin,true
+SKU-0146,Kecap Asin Sari Murni 620 ml,Sari Murni,Cooking Essentials,620 ml,ml,20000,540,A4-3,kecap asin,true
+SKU-0147,Saus Tiram Lee Kum Kee 118 ml,Lee Kum Kee,Cooking Essentials,118 ml,ml,12500,540,A4-4,saus tiram|saos tiram,true
+SKU-0148,Saus Tiram Lee Kum Kee 510 g,Lee Kum Kee,Cooking Essentials,510 g,g,31000,540,A4-1,saus tiram|saos tiram,true
+SKU-0149,Terasi Udang Jawara 50 g,Jawara,Cooking Essentials,50 g,g,6500,365,A5-2,terasi|trasi,true
+SKU-0150,Merica Bubuk Ladaku 15 g,Ladaku,Cooking Essentials,15 g,g,4500,540,A5-3,merica|lada bubuk|lada,true
+SKU-0151,Merica Bubuk Ladaku 50 g,Ladaku,Cooking Essentials,50 g,g,11500,540,A5-4,merica|lada bubuk|lada,true
+SKU-0152,Beras Medium Bulog 5 kg,Bulog,Cooking Essentials,5 kg,kg,62000,180,A6-1,beras medium|beras biasa|beras murah,true
+SKU-0153,Beras Medium Bulog 10 kg,Bulog,Cooking Essentials,10 kg,kg,118000,180,A6-2,beras medium|beras biasa|beras murah,true
+SKU-0154,Susu UHT Low Fat Greenfields 250 ml,Greenfields,Dairy & Eggs,250 ml,ml,7500,270,B1-3,susu greenfields|susu low fat,true
+SKU-0155,Susu UHT Low Fat Greenfields 1 L,Greenfields,Dairy & Eggs,1 L,L,22000,270,B1-4,susu greenfields|susu low fat,true
+SKU-0156,Susu UHT Stroberi Frisian Flag 225 ml,Frisian Flag,Dairy & Eggs,225 ml,ml,6000,270,B1-1,susu stroberi|susu rasa stroberi,true
+SKU-0157,Susu UHT Stroberi Frisian Flag 1 L,Frisian Flag,Dairy & Eggs,1 L,L,19000,270,B1-2,susu stroberi|susu rasa stroberi,true
+SKU-0158,Telur Bebek Asin Brebes 4 pcs,Brebes,Dairy & Eggs,4 pcs,pcs,18000,30,B3-3,telur asin|telor asin,true
+SKU-0159,Krimer Kental Manis Indomilk 370 g,Indomilk,Dairy & Eggs,370 g,g,12500,365,B2-4,kental manis indomilk|krimer,true
+SKU-0160,Mi Instan Kari Ayam Indomie 72 g,Indomie,Instant Food,72 g,g,3300,270,C1-1,indomie kari|mie kari ayam,true
+SKU-0161,Mi Instan Kari Ayam Indomie 5 pcs,Indomie,Instant Food,5 pcs,pcs,16000,270,C1-2,indomie kari|mie kari ayam,true
+SKU-0162,Mi Instan Ayam Spesial Indomie 69 g,Indomie,Instant Food,69 g,g,3200,270,C1-3,indomie ayam spesial|indomie kuah,true
+SKU-0163,Mi Instan Ayam Spesial Indomie 5 pcs,Indomie,Instant Food,5 pcs,pcs,15500,270,C1-4,indomie ayam spesial|indomie kuah,true
+SKU-0164,Pop Mie Rasa Ayam Pop Mie 75 g,Pop Mie,Instant Food,75 g,g,6500,270,C1-1,pop mie|popmie,true
+SKU-0165,Sarden Cabe Botan 155 g,Botan,Instant Food,155 g,g,11500,720,C2-2,sarden botan|sarden cabe,true
+SKU-0166,Kornet Sapi Pronas 198 g,Pronas,Instant Food,198 g,g,29000,720,C2-3,kornet|kornet pronas,true
+SKU-0167,Teh Celup Tong Tji 25 bags,Tong Tji,Beverages,25 bags,bags,8500,540,D2-4,teh tong tji|teh tongji,true
+SKU-0168,Kopi Bubuk Kapal Api 165 g,Kapal Api,Beverages,165 g,g,17000,540,D2-1,kopi bubuk|kopi hitam,true
+SKU-0169,Kopi Bubuk Kapal Api 380 g,Kapal Api,Beverages,380 g,g,36000,540,D2-2,kopi bubuk|kopi hitam,true
+SKU-0170,Susu Coklat Bubuk Milo 300 g,Milo,Beverages,300 g,g,32000,540,D2-3,milo|susu milo,true
+SKU-0171,Susu Coklat Bubuk Milo 1 kg,Milo,Beverages,1 kg,kg,82000,540,D2-4,milo|susu milo,true
+SKU-0172,Minuman Isotonik Mizone 500 ml,Mizone,Beverages,500 ml,ml,5500,540,D3-1,mizone,true
+SKU-0173,Jus Buah Jambu Buavita 250 ml,Buavita,Beverages,250 ml,ml,7500,270,D3-2,jus jambu|buavita|jus buah,true
+SKU-0174,Jus Buah Jambu Buavita 1 L,Buavita,Beverages,1 L,L,22000,270,D3-3,jus jambu|buavita|jus buah,true
+SKU-0175,Soda Lemon Sprite 390 ml,Sprite,Beverages,390 ml,ml,6000,360,D3-4,sprite|soda lemon,true
+SKU-0176,Soda Lemon Sprite 1.5 L,Sprite,Beverages,1.5 L,L,15000,360,D3-1,sprite|soda lemon,true
+SKU-0177,Keripik Singkong Maicih 100 g,Maicih,Snacks,100 g,g,15000,180,E1-2,keripik singkong|kripik singkong|maicih,true
+SKU-0178,Keripik Kentang Lay's 68 g,Lay's,Snacks,68 g,g,11500,180,E1-3,lays|lay's|keripik lays,true
+SKU-0179,Keripik Kentang Lay's 140 g,Lay's,Snacks,140 g,g,22000,180,E1-4,lays|lay's|keripik lays,true
+SKU-0180,Coklat Wafer Beng-Beng 1 pc 20 g,Beng-Beng,Snacks,1 pc 20 g,g,2500,270,E2-1,beng beng|bengbeng,true
+SKU-0181,Coklat Wafer Beng-Beng 10 pcs,Beng-Beng,Snacks,10 pcs,pcs,22000,270,E2-2,beng beng|bengbeng,true
+SKU-0182,Biskuit Sandwich Coklat Oreo 137 g,Oreo,Snacks,137 g,g,9500,270,E2-3,oreo|biskuit oreo,true
+SKU-0183,Biskuit Sandwich Coklat Oreo 259 g,Oreo,Snacks,259 g,g,15500,270,E2-4,oreo|biskuit oreo,true
+SKU-0184,Biskuit Gandum Good Time 80 g,Good Time,Snacks,80 g,g,8500,270,E2-1,good time|goodtime|biskuit coklat chip,true
+SKU-0185,Permen Mint Kopiko 27 g,Kopiko,Snacks,27 g,g,2500,360,E4-2,kopiko|permen kopi|permen,true
+SKU-0186,Permen Mint Kopiko 120 g,Kopiko,Snacks,120 g,g,9000,360,E4-3,kopiko|permen kopi|permen,true
+SKU-0187,Pisang Sale Gunung Sari 200 g,Gunung Sari,Snacks,200 g,g,18000,180,E3-4,pisang sale,true
+SKU-0188,Apel Fuji 500 g,,Fresh Produce,500 g,g,24000,14,F4-1,apel|apel fuji,true
+SKU-0189,Jeruk Nipis 250 g,,Fresh Produce,250 g,g,7000,10,F4-2,jeruk nipis|limau,true
+SKU-0190,Bawang Bombay 500 g,,Fresh Produce,500 g,g,14000,21,F1-3,bawang bombay|bombay,true
+SKU-0191,Sawi Hijau 1 ikat,,Fresh Produce,1 ikat,ikat,4500,3,F3-4,sawi|sawi hijau|caisim,true
+SKU-0192,Timun 500 g,,Fresh Produce,500 g,g,7000,7,F2-1,timun|mentimun,true
+SKU-0193,Jagung Manis 2 pcs,,Fresh Produce,2 pcs,pcs,9000,4,F2-2,jagung|jagung manis,true
+SKU-0194,Ayam Fillet Dada Fresh Farm 500 g,Fresh Farm,Meat & Seafood,500 g,g,35000,3,G1-3,dada ayam|fillet ayam|ayam fillet,true
+SKU-0195,Udang Segar Fresh Farm 250 g,Fresh Farm,Meat & Seafood,250 g,g,36000,2,G3-4,udang|udang segar,true
+SKU-0196,Ikan Lele Segar Fresh Farm 500 g,Fresh Farm,Meat & Seafood,500 g,g,22000,2,G3-1,lele|ikan lele,true
+SKU-0197,French Fries McCain 450 g,McCain,Frozen,450 g,g,38000,270,H2-2,kentang goreng|french fries|kentang beku,true
+SKU-0198,Dimsum Ayam Belfoods 400 g,Belfoods,Frozen,400 g,g,42000,180,H2-3,dimsum|dimsum ayam|dimsum beku,true
+SKU-0199,Roti Sobek Coklat Sari Roti 1 pack,Sari Roti,Bakery,1 pack,pack,14500,5,I1-4,roti sobek|roti coklat,true
+SKU-0200,Roti Gandum Sari Roti 1 pack,Sari Roti,Bakery,1 pack,pack,23000,5,I1-1,roti gandum|roti whole wheat,true
+SKU-0201,Pelembut Pakaian Molto 800 ml,Molto,Household,800 ml,ml,17500,720,J1-2,pelembut|molto|pewangi pakaian,true
+SKU-0202,Pelembut Pakaian Molto 1.6 L,Molto,Household,1.6 L,L,31000,720,J1-3,pelembut|molto|pewangi pakaian,true
+SKU-0203,Deterjen Cair Attack 800 ml,Attack,Household,800 ml,ml,28000,720,J1-4,deterjen cair|attack,true
+SKU-0204,Sabun Cuci Tangan Lifebuoy 200 ml,Lifebuoy,Household,200 ml,ml,14500,720,J2-1,sabun cuci tangan|handsoap|hand soap,true
+SKU-0205,Sabun Cuci Tangan Lifebuoy 400 ml refill,Lifebuoy,Household,400 ml refill,ml,22000,720,J2-2,sabun cuci tangan|handsoap|hand soap,true
+SKU-0206,Obat Nyamuk Bakar Baygon 12 coils,Baygon,Household,12 coils,coils,9500,1000,J2-3,obat nyamuk|baygon,true
+SKU-0207,Sikat Gigi Formula 1 pc,Formula,Personal Care,1 pc,pc,8000,1000,K3-4,sikat gigi,true
+SKU-0208,Sabun Mandi Cair Dettol 250 ml,Dettol,Personal Care,250 ml,ml,26000,720,K1-1,sabun cair|sabun mandi cair|dettol,true
+SKU-0209,Sabun Mandi Cair Dettol 450 ml refill,Dettol,Personal Care,450 ml refill,ml,38000,720,K1-2,sabun cair|sabun mandi cair|dettol,true
+SKU-0210,Deodoran Roll On Rexona 45 ml,Rexona,Personal Care,45 ml,ml,17500,720,K2-3,deodoran|rexona|roll on,true
+SKU-0211,Pembalut Wanita Laurier 20 pads,Laurier,Personal Care,20 pads,pads,15500,1000,K4-4,pembalut|laurier,true
+SKU-0212,Pembalut Wanita Laurier 30 pads,Laurier,Personal Care,30 pads,pads,21000,1000,K4-1,pembalut|laurier,true
+SKU-0213,Bubur Bayi Instan Milna 120 g,Milna,Baby,120 g,g,27000,365,L2-2,bubur bayi|bubur milna|mpasi,true
+SKU-0214,Tisu Basah Bayi Nuvo 50 sheets,Nuvo,Baby,50 sheets,sheets,14000,720,L1-3,tisu basah|wet wipes,true
+NC-001,Oat Milk,,Beverages,1 L,L,32000,,,oat milk|susu oat|oatmilk|oat mulk,false
+NC-002,Almond Milk,,Beverages,1 L,L,35000,,,almond milk|susu almond|susu kacang almond,false
+NC-003,Sambal Ijo Instan,,Cooking Essentials,275 ml,ml,16000,,,sambal ijo|saus ijo|sambal hijau|saos ijo,false
+NC-004,Sambal Matah Botolan,,Cooking Essentials,200 ml,ml,24000,,,sambal matah|matah botolan|sambel matah,false
+NC-005,Greek Yogurt,,Dairy & Eggs,500 g,g,45000,,,greek yogurt|yogurt yunani|greek yoghurt,false
+NC-006,Granola,,Snacks,250 g,g,38000,,,granola|granola bar|granola cereal,false
+NC-007,Kimchi,,Fresh Produce,250 g,g,28000,,,kimchi|kimci|sawi kimchi,false
+NC-008,Brown Rice,,Cooking Essentials,2 kg,kg,42000,,,beras merah|beras merah organik|brown rice,false
+NC-009,Natural Peanut Butter,,Cooking Essentials,340 g,g,48000,,,selai kacang natural|peanut butter|selai kacang tanpa gula,false
+NC-010,Shirataki Noodles,,Instant Food,200 g,g,22000,,,mie shirataki|shirataki|mi shirataki,false
+NC-011,Microwave Rice,,Instant Food,250 g,g,18000,,,nasi instan microwave|nasi instan|nasi siap makan,false
+NC-012,Extra Virgin Olive Oil,,Cooking Essentials,250 ml,ml,65000,,,minyak zaitun|olive oil|minyak zaitun extra virgin,false
+NC-013,Frozen Tempe Mendoan,,Frozen,400 g,g,26000,,,mendoan beku|tempe mendoan|mendoan frozen,false
+NC-014,Salmon Fillet,,Meat & Seafood,250 g,g,75000,,,salmon|fillet salmon|ikan salmon,false
+NC-015,Gluten-Free Pasta,,Instant Food,400 g,g,42000,,,pasta bebas gluten|gluten free pasta|pasta gluten free,false
