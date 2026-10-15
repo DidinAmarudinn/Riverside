@@ -4,6 +4,10 @@ Scaffold stage: endpoints return placeholder payloads in the contract's shape; r
 """
 from __future__ import annotations
 
+import base64
+import binascii
+import datetime as dt
+import json
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -175,11 +179,47 @@ def verify_pubsub_token(authorization: str | None) -> bool:
     return claims.get("email") == settings.pubsub_invoker_email and claims.get("email_verified", False)
 
 
+EXTRACTOR_VERSION = "extractor-v1-" + dt.date.today().strftime("%Y%m%d")
+
+
+def _conversation_from_message(data: dict) -> dict | None:
+    """Map a published kiosk message to the conversation dict extract_one expects."""
+    transcript = data.get("transcript")
+    if transcript is None:
+        return None
+    return {
+        "conversation_id": data.get("conversationId") or data.get("conversation_id") or str(uuid.uuid4()),
+        "sandbox_id": data.get("sandboxId") or data.get("sandbox_id"),
+        "store_id": data.get("storeId") or data.get("store_id"),
+        "ts": data.get("ts") or dt.datetime.now(dt.timezone.utc).isoformat(),
+        "transcript": transcript if isinstance(transcript, str) else json.dumps(transcript, ensure_ascii=False),
+    }
+
+
+def process_pubsub_message(data: dict) -> None:
+    """Extract one conversation and, on the gcp backend, write the signal to BigQuery + Firestore."""
+    from .extract.catalog import load_catalog
+    from .extract.core import extract_one
+
+    conv = _conversation_from_message(data)
+    if conv is None:
+        return
+    row = extract_one(conv, load_catalog(), model_version=EXTRACTOR_VERSION)
+    if settings.backend == "gcp":
+        from .extract import sink
+        sink.write_signal(row)
+
+
 @app.post("/pubsub/extract", status_code=204)
 async def pubsub_extract(request: Request, authorization: str | None = Header(default=None)) -> Response:
     # Auth before reading the body, so unauthenticated calls always get 401.
     if not await run_in_threadpool(verify_pubsub_token, authorization):
         raise HTTPException(401, "invalid_token")
-    envelope = await request.json()  # noqa: F841
-    # TODO: decode envelope["message"]["data"], run Gemini extraction, write demand_signals + sandbox liveSignals.
+    envelope = await request.json()
+    message = (envelope or {}).get("message") or {}
+    try:
+        data = json.loads(base64.b64decode(message.get("data", "")).decode("utf-8"))
+    except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError, ValueError):
+        return Response(status_code=204)  # ack malformed payloads so Pub/Sub stops redelivering
+    await run_in_threadpool(process_pubsub_message, data)
     return Response(status_code=204)

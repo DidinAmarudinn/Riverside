@@ -51,12 +51,11 @@ def load_config(path: Path | None = None) -> SimConfig:
 
 
 def load_master() -> pd.DataFrame:
-    return pd.read_csv(DATA_DIR / "product_master.csv").fillna({"brand": ""})
+    """Full product_master (both carried and NC rows). is_carried as bool, brand/synonyms never NaN."""
+    df = pd.read_csv(DATA_DIR / "product_master.csv").fillna({"brand": "", "synonyms": "", "aisle": ""})
+    df["is_carried"] = df["is_carried"].astype(str).str.strip().str.lower().isin(("true", "1"))
+    return df
 
 
 def load_sku_params() -> pd.DataFrame:
     return pd.read_csv(DATA_DIR / "sim" / "sku_params.csv")
-
-
-def load_not_stocked() -> pd.DataFrame:
-    return pd.read_csv(DATA_DIR / "not_stocked_items.csv")

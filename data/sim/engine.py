@@ -169,7 +169,10 @@ def simulate_stock(cfg: SimConfig, demand: np.ndarray, disruption: np.ndarray, w
 
 def build_world(cfg: SimConfig | None = None) -> World:
     cfg = cfg or load_config()
-    master, params = load_master(), load_sku_params()
+    params = load_sku_params()
+    # The simulator only ever acts on carried SKUs; NC rows exist for the catalog/gaps, not for demand.
+    master = (load_master().query("is_carried").reset_index(drop=True)
+              .merge(params[["sku", "subcategory", "perishable"]], on="sku", how="left"))
     rng = np.random.default_rng(int(cfg.sim["seed"]))
 
     demand = build_demand(cfg, master, params, rng)
@@ -193,14 +196,60 @@ def _frame(world: World, **arrays: np.ndarray) -> pd.DataFrame:
 def to_frames(world: World) -> dict[str, pd.DataFrame]:
     price = world.master["price_idr"].to_numpy()
     return {
-        "true_demand": _frame(world, true_units=world.demand),
+        # Contract column names: docs/api-contract.md §1 / sql/01_tables.sql.
+        "true_demand": _frame(world, demand_qty=world.demand),
         "stock_events": _frame(
             world,
-            opening_stock=world.opening, received_units=world.received,
-            closing_stock=world.closing, stockout_flag=(world.closing == 0).astype(int),
+            opening_stock=world.opening, received_qty=world.received,
+            closing_stock=world.closing, is_stockout=(world.closing == 0).astype(int),
         ),
         "pos_sales": _frame(
-            world, units_sold=world.sales,
+            world, qty_sold=world.sales,
             revenue_idr=(world.sales * price[None, None, :]).astype(np.int64),
         ),
     }
+
+
+# --------------------------------------------------------------------------- calendar & stores
+
+def _in_range(day: pd.Timestamp, window: dict | None) -> bool:
+    if not window or "start" not in window or "end" not in window:
+        return False
+    return pd.Timestamp(window["start"]) <= day <= pd.Timestamp(window["end"])
+
+
+def build_calendar(cfg: SimConfig) -> pd.DataFrame:
+    """calendar_context per contract: payday window (25-5), holidays, ramadan/lebaran, weather.
+
+    Ramadan/Lebaran fall outside the Jul-Oct simulation window, so those flags are normally all
+    false; they stay configurable so the window can be moved without touching code.
+    """
+    sim = cfg.sim
+    rng = np.random.default_rng(int(sim["seed"]) + 7)
+    holidays = {str(h["date"]): str(h["name"]) for h in sim.get("holidays", [])}
+    ramadan, lebaran = sim.get("ramadan"), sim.get("lebaran_window")
+    weather = sim.get("weather", {"sunny": 0.5, "cloudy": 0.3, "rain": 0.2})
+    labels, probs = list(weather), np.array(list(weather.values()), dtype=float)
+    probs = probs / probs.sum()
+
+    rows = []
+    for d in cfg.dates:
+        ds = d.strftime("%Y-%m-%d")
+        rows.append({
+            "date": ds,
+            "is_payday_window": bool(d.day >= 25 or d.day <= 5),
+            "is_holiday": ds in holidays,
+            "holiday_name": holidays.get(ds, ""),
+            "is_ramadan": _in_range(d, ramadan),
+            "is_lebaran_window": _in_range(d, lebaran),
+            "weather": str(rng.choice(labels, p=probs)),
+        })
+    return pd.DataFrame(rows)
+
+
+def build_stores(cfg: SimConfig) -> pd.DataFrame:
+    """stores per contract: store_id, name, city, lat, lng (from seed_scenarios.yaml)."""
+    return pd.DataFrame([{
+        "store_id": s["id"], "name": s["name"],
+        "city": s.get("city", ""), "lat": s.get("lat"), "lng": s.get("lng"),
+    } for s in cfg.stores])
