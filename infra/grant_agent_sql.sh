@@ -12,7 +12,7 @@ set -euo pipefail
 : "${GCP_PROJECT:?set GCP_PROJECT}"
 DATASET="${BQ_DATASET:-demand_radar}"
 SA="${AGENT_SQL_SA:-dr-agent-sql@${GCP_PROJECT}.iam.gserviceaccount.com}"
-VIEWS=(v_sku_summary v_evidence v_assortment_gaps v_lost_revenue_today v_unmet_daily v_signals)
+VIEWS=(v_sku_summary v_evidence v_assortment_gaps v_lost_revenue_today v_unmet_daily)
 
 for v in "${VIEWS[@]}"; do
   echo "grant dataViewer on ${DATASET}.${v} to ${SA}"

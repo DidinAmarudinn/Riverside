@@ -43,8 +43,8 @@ def test_blocked_tables_and_functions(sql):
 @pytest.mark.parametrize("sql", [
     "DROP TABLE ds.pos_sales",
     "DELETE FROM v_sku_summary WHERE TRUE",
-    "INSERT INTO v_signals SELECT * FROM v_signals",
-    "UPDATE v_signals SET sku = 'x' WHERE TRUE",
+    "INSERT INTO v_unmet_daily SELECT * FROM v_unmet_daily",
+    "UPDATE v_unmet_daily SET sku = 'x' WHERE TRUE",
     "CREATE TABLE t AS SELECT * FROM v_sku_summary",
     "SELECT 1; DROP TABLE x",
     "EXPORT DATA OPTIONS(uri='gs://b/*') AS SELECT * FROM v_sku_summary",
@@ -72,6 +72,14 @@ def test_union_is_wrapped_so_the_limit_applies_to_the_whole_result():
 def test_oversized_query_is_rejected():
     with pytest.raises(SqlRejected, match="too long"):
         ok("SELECT * FROM v_sku_summary WHERE sku IN (" + ",".join("'x'" for _ in range(2000)) + ")")
+
+
+def test_allowed_views_match_the_contract_agent_views():
+    # docs/api-contract.md §1 "Agent views"; v_signals exposes sandbox ids and is not one of them
+    assert ALLOWED_VIEWS == {"v_unmet_daily", "v_sku_summary", "v_assortment_gaps", "v_evidence",
+                             "v_lost_revenue_today"}
+    with pytest.raises(SqlRejected):
+        ok("SELECT * FROM v_signals")
 
 
 def test_allowed_views_exclude_every_base_table():

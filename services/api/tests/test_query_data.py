@@ -94,4 +94,6 @@ def test_lineage_is_computed_once_from_dry_runs_of_the_allowed_views():
     runner.allowed_lineage()
     n = len(client.seen)
     runner.allowed_lineage()
-    assert n == 6 and len(client.seen) == n  # one dry run per allowed view, then cached
+    from app.tools.sqlguard import ALLOWED_VIEWS
+
+    assert n == len(ALLOWED_VIEWS) == 5 and len(client.seen) == n  # one dry run per allowed view, then cached

@@ -178,11 +178,11 @@ def query_data(sql: str) -> dict:
     """Run a read-only SQL query against the Demand Radar views and return the rows.
 
     Use it for anything the other tools do not cover (custom filters, totals, comparisons). Only SELECT is
-    allowed, only these views: v_sku_summary (per store+SKU status: stock, sales, stockouts, unmet demand,
-    forecast and recommendation), v_unmet_daily (per day: sold, stock, stockout flag, unmet signals),
-    v_evidence (shopper requests with text and outcome), v_assortment_gaps (products shoppers ask for that the
-    store does not carry), v_lost_revenue_today, v_signals. Results are capped at 100 rows. Do the math in
-    SQL (SUM, COUNT, ...) instead of computing in your head.
+    allowed, only these views: v_unmet_daily (per day, store, SKU: outcome out_of_stock/not_carried, unmet_qty,
+    requests), v_sku_summary (latest recommendation per store+SKU with forecast A/B, product name and price; empty
+    until forecasts exist), v_evidence (shopper requests with text, outcome, conversation), v_assortment_gaps
+    (products shoppers ask for that the store does not carry), v_lost_revenue_today. Results are capped at 100
+    rows. Do the math in SQL (SUM, COUNT, ...) instead of computing in your head.
 
     Args:
         sql: One BigQuery Standard SQL SELECT statement.

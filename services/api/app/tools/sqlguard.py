@@ -10,8 +10,9 @@ import sqlglot
 from sqlglot import exp
 
 # Views only: base tables hold ground truth (true_demand, conversations.gt_*) the agent must never see.
+# Same list as the "Agent views" in docs/api-contract.md §1 and infra/grant_agent_sql.sh.
 ALLOWED_VIEWS = frozenset({
-    "v_sku_summary", "v_evidence", "v_assortment_gaps", "v_lost_revenue_today", "v_unmet_daily", "v_signals",
+    "v_sku_summary", "v_evidence", "v_assortment_gaps", "v_lost_revenue_today", "v_unmet_daily",
 })
 MAX_ROWS = 100
 MAX_SQL_CHARS = 4000

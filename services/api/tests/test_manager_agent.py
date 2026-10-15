@@ -7,7 +7,7 @@ from app.agents.manager import build_manager_agent
 from app.agents.runtime import AgentRuntime
 from app.tools.bq import set_runner
 
-from .fake_bq import SUMMARY_NOT_READY, FakeRunner, with_recs
+from .fake_bq import RECS, FakeRunner
 from .fake_llm import ScriptedLlm, call, say
 
 import pytest
@@ -36,12 +36,12 @@ def last(r):
 def test_cited_evidence_is_returned_with_the_reply():
     _, (r,) = run(
         [call("get_recommendations", store_id="S01"),
-         say("Nyiur Santan 65 ml has 112.5 unmet units [E1], and the 200 ml has 27.5 [E2].")],
+         say("Kara 65 ml had 14 unmet requests [E1], and Sasa 65 ml had 0 [E2].")],
         ["Which products are most at risk?"],
     )
     cites = last(r)["citations"]
     assert [c["id"] for c in cites] == ["E1", "E2"]
-    assert (cites[0]["sku"], cites[0]["est_unmet_units_7d"]) == ("SNT-001", 112.5)
+    assert (cites[0]["sku"], cites[0]["unmet_requests_7d"]) == ("SKU-0001", 14)
     assert last(r)["unverified_numbers"] == [] and last(r)["tool_calls"][0]["name"] == "get_recommendations"
     assert r.error is None
 
@@ -57,7 +57,7 @@ def test_model_sees_numbered_evidence_in_the_tool_result():
 def test_multi_id_marker_and_unknown_ids():
     _, (r,) = run(
         [call("get_recommendations", store_id="S01"),
-         say("Both coconut-milk cartons are empty [E1, E2, E9]. Also see [E0].")],
+         say("Both coconut-milk cartons had trouble [E1, E2, E9]. Also see [E0].")],
         ["risk?"],
     )
     assert "E9" not in r.reply and "E0" not in r.reply and "[E1, E2]" in r.reply  # invented ids are removed
@@ -72,7 +72,7 @@ def test_no_markers_falls_back_to_all_evidence_looked_at_this_turn():
 def test_numbers_no_tool_returned_are_flagged_not_hidden():
     _, (r,) = run(
         [call("get_recommendations", store_id="S01"),
-         say("You should order 60 boxes now [E1]. Unmet units: 112.5 [E1].")],
+         say("You should order 60 boxes now [E1]. Unmet requests: 14 [E1].")],
         ["why 60 boxes?"],
     )
     assert "60 boxes" in r.reply  # reply is untouched
@@ -84,9 +84,9 @@ def test_numbers_no_tool_returned_are_flagged_not_hidden():
 
 
 def test_forecast_numbers_are_grounded_when_recommendations_exist():
-    set_runner(FakeRunner(summary=with_recs(SUMMARY_NOT_READY)))
+    set_runner(FakeRunner(recs=RECS))
     _, (r,) = run(
-        [call("get_sku_detail", store_id="S01", sku="SNT-001"),
+        [call("get_sku_detail", store_id="S01", sku="SKU-0001"),
          say("Forecast A says 84 units, forecast B says 196 [E1]; order 60 instead of 40 [E1].")],
         ["why order more than the POS forecast says?"],
     )
@@ -102,7 +102,7 @@ def test_evidence_ids_keep_counting_across_turns_in_a_conversation():
     )
     assert [c["id"] for c in last(r1)["citations"]] == ["E1"]
     assert [c["id"] for c in last(r2)["citations"]] == ["E2"]  # not E1 again: ids are unique per conversation
-    assert last(r2)["citations"][0]["sku"] == "ROT-006"
+    assert last(r2)["citations"][0]["sku"] == "SKU-0211"
 
 
 def test_query_data_rejection_is_reported_to_the_model_not_raised():
@@ -129,12 +129,12 @@ def test_endpoint_returns_contract_citations_and_clean_reply(monkeypatch):
     import uuid
 
     sandbox = {"X-Sandbox-Id": str(uuid.uuid4())}
-    llm = ScriptedLlm([call("get_sku_detail", store_id="S01", sku="SNT-001"), say("SNT-001 is out of stock [E1].")])
+    llm = ScriptedLlm([call("get_sku_detail", store_id="S01", sku="SKU-0001"), say("SKU-0001 is out of stock [E1].")])
     monkeypatch.setattr(main, "_manager_runtime", AgentRuntime(build_manager_agent(model=llm), app_name="api"))
     c = TestClient(main.app)
     r = c.post("/api/manager/S02/chat", json={"message": "why?"}, headers=sandbox).json()
-    assert r["reply"] == "SNT-001 is out of stock."  # markers are for the citations list, not for display
-    assert r["citations"][0] == {"label": "Nyiur Santan Kotak 65 ml", "sku": "SNT-001"}
+    assert r["reply"] == "SKU-0001 is out of stock."  # markers are for the citations list, not for display
+    assert r["citations"][0] == {"label": "Santan Kotak Kara 65 ml", "sku": "SKU-0001"}
     assert uuid.UUID(r["sessionId"]) and "unverified_numbers" not in r
     assert "store_id=S02" in str(llm.seen_requests[0].contents[0])  # the store comes from the path
 
