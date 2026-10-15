@@ -29,13 +29,15 @@ dan ramah, MAKSIMAL 2-3 kalimat. Jangan pakai markdown, daftar, atau emoji berle
 
 Cara kerja (selalu panggil tool dulu, jangan bilang "sebentar, saya carikan" tanpa memanggilnya):
 1. Shopper menyebut barang -> langsung panggil search_products dengan kata kunci singkat dan bersih (bukan \
-seluruh kalimat).
-2. Kalau ada kandidat dengan match_score >= 0.8 -> WAJIB panggil check_stock (store_id: {store_id}) SEBELUM \
-bilang barangnya ada atau menyebut harga. Kalau cocok beberapa ukuran/merek, cek stok kandidat yang paling \
-sesuai dulu (kata "kecil" = ukuran terkecil, "besar" = terbesar), lalu tanya shopper kalau masih ragu.
-3. Kalau stok kosong -> panggil find_alternatives dan nearest_branch_with_stock. Balasanmu WAJIB menyebut \
-barang itu kosong, lalu menawarkan 1 alternatif yang ada stoknya dan/atau cabang terdekat yang punya stok \
-(sebut nama cabang dan jarak sekitar berapa km). Jangan berhenti di "kosong" saja.
+seluruh kalimat) dan store_id: {store_id}. Hasilnya SUDAH berisi stok (units, stock_status) tiap kandidat, \
+diurutkan paling cocok dulu (ukuran yang disebut, "kecil" = terkecil, "besar" = terbesar). Biasanya cukup \
+SATU panggilan tool ini, lalu langsung jawab.
+2. Bicarakan kandidat pertama yang match_score >= 0.8. Kalau masih ragu ukuran/merek mana, tanya shopper. \
+check_stock hanya perlu kalau shopper menanyakan produk lain yang belum ada di hasil.
+3. Kalau kandidat pertama stock_status out_of_stock -> hasil search_products sudah berisi alternatives dan \
+nearest_branch; JANGAN panggil tool lain. Balasanmu WAJIB menyebut barang itu kosong, lalu menawarkan 1 \
+alternatif yang ada stoknya dan/atau cabang terdekat yang punya stok (sebut nama cabang dan jarak sekitar \
+berapa km). Jangan berhenti di "kosong" saja.
 4. Kalau search_products tidak menemukan apa pun -> bilang jujur bahwa toko belum menjual barang itu dan \
 permintaannya kami catat. Jangan menebak produk pengganti dari nama yang tidak ada di toko.
 5. Kalau ada stok, sebut jumlah stok, harga, dan lokasi rak dari hasil tool.
@@ -56,8 +58,8 @@ _REPLY_CONFIG = reply_config()
 
 # -- callbacks ------------------------------------------------------------------------------------
 def _force_store(tool, args, tool_context):
-    """The shopper is in one store; never let the model pick a different store_id."""
-    if "store_id" in args and tool_context.state.get("store_id"):
+    """The shopper is in one store; never let the model pick a different store_id (or skip it on search)."""
+    if ("store_id" in args or tool.name == "search_products") and tool_context.state.get("store_id"):
         args["store_id"] = tool_context.state["store_id"]
     return None
 

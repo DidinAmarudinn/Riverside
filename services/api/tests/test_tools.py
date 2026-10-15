@@ -124,3 +124,16 @@ def test_nearest_branch_sorted_by_distance_and_excludes_own_store(world):
 def test_nearest_branch_skips_branches_without_stock(world):
     assert [b["store_id"] for b in nearest_branch_with_stock("S01", "SKU-0002")["branches"]] == ["S02"]  # S03 has 0
     assert nearest_branch_with_stock("S01", "SKU-0004") == {"status": "none", "branches": []}
+
+
+def test_search_with_store_brings_stock_and_the_rescue_in_one_call(world):
+    res = search_products("santan kotak kara 65 ml", store_id="S01")
+    best = res["matches"][0]
+    assert best["sku"] == "SKU-0001" and best["units"] == 0 and best["stock_status"] == "out_of_stock"
+    assert res["alternatives"] and all(a["units"] > 0 and a["sku"] != "SKU-0001" for a in res["alternatives"])
+    assert res["nearest_branch"]["store_id"] in ("S02", "S03") and res["nearest_branch"]["units"] > 0
+
+
+def test_search_without_store_stays_a_catalog_lookup(world):
+    res = search_products("santan kotak kara 65 ml")
+    assert "units" not in res["matches"][0] and "alternatives" not in res
