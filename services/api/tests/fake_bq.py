@@ -34,7 +34,7 @@ def hero_days():
         date = f"2026-10-{day:02d}" if day >= 1 else f"2026-09-{30 + day:02d}"
         out = i < 7
         days.append(dict(date=date, qty_sold=0 if out else 5, closing_stock=0 if out else 20, is_stockout=out,
-                         unmet_requests=2 if out else 0))
+                         unmet_requests=2 if out else 0, unmet=2 if out else 0))
     return days
 
 
@@ -43,8 +43,9 @@ class FakeRunner:
     fq = "`proj.ds`"
     _max_bytes = 1_000_000
 
-    def __init__(self, recs=None, dry=None, agent_result=None, agent_error=None):
+    def __init__(self, recs=None, dry=None, agent_result=None, agent_error=None, forecasts=None):
         self.recs = recs or []
+        self.forecasts = forecasts or []
         self.calls: list[tuple[str, dict]] = []
         self.agent_sql: list[str] = []
         self._dry = dry or {"statement_type": "SELECT", "tables": {"pos_sales"}, "bytes": 1000}
@@ -70,14 +71,19 @@ class FakeRunner:
             hits = [dict(sku=s, name=n, unmet_requests_total=u) for s, n, u in table if q in n.lower() or q == "santan" and "santan" in n.lower()]
             return hits[:5]
         if "FROM `proj.ds`.product_master WHERE sku = @k" in sql:
-            return [dict(HERO)]
+            return [dict(HERO)] if p["k"] == "SKU-0001" else []
         if "stock_events e LEFT JOIN" in sql:
             return hero_days()
+        if "COUNT(*) AS n FROM `proj.ds`.v_evidence" in sql:
+            return [{"n": 39}]
         if ".v_evidence" in sql:
             return [dict(date="2026-10-12", ts="2026-10-12 11:44:44", outcome="out_of_stock",
-                         requested_text="santan 65ml ada ?", conversation_id="cv-008163", channel="kiosk")]
+                         requested_text="santan 65ml ada ?", conversation_id="cv-008163", channel="kiosk",
+                         confidence=0.98)]
         if ".forecasts" in sql:
-            return []
+            return [dict(r) for r in self.forecasts]
+        if "AS kpi_marker" in sql or "AS lost," in sql:  # overview KPIs
+            return [dict(lost=9000, unmet=2, stockouts=1)]
         if "v_unmet_daily u JOIN" in sql:  # get_lost_revenue
             if p.get("n", 0) > 5:
                 return []
@@ -85,9 +91,15 @@ class FakeRunner:
                          price_idr=22000, lost_revenue_idr=66000),
                     dict(date="2026-10-11", store_id="S01", sku="SKU-0001", name="Santan Kotak Kara 65 ml",
                          unmet_qty=2, price_idr=4500, lost_revenue_idr=9000)]
+        if "DATE_DIFF(d.d, s.date, DAY)" in sql:  # gaps: daily counts
+            return [dict(normalized_name="oat milk", ago=0, c=2), dict(normalized_name="oat milk", ago=9, c=1)]
+        if "APPROX_QUANTILES" in sql:
+            return [dict(category="Beverages", m=8500)]
         if "v_assortment_gaps" in sql:
             return [dict(normalized_name="oat milk", category=None, requests=12, first_seen="2026-07-18",
-                         last_seen="2026-09-30", sample_requests=["a", "b", "c", "d"])]
+                         last_seen="2026-09-30", sample_requests=["a", "b", "c", "d"]),
+                    dict(normalized_name="es teh", category="Beverages", requests=4, first_seen="2026-08-01",
+                         last_seen="2026-10-01", sample_requests=[])]
         raise AssertionError(f"unrouted SQL: {sql}")
 
     # free-form agent SQL ---------------------------------------------------------------------------
@@ -108,3 +120,11 @@ class FakeRunner:
             "v_unmet_daily": ["date DATE", "store_id STRING", "unmet_qty INTEGER"],
             "v_sku_summary": ["store_id STRING", "sku STRING", "on_hand INTEGER"],
         }
+
+
+FORECASTS = [  # what the forecast pipeline will write: two series on their own dates
+    dict(model="A", forecast_date="2026-10-13", forecast_qty=0.0, date="2026-10-13", qty=0.0, lower=0.0, upper=1.0),
+    dict(model="A", forecast_date="2026-10-14", forecast_qty=0.0, date="2026-10-14", qty=0.0, lower=0.0, upper=1.0),
+    dict(model="B", forecast_date="2026-10-13", forecast_qty=8.0, date="2026-10-13", qty=8.0, lower=5.0, upper=11.0),
+    dict(model="B", forecast_date="2026-10-14", forecast_qty=9.0, date="2026-10-14", qty=9.0, lower=6.0, upper=12.0),
+]

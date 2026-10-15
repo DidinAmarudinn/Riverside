@@ -54,7 +54,8 @@ class GcpRepo:
         ):
             self._products.append({
                 "sku": r["sku"], "name": r["name"], "brand": r["brand"] or "", "category": r["category"] or "",
-                "pack_size": _pack_label(r["pack_size"], r["unit"]), "price_idr": int(r["price_idr"]),
+                "pack_size": _pack_label(r["pack_size"], r["unit"]), "unit": r["unit"] or "",
+                "price_idr": int(r["price_idr"]),
                 "shelf_location": r["aisle"] or "", "shelf_life_days": r["shelf_life_days"],
                 "synonyms": list(r["synonyms"] or []),
             })
@@ -85,7 +86,7 @@ class GcpRepo:
         return self._by_sku.get(sku)
 
     def stores(self) -> list[dict]:
-        return [{"id": s["id"], "name": s["name"]} for s in self._stores]
+        return [dict(s) for s in self._stores]
 
     def get_store(self, store_id: str) -> dict | None:
         s = next((s for s in self._stores if s["id"] == store_id), None)

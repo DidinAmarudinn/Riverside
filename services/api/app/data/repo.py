@@ -19,7 +19,7 @@ class Repository(Protocol):
     def get_product(self, sku: str) -> dict | None: ...
 
     def stores(self) -> list[dict]:
-        """`[{id, name}]` for every branch."""
+        """`[{id, name, city, lat, lng}]` for every branch."""
 
     def get_store(self, store_id: str) -> dict | None: ...
 

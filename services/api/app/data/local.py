@@ -15,6 +15,7 @@ class LocalRepo:
         with open(self._dir / "product_master.csv", encoding="utf-8", newline="") as f:
             rows = list(csv.DictReader(f))
         for r in rows:
+            r["unit"] = r["pack_size"].split()[-1] if r["pack_size"] else ""
             r["price_idr"] = int(r["price_idr"])
             r["perishable"] = int(r["perishable"])
             r["shelf_life_days"] = int(r["shelf_life_days"])
@@ -23,7 +24,10 @@ class LocalRepo:
         with open(self._dir / "seed_scenarios.yaml", encoding="utf-8") as f:
             self._cfg = yaml.safe_load(f)
         sim = self._cfg["simulation"]
-        self._stores = [{"id": s["id"], "name": s["name"]} for s in sim["stores"]]
+        self._stores = [
+            {"id": s["id"], "name": s["name"], "city": s.get("city", ""), "lat": s.get("lat"), "lng": s.get("lng")}
+            for s in sim["stores"]
+        ]
         self._dist: dict[tuple[str, str], float] = {}
         for a, row in (sim.get("store_distances_km") or {}).items():
             for b, km in row.items():
@@ -66,7 +70,8 @@ class LocalRepo:
         return list(self._stores)
 
     def get_store(self, store_id: str) -> dict | None:
-        return next((s for s in self._stores if s["id"] == store_id), None)
+        s = next((s for s in self._stores if s["id"] == store_id), None)
+        return {"id": s["id"], "name": s["name"]} if s else None
 
     def distance_km(self, a: str, b: str) -> float | None:
         return 0.0 if a == b else self._dist.get((a, b))

@@ -8,9 +8,9 @@ simulation:
   end_date: 2026-10-12        # last simulated day (the dashboard "today" is the day after)
   days: 90
   stores:
-    - {id: S01, name: "Radar Mart Cipete",        size_factor: 1.00}
-    - {id: S02, name: "Radar Mart BSD",           size_factor: 0.80}
-    - {id: S03, name: "Radar Mart Kelapa Gading", size_factor: 0.90}
+    - {id: S01, name: "Radar Mart Cipete",        size_factor: 1.00, city: "Jakarta Selatan",   lat: -6.280, lng: 106.797}
+    - {id: S02, name: "Radar Mart BSD",           size_factor: 0.80, city: "Tangerang Selatan", lat: -6.302, lng: 106.652}
+    - {id: S03, name: "Radar Mart Kelapa Gading", size_factor: 0.90, city: "Jakarta Utara",     lat: -6.158, lng: 106.907}
   # Approximate road distance between branches (km), symmetric. Used by the shopper agent to
   # suggest the nearest branch that has stock. Synthetic, like everything else here.
   store_distances_km:

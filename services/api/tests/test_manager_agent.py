@@ -97,11 +97,12 @@ def test_forecast_numbers_are_grounded_when_recommendations_exist():
 def test_evidence_ids_keep_counting_across_turns_in_a_conversation():
     _, (r1, r2) = run(
         [call("get_assortment_gaps", store_id="S01"), say("Oat milk is requested most [E1]."),
-         call("get_lost_revenue", store_id="S01", days_ago=1), say("Yesterday's loss was big [E2].")],
+         call("get_lost_revenue", store_id="S01", days_ago=1), say("Yesterday's loss was big [E3].")],
         ["what do shoppers want?", "and revenue lost yesterday?"],
     )
     assert [c["id"] for c in last(r1)["citations"]] == ["E1"]
-    assert [c["id"] for c in last(r2)["citations"]] == ["E2"]  # not E1 again: ids are unique per conversation
+    # turn 1 produced E1 and E2 (two gaps), so turn 2 continues at E3: ids are unique per conversation
+    assert [c["id"] for c in last(r2)["citations"]] == ["E3"]
     assert last(r2)["citations"][0]["sku"] == "SKU-0211"
 
 
