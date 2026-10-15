@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
-"""End-to-end smoke test against a deployed Demand Radar: Gate 1 chain + judge checklist (build plan §15).
+"""End-to-end smoke test against a deployed Demand Radar: Gate 1 chain, Gate 2 demo flow, judge checklist (§15).
 
 Checks the public app from the outside, the same way a judge would, each run in fresh sandboxes:
   gate1  hosting pages -> /api/healthz -> kiosk message -> Pub/Sub -> extractor -> Firestore liveSignals,
          /pubsub/extract without token = 401, sessions not publicly readable.
+  gate2  gate1 basics plus the §11 demo flow in one sandbox, in order: reset -> kiosk asks for santan and gets
+         a rescue -> signal and metrics delta in Firestore < 5 s -> next morning gives A ~ 0 / B ~ 60 and an alert
+         -> manager agent explains "why 60" with numbers and citations -> gaps lists oat milk; another sandbox
+         stays empty; first experiment numbers exist in BigQuery.
   judge  everything in gate1 plus: page load < 3 s, informal/typo input, out-of-stock rescue, demo reset,
          two concurrent sandboxes isolated, hero scenario A ~ 0 / B ~ 60, evidence, manager agent answers
          with numbers, assortment gaps, /about names the Google services, forbidden terms absent.
@@ -11,11 +15,13 @@ Checks that need human eyes are printed as a manual list at the end.
 
 Standard library only. Usage:
   BASE_URL=https://<project>.web.app RUN_URL=https://demand-radar-api-xxxx.run.app \
-  FIREBASE_PROJECT=<project-id> python3 infra/smoke_test.py [gate1|judge]     (default: judge)
+  FIREBASE_PROJECT=<project-id> python3 infra/smoke_test.py [gate1|gate2|judge]     (default: judge)
 
 Optional env:
   STORE_ID (S01), HERO_QUERY ("santan kotak 65"), HERO_SKU (skip the product lookup),
   HERO_A_MAX (5), HERO_B_RANGE ("50-70"), SIGNAL_TIMEOUT (15 s), AGENT_TIMEOUT (30 s),
+  GAP_QUERY ("oat"), EVAL_TABLE (demand_radar.forecast_eval; gate2 reads it with the bq CLI, skipped if bq
+    is missing), BQ_PROJECT (FIREBASE_PROJECT),
   FORBIDDEN_TERMS: comma-separated words that must not appear in the UI bundle or any API response.
     Keep the values in your local shell, never in the repo.
 Paths follow the build plan contract (§4.3); override with HEALTH_PATH, KIOSK_SESSIONS_PATH, EXTRACT_PATH,
@@ -26,6 +32,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 import time
 import urllib.error
@@ -44,6 +52,9 @@ HERO_A_MAX = float(os.getenv("HERO_A_MAX", "5"))
 HERO_B_MIN, HERO_B_MAX = (float(v) for v in os.getenv("HERO_B_RANGE", "50-70").split("-"))
 SIGNAL_TIMEOUT = float(os.getenv("SIGNAL_TIMEOUT", "15"))
 AGENT_TIMEOUT = float(os.getenv("AGENT_TIMEOUT", "30"))
+GAP_QUERY = os.getenv("GAP_QUERY", "oat").lower()
+EVAL_TABLE = os.getenv("EVAL_TABLE", "demand_radar.forecast_eval")
+BQ_PROJECT = os.getenv("BQ_PROJECT", FIREBASE_PROJECT)
 FORBIDDEN_TERMS = [t.strip().lower() for t in os.getenv("FORBIDDEN_TERMS", "").split(",") if t.strip()]
 HEALTH_PATH = os.getenv("HEALTH_PATH", "/api/healthz")
 KIOSK_SESSIONS_PATH = os.getenv("KIOSK_SESSIONS_PATH", "/api/kiosk/sessions")
@@ -54,6 +65,7 @@ DEMO_PATH = os.getenv("DEMO_PATH", "/api/demo")
 
 KIOSK_TEXT = "ada santan kotak kecil?"
 KIOSK_TYPO_TEXT = "kak ad santen kotak yg kcil gk?"
+WHY_QUESTION = "Why 60?"
 MANAGER_QUESTIONS = [
     "Why should I order 60 boxes of coconut milk?",
     "Which products are most at risk of stocking out this week?",
@@ -137,6 +149,27 @@ def firestore_list(path: str) -> tuple[int, list]:
     return status, docs
 
 
+def firestore_get(path: str) -> tuple[int, dict]:
+    """One document's fields as plain Python values ({} if missing)."""
+    url = f"{FIRESTORE_BASE}/v1/projects/{FIREBASE_PROJECT}/databases/(default)/documents/{path}"
+    status, text, _ = http("GET", url, timeout=10)
+    fields = (as_json(text) or {}).get("fields", {}) if status == 200 else {}
+    return status, {k: fs_value(v) for k, v in fields.items()}
+
+
+def fs_value(v: dict):
+    """Decode a Firestore REST value ({"integerValue": "3"}, {"mapValue": {...}}, ...)."""
+    if "integerValue" in v:
+        return int(v["integerValue"])
+    if "doubleValue" in v:
+        return float(v["doubleValue"])
+    if "mapValue" in v:
+        return {k: fs_value(x) for k, x in v["mapValue"].get("fields", {}).items()}
+    if "arrayValue" in v:
+        return [fs_value(x) for x in v["arrayValue"].get("values", [])]
+    return next(iter(v.values()), None)
+
+
 def wait_for_signals(sandbox: str, since: float) -> tuple[list, float, int]:
     while True:
         status, docs = firestore_list(f"sandboxes/{sandbox}/liveSignals")
@@ -214,6 +247,100 @@ def check_sessions_private(sandbox: str) -> None:
     record(status in (401, 403), "Firestore sessions are not publicly readable", f"HTTP {status} (want 403)")
 
 
+# ---------------------------------------------------------------- gate 2 (build plan §11, one sandbox, in order)
+
+def check_demo_flow(sku: str) -> None:
+    box, other = str(uuid.uuid4()), str(uuid.uuid4())
+    firestore = bool(FIREBASE_PROJECT)
+    no_fs = "FIREBASE_PROJECT not set"
+
+    # 1. reset
+    status = reset(box)
+    record(status in (200, 204), "§11.1 Reset demo", f"HTTP {status}")
+
+    # 2. kiosk asks for the hero item and gets a rescue
+    kiosk = Kiosk(box)
+    ok, detail = kiosk.open()
+    if not record(ok, "§11.2 Open kiosk session", detail):
+        return
+    sent_at = time.monotonic()
+    status, body, secs = kiosk.say(KIOSK_TEXT)
+    hero = [p for p in body.get("products") or [] if isinstance(p, dict) and "santan" in str(p.get("name", "")).lower()]
+    out_of_stock = any(p.get("inStock") is False for p in hero)
+    rescue = bool(body.get("alternatives")) or bool(body.get("nearestBranch"))
+    record(status == 200 and secs < 10 and out_of_stock and rescue,
+           "§11.2 Kiosk says santan is out and offers an alternative or branch",
+           f"HTTP {status}, {secs:.1f}s, santan products {len(hero)}, out of stock {out_of_stock}, "
+           f"alternatives {len(body.get('alternatives') or [])}, branch {bool(body.get('nearestBranch'))}")
+
+    # 3. signal and metrics delta in Firestore
+    if firestore:
+        docs, waited, fs_status = wait_for_signals(box, sent_at)
+        record(bool(docs) and waited <= 5, "§11.3 Live signal in Firestore in < 5 s",
+               f"{len(docs)} doc(s) after {waited:.1f}s" if docs else f"none after {waited:.0f}s (HTTP {fs_status})")
+        _, delta = firestore_get(f"sandboxes/{box}/metrics/{STORE_ID}")
+        unmet = delta.get("unmetToday")
+        record(isinstance(unmet, (int, float)) and unmet > 0, "§11.3 Sandbox metrics delta grows",
+               f"unmetToday delta = {unmet}")
+        _, leaked = firestore_list(f"sandboxes/{other}/liveSignals")
+        record(not leaked if docs else None, "§11.1 Another sandbox stays untouched",
+               f"{len(leaked)} signal(s) in the other sandbox" if docs else "no signal in this sandbox to compare")
+    else:
+        for name in ("§11.3 Live signal in Firestore in < 5 s", "§11.3 Sandbox metrics delta grows",
+                     "§11.1 Another sandbox stays untouched"):
+            record(None, name, no_fs)
+
+    # 4. next morning: A ~ 0, B ~ 60, alert in real time
+    since = time.monotonic()
+    if check_hero_scenario(box, sku, fresh=False) and firestore:
+        while True:
+            _, alerts = firestore_list(f"sandboxes/{box}/alerts")
+            hits = [a for a in alerts if fs_value(a.get("fields", {}).get("sku", {"nullValue": None})) == sku]
+            waited = time.monotonic() - since
+            if hits or waited > SIGNAL_TIMEOUT:
+                break
+            time.sleep(1)
+        record(bool(hits), "§11.4 Alert for the hero SKU appears in Firestore",
+               f"{len(hits)} alert(s) for {sku}, {len(alerts)} total, {waited:.1f}s")
+    elif not firestore:
+        record(None, "§11.4 Alert for the hero SKU appears in Firestore", no_fs)
+
+    # 5. manager agent explains the number
+    status, text, secs = http("POST", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/chat",
+                              {"sessionId": None, "message": WHY_QUESTION}, box, timeout=AGENT_TIMEOUT)
+    body = as_json(text) or {}
+    reply, citations = str(body.get("reply", "")), body.get("citations") or []
+    quoted = any(isinstance(c, dict) and c.get("quote") for c in citations)
+    record(status == 200 and bool(re.search(r"\d", reply)) and quoted,
+           f"§11.5 Manager agent answers {WHY_QUESTION!r} with numbers and a quoted conversation",
+           f"HTTP {status}, {secs:.1f}s, {len(citations)} citation(s), quote {quoted}, reply {reply[:60]!r}")
+
+    # 6. gaps
+    status, text, _ = http("GET", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/gaps", sandbox=box)
+    items = first_list(as_json(text)) if status == 200 else []
+    gap = next((g for g in items if isinstance(g, dict) and GAP_QUERY in str(g.get("name", "")).lower()), None)
+    record(bool(gap) and (gap.get("requests") or 0) > 0, f"§11.6 Gaps lists {GAP_QUERY!r} with requests",
+           f"HTTP {status}, {len(items)} item(s), match {gap.get('name') if gap else None!r}, "
+           f"requests {gap.get('requests') if gap else None}")
+
+
+def check_experiment_numbers() -> None:
+    check = f"First experiment numbers in {EVAL_TABLE}"
+    if not shutil.which("bq") or not BQ_PROJECT:
+        record(None, check, "bq CLI or BQ_PROJECT/FIREBASE_PROJECT missing")
+        return
+    query = f"select count(*) as n from `{BQ_PROJECT}.{EVAL_TABLE}`"
+    try:
+        out = subprocess.run(["bq", "query", f"--project_id={BQ_PROJECT}", "--use_legacy_sql=false",
+                              "--format=json", query], capture_output=True, text=True, timeout=60)
+    except subprocess.TimeoutExpired:
+        record(False, check, "bq query timed out")
+        return
+    rows = as_json(out.stdout) if out.returncode == 0 else None
+    n = int(rows[0]["n"]) if rows else 0
+    record(n > 0, check, f"{n} row(s)" if out.returncode == 0 else (out.stderr or out.stdout).strip()[-120:])
+
+
 # ---------------------------------------------------------------- judge checklist
 
 def reset(sandbox: str) -> int:
@@ -274,15 +401,16 @@ def pick_number(d: dict, patterns: list[str]) -> float | None:
     return None
 
 
-def check_hero_scenario(sandbox: str, sku: str) -> None:
+def check_hero_scenario(sandbox: str, sku: str, fresh: bool = True) -> bool:
     if not sku:
         record(False, "Hero scenario: A ~ 0, B ~ 60", f"no SKU found for {HERO_QUERY!r} (set HERO_SKU)")
-        return
-    reset(sandbox)
+        return False
+    if fresh:
+        reset(sandbox)
     status, _, secs = http("POST", f"{BASE_URL}{DEMO_PATH}/next-morning", {"storeId": STORE_ID}, sandbox,
                            timeout=AGENT_TIMEOUT)
     if not record(status in (200, 204), "Next morning recomputes recommendations", f"HTTP {status}, {secs:.1f}s"):
-        return
+        return False
     status, text, _ = http("GET", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/recommendations", sandbox=sandbox)
     rows = [d for d in walk(as_json(text)) if str(d.get("sku", "")) == sku]
     a = b = None
@@ -290,7 +418,8 @@ def check_hero_scenario(sandbox: str, sku: str) -> None:
         a = pick_number(row, [r"recommended.*_?a$", r"^qty_?a$", r"order_?a"]) if a is None else a
         b = pick_number(row, [r"recommended.*_?b$", r"^qty_?b$", r"order_?b"]) if b is None else b
     ok = a is not None and b is not None and a <= HERO_A_MAX and HERO_B_MIN <= b <= HERO_B_MAX
-    record(ok, f"Hero scenario: A <= {HERO_A_MAX:g}, B in {HERO_B_MIN:g}-{HERO_B_MAX:g}", f"sku {sku}: A={a}, B={b}")
+    return record(ok, f"Hero scenario: A <= {HERO_A_MAX:g}, B in {HERO_B_MIN:g}-{HERO_B_MAX:g}",
+                  f"sku {sku}: A={a}, B={b}")
 
 
 def check_sku_evidence(sandbox: str, sku: str) -> None:
@@ -356,7 +485,7 @@ def check_forbidden_terms() -> None:
 
 def main() -> int:
     suite = (sys.argv[1] if len(sys.argv) > 1 else "judge").lower()
-    if not BASE_URL or suite not in ("gate1", "judge"):
+    if not BASE_URL or suite not in ("gate1", "gate2", "judge"):
         print(__doc__)
         return 2
     judge = suite == "judge"
@@ -365,10 +494,17 @@ def main() -> int:
 
     check_hosting(judge)
     api_up = check_health()
-    if api_up:
+    if api_up and suite != "gate2":  # gate2 covers the kiosk -> signal chain inside the demo flow
         check_kiosk_to_signal(sandbox)
     check_extract_requires_token()
     check_sessions_private(sandbox)
+
+    if suite == "gate2":
+        if api_up:
+            check_demo_flow(resolve_hero_sku())
+        else:
+            record(None, "§11 demo flow", "API unreachable, skipped")
+        check_experiment_numbers()
 
     if judge:
         if api_up:
