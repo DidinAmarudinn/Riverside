@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens extracted from /Users/ewidedev.2/Documents/EWIDE/Google/UI
+ * - Kiosk surfaces use the "brand"/"status" palette.
+ * - Manager surfaces use the Material 3 palette (primary/surface/error/...).
+ * See docs/fe-decisions.md for provenance.
+ */
+
+@theme {
+  /* ---- Manager: Material 3 palette ---- */
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #3e4947;
+  --color-on-background: #0b1c30;
+
+  --color-primary: #005c55;
+  --color-primary-container: #0f766e;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #a3faef;
+  --color-primary-fixed: #9cf2e8;
+  --color-primary-fixed-dim: #80d5cb;
+  --color-on-primary-fixed: #00201d;
+  --color-on-primary-fixed-variant: #00504a;
+  --color-inverse-primary: #80d5cb;
+
+  --color-secondary: #855300;
+  --color-secondary-container: #fea619;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #684000;
+  --color-secondary-fixed: #ffddb8;
+  --color-secondary-fixed-dim: #ffb95f;
+  --color-on-secondary-fixed: #2a1700;
+  --color-on-secondary-fixed-variant: #653e00;
+
+  --color-tertiary: #913200;
+  --color-tertiary-container: #b94200;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffe5dc;
+  --color-tertiary-fixed: #ffdbce;
+  --color-tertiary-fixed-dim: #ffb599;
+  --color-on-tertiary-fixed: #370e00;
+  --color-on-tertiary-fixed-variant: #7f2b00;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+
+  --color-background: #f8f9ff;
+  --color-surface: #f8f9ff;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-dim: #cbdbf5;
+  --color-surface-variant: #d3e4fe;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  --color-surface-tint: #006a63;
+  --color-outline: #6e7977;
+  --color-outline-variant: #bdc9c6;
+  --color-inverse-surface: #213145;
+  --color-inverse-on-surface: #eaf1ff;
+
+  /* ---- Kiosk: brand + status palette ---- */
+  --color-brand-teal: #0f766e;
+  --color-brand-teal-dark: #115e59;
+  --color-brand-teal-light: #f0fdfa;
+  --color-brand-teal-border: #ccfbf1;
+  --color-kiosk-bg: #f7f8fa;
+
+  --color-status-red: #dc2626;
+  --color-status-red-bg: #fef2f2;
+  --color-status-red-border: #fecaca;
+  --color-status-green: #16a34a;
+  --color-status-green-bg: #f0fdf4;
+  --color-status-green-border: #bbf7d0;
+  --color-status-amber: #f59e0b;
+  --color-status-amber-bg: #fffbeb;
+  --color-status-amber-border: #fde68a;
+  --color-status-blue: #2563eb;
+  --color-status-blue-bg: #eff6ff;
+  --color-status-blue-border: #bfdbfe;
+
+  /* ---- Typography scale ---- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --text-kpi-stat: 32px;
+  --text-kpi-stat--line-height: 40px;
+  --text-kpi-stat--font-weight: 700;
+  --text-kpi-stat--letter-spacing: -0.02em;
+
+  --text-kpi-stat-mobile: 26px;
+  --text-kpi-stat-mobile--line-height: 32px;
+  --text-kpi-stat-mobile--font-weight: 700;
+  --text-kpi-stat-mobile--letter-spacing: -0.01em;
+
+  --text-headline-lg: 20px;
+  --text-headline-lg--line-height: 28px;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-lg--letter-spacing: -0.01em;
+
+  --text-headline-md: 18px;
+  --text-headline-md--line-height: 24px;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 16px;
+  --text-headline-sm--line-height: 22px;
+  --text-headline-sm--font-weight: 600;
+
+  --text-body-default: 14px;
+  --text-body-default--line-height: 20px;
+  --text-body-default--font-weight: 400;
+
+  --text-body-medium: 14px;
+  --text-body-medium--line-height: 20px;
+  --text-body-medium--font-weight: 500;
+
+  --text-label-mono: 13px;
+  --text-label-mono--line-height: 18px;
+  --text-label-mono--font-weight: 500;
+
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--font-weight: 400;
+
+  --text-microcopy-caps: 12px;
+  --text-microcopy-caps--line-height: 16px;
+  --text-microcopy-caps--font-weight: 500;
+  --text-microcopy-caps--letter-spacing: 0.05em;
+}
+
+:root {
+  --background: #f8f9ff;
+  --foreground: #0b1c30;
+}
+
+* {
+  border-color: var(--color-outline-variant);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utility: hide scrollbars (matches Stitch) */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.tap-active:active {
+  transform: scale(0.98);
+}
