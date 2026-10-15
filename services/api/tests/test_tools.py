@@ -33,6 +33,11 @@ def test_search_ignores_filler_words(world):
     assert names(search_products("kak ada santan kecil dong"))[0].startswith("Santan Kotak")
 
 
+def test_uncarried_catalog_items_are_not_searchable(world):
+    assert world.get_product("SKU-9001") is None  # is_carried = false
+    assert search_products("oat milk")["status"] == "no_match" and search_products("susu oat")["status"] == "no_match"
+
+
 def test_search_unsold_product_returns_no_match(world):
     for q in ("oat milk", "salmon fillet", "sambal ijo"):
         res = search_products(q)
@@ -52,9 +57,13 @@ def test_search_respects_limit(world):
 def test_real_catalog_never_matches_items_the_store_does_not_sell():
     set_repo(LocalRepo(REAL_DATA))
     try:
-        not_sold = [r["item"] for r in csv.DictReader(open(REAL_DATA / "not_stocked_items.csv", encoding="utf-8"))]
+        rows = list(csv.DictReader(open(REAL_DATA / "product_master.csv", encoding="utf-8")))
+        not_sold = [r for r in rows if r["is_carried"].lower() != "true"]
         assert len(not_sold) >= 10
-        hits = {item: names(search_products(item)) for item in not_sold if search_products(item)["matches"]}
+        queries = [r["name"] for r in not_sold] + [s for r in not_sold for s in r["synonyms"].split("|") if s]
+        # no *confident* match for anything the store does not sell, by name or by any of its synonyms
+        hits = {q: names(search_products(q)) for q in queries
+                if any(m["match_score"] >= 0.8 for m in search_products(q)["matches"])}
         assert hits == {}
     finally:
         set_repo(None)

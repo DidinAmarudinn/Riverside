@@ -62,7 +62,7 @@ def overview(store_id: str) -> dict:
         f"SELECT "
         f"(SELECT COALESCE(SUM(lost_revenue_idr), 0) FROM {fq}.v_lost_revenue_today WHERE store_id = @s) AS lost, "
         f"(SELECT COALESCE(SUM(unmet_qty), 0) FROM {fq}.v_unmet_daily WHERE store_id = @s AND outcome = 'out_of_stock' "
-        f" AND date = (SELECT MAX(date) FROM {fq}.demand_signals WHERE sandbox_id IS NULL)) AS unmet, "
+        f" AND date = (SELECT MAX(date) FROM {fq}.v_signals)) AS unmet, "
         f"(SELECT COUNTIF(is_stockout) FROM {fq}.stock_events WHERE store_id = @s "
         f" AND date = (SELECT MAX(date) FROM {fq}.stock_events)) AS stockouts", {"s": store_id})[0]
     return {
@@ -163,9 +163,9 @@ def gaps(store_id: str) -> dict:
     series: dict[str, list[int]] = {n: [0] * 14 for n in names}
     if names:
         rows = runner.rows(
-            f"WITH d AS (SELECT MAX(date) AS d FROM {fq}.demand_signals WHERE sandbox_id IS NULL) "
+            f"WITH d AS (SELECT MAX(date) AS d FROM {fq}.v_signals) "
             f"SELECT s.normalized_name, DATE_DIFF(d.d, s.date, DAY) AS ago, COUNT(*) AS c "
-            f"FROM {fq}.demand_signals s, d WHERE s.sandbox_id IS NULL AND s.outcome = 'not_carried' "
+            f"FROM {fq}.v_signals s, d WHERE s.outcome = 'not_carried' "
             f"AND s.store_id = @s AND s.date > DATE_SUB(d.d, INTERVAL 14 DAY) GROUP BY 1, 2", {"s": store_id})
         for r in rows:
             if r["normalized_name"] in series and 0 <= r["ago"] < 14:

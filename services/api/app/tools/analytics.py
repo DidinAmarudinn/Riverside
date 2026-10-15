@@ -187,7 +187,7 @@ def get_lost_revenue(store_id: str = "", days_ago: int = 0) -> dict:
     if store_id:
         params["store_id"] = store_id
     rows = runner.rows(
-        f"WITH d AS (SELECT DATE_SUB(MAX(date), INTERVAL @n DAY) AS d FROM {fq}.demand_signals WHERE sandbox_id IS NULL) "
+        f"WITH d AS (SELECT DATE_SUB(MAX(date), INTERVAL @n DAY) AS d FROM {fq}.v_signals) "
         f"SELECT u.date, u.store_id, u.sku, p.name, u.unmet_qty, p.price_idr, "
         f"u.unmet_qty * p.price_idr AS lost_revenue_idr "
         f"FROM {fq}.v_unmet_daily u JOIN {fq}.product_master p USING (sku) CROSS JOIN d "

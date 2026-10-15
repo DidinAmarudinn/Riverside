@@ -14,13 +14,17 @@ class LocalRepo:
         self._stock_csv = Path(stock_csv) if stock_csv else self._dir / "out" / "stock_events.csv"
         with open(self._dir / "product_master.csv", encoding="utf-8", newline="") as f:
             rows = list(csv.DictReader(f))
+        self._products = []
         for r in rows:
-            r["unit"] = r["pack_size"].split()[-1] if r["pack_size"] else ""
-            r["price_idr"] = int(r["price_idr"])
-            r["perishable"] = int(r["perishable"])
-            r["shelf_life_days"] = int(r["shelf_life_days"])
-        self._products = rows
-        self._by_sku = {r["sku"]: r for r in rows}
+            if r["is_carried"].strip().lower() != "true":
+                continue  # items the store does not sell stay out of search, stock and alternatives
+            self._products.append({
+                "sku": r["sku"], "name": r["name"], "brand": r["brand"], "category": r["category"],
+                "pack_size": r["pack_size"], "unit": r["unit"], "price_idr": int(r["price_idr"]),
+                "shelf_life_days": int(r["shelf_life_days"]), "shelf_location": r["aisle"],
+                "synonyms": [x for x in r["synonyms"].split("|") if x],
+            })
+        self._by_sku = {r["sku"]: r for r in self._products}
         with open(self._dir / "seed_scenarios.yaml", encoding="utf-8") as f:
             self._cfg = yaml.safe_load(f)
         sim = self._cfg["simulation"]
@@ -74,7 +78,16 @@ class LocalRepo:
         return {"id": s["id"], "name": s["name"]} if s else None
 
     def distance_km(self, a: str, b: str) -> float | None:
-        return 0.0 if a == b else self._dist.get((a, b))
+        if a == b:
+            return 0.0
+        if (a, b) in self._dist:
+            return self._dist[(a, b)]
+        sa, sb = (next((s for s in self._stores if s["id"] == x), None) for x in (a, b))
+        if not sa or not sb or None in (sa["lat"], sa["lng"], sb["lat"], sb["lng"]):
+            return None
+        from .gcp import _haversine_km
+
+        return round(_haversine_km(sa["lat"], sa["lng"], sb["lat"], sb["lng"]), 1)
 
     def get_stock(self, store_id: str, sku: str) -> int | None:
         with self._lock:

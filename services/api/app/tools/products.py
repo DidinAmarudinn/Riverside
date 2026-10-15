@@ -19,6 +19,7 @@ cari nyari mencari nyariin beli butuh perlu minta tanya tanyain coba cek cekin p
 buat untuk dan atau sama ini itu nya wonten mboten nggih enten onok sampun pripun
 ambil mau min punten aya teu atuh lho euy euyy ning ndi sebelah sebungkus sebiji sebuah satu dua tiga
 y n k lg lagi dong tuh
+gan cepet cepat pagi siang sore malam selamat bang abang mba nanya jam sampai buka bayar parkir qris motor pake
 """.split())
 # Size adjectives are noise unless the catalog itself uses them (e.g. in synonyms like "santan kecil").
 _SIZE_WORDS = {"kecil", "besar", "sedang"}
@@ -42,6 +43,8 @@ def _same_word(a: str, b: str) -> float:
         return 1.0
     if len(a) < 4 or len(b) < 4 or a[0].isdigit() or b[0].isdigit():
         return 0.0
+    if len(a) == len(b) <= 6 and sum(x != y for x, y in zip(a, b)) == 1:
+        return 0.0  # one letter replaced in a short word is usually a different word ("merah" vs "murah")
     # Damerau-Levenshtein: a swapped pair of letters ("ubmbu" for "bumbu") counts as one typo
     sim = DamerauLevenshtein.normalized_similarity(a, b)
     return sim if sim >= _TOKEN_SIM else 0.0

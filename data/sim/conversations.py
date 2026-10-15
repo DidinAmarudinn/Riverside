@@ -13,8 +13,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .catalog import FAMILIES, NOT_STOCKED
+from .catalog import FAMILIES, NOT_STOCKED, nc_sku
 from .engine import World
+
+# Ground-truth outcome vocabulary = contract demand_signals.outcome (docs/api-contract.md §1).
+OUTCOME_NOT_CARRIED = "not_carried"
+OUTCOME_PURCHASED = "purchased"
+OUTCOME_OUT_OF_STOCK = "out_of_stock"
+OUTCOME_SUBSTITUTED = "substituted"
 
 PHRASEBANK_PATH = Path(__file__).with_name("phrasebank.generated.json")
 
@@ -175,8 +181,9 @@ def _exchange(ph: Phraser, ev: dict, follow: bool) -> tuple[list[dict], dict]:
                                            f"semoga segera kami sediakan."}]
         if rng.random() < .6:
             turns.append({"role": "shopper", "text": str(rng.choice(THANKS + ["yah sayang banget"]))})
-        return turns, {"sku": None, "requested_item": item.name, "category": item.category,
-                       "outcome": "not_stocked", "qty": 1, "substitute_sku": None}
+        # gt_sku points at the NC-xxx row; the extractor still emits sku=NULL for not_carried.
+        return turns, {"sku": nc_sku(ev["gap"]), "requested_item": item.name, "category": item.category,
+                       "outcome": OUTCOME_NOT_CARRIED, "qty": 1, "substitute_sku": None}
 
     sku = ev["sku"]
     row = master.loc[sku]
@@ -186,27 +193,29 @@ def _exchange(ph: Phraser, ev: dict, follow: bool) -> tuple[list[dict], dict]:
     turns = [{"role": "shopper", "text": q}]
 
     if outcome == "bought":
-        turns.append({"role": "agent", "text": f"Ada kak, {ref} ada di rak {row['shelf_location']}. "
+        turns.append({"role": "agent", "text": f"Ada kak, {ref} ada di rak {row['aisle']}. "
                                                f"Harganya Rp{int(row['price_idr']):,}.".replace(",", ".")})
         if rng.random() < .5:
             turns.append({"role": "shopper", "text": str(rng.choice(THANKS))})
-        gt = {"sku": sku, "requested_item": None, "category": None, "outcome": "bought", "qty": 1, "substitute_sku": None}
+        gt = {"sku": sku, "requested_item": None, "category": None, "outcome": OUTCOME_PURCHASED,
+              "qty": 1, "substitute_sku": None}
         return turns, gt
 
     alt = ev.get("alt")
     if alt is not None:
         arow = master.loc[alt]
-        offer = f" Mau coba {arow['name']}? Ada di rak {arow['shelf_location']}."
+        offer = f" Mau coba {arow['name']}? Ada di rak {arow['aisle']}."
     else:
         offer = " Mau saya catat supaya segera diisi ulang?"
     turns.append({"role": "agent", "text": f"Maaf kak, {ref} lagi kosong nih.{offer}"})
     if outcome == "substituted":
         turns += [{"role": "shopper", "text": str(rng.choice(ACCEPTS))},
-                  {"role": "agent", "text": f"Siap kak, {arow['name']} ada di rak {arow['shelf_location']}."}]
+                  {"role": "agent", "text": f"Siap kak, {arow['name']} ada di rak {arow['aisle']}."}]
     else:
         turns.append({"role": "shopper", "text": str(rng.choice(DECLINES))})
-    gt = {"sku": sku, "requested_item": None, "category": None, "outcome": outcome, "qty": 1,
-          "substitute_sku": alt if outcome == "substituted" else None}
+    gt = {"sku": sku, "requested_item": None, "category": None,
+          "outcome": OUTCOME_SUBSTITUTED if outcome == "substituted" else OUTCOME_OUT_OF_STOCK,
+          "qty": 1, "substitute_sku": alt if outcome == "substituted" else None}
     return turns, gt
 
 
@@ -231,6 +240,22 @@ def generate_conversations(world: World, seed: int | None = None) -> pd.DataFram
     unmet = world.demand - world.sales
     alts = _alt_candidates(world.master)
 
+    # Scenarios that pin an exact unmet-conversation count (hero): generate those cells
+    # deterministically and keep the random sampler from also drawing from them.
+    date_strs = list(world.dates.strftime("%Y-%m-%d"))
+    store_to_s = {sid: i for i, sid in enumerate(world.store_ids)}
+    sku_to_k = {sku: i for i, sku in enumerate(world.skus)}
+    hero_cells: set[tuple[int, int]] = set()
+    hero_specs: list[tuple[int, int, list[int], int]] = []
+    for rs in world.resolved_scenarios:
+        n = int(rs.get("unmet_conversations", 0) or 0)
+        if n <= 0 or rs.get("sku") not in sku_to_k:
+            continue
+        s, k = store_to_s[rs["store_id"]], sku_to_k[rs["sku"]]
+        days = list(range(date_strs.index(rs["start_date"]), date_strs.index(rs["end_date"]) + 1))
+        hero_cells.add((s, k))
+        hero_specs.append((s, k, days, n))
+
     # --- 1. sample events (who talked to the kiosk about what) --------------------------
     n_bought = rng.binomial(world.sales, conv_cfg["p_chat_in_stock"])
     n_unmet = rng.binomial(unmet, conv_cfg["p_chat_unmet"])
@@ -241,12 +266,20 @@ def generate_conversations(world: World, seed: int | None = None) -> pd.DataFram
             events.append({"d": d, "s": s, "sku": world.skus[k], "outcome": "bought"})
 
     for d, s, k in np.argwhere(n_unmet > 0):
+        if (s, k) in hero_cells:
+            continue                                   # pinned below, don't double-count
         in_stock_alts = [j for j in alts[k] if world.opening[d, s, j] > 0]
         for _ in range(n_unmet[d, s, k]):
             alt = world.skus[int(rng.choice(in_stock_alts))] if in_stock_alts else None
             substituted = alt is not None and rng.random() < conv_cfg["p_substitute"]
             events.append({"d": d, "s": s, "sku": world.skus[k], "alt": alt,
                            "outcome": "substituted" if substituted else "out_of_stock"})
+
+    # Pinned hero unmet: exactly n conversations spread across the stockout window (all declined).
+    for s, k, days, n in hero_specs:
+        for i in range(n):
+            events.append({"d": days[i % len(days)], "s": s, "sku": world.skus[k],
+                           "alt": None, "outcome": "out_of_stock"})
 
     gap_w = np.array([g.weight for g in NOT_STOCKED])
     for sc in cfg.scenarios:
@@ -288,13 +321,15 @@ def generate_conversations(world: World, seed: int | None = None) -> pd.DataFram
         n_conv += 1
         hour = 8 + int(rng.choice(len(HOUR_WEIGHTS), p=HOUR_WEIGHTS))
         ts = world.dates[d] + pd.Timedelta(hours=hour, minutes=int(rng.integers(0, 60)), seconds=int(rng.integers(0, 60)))
+        primary = gts[0] if gts else None               # contract carries scalar gt per conversation
         out.append({
             "conversation_id": f"C{n_conv:06d}",
-            "ts": ts.strftime("%Y-%m-%dT%H:%M:%S"),
             "store_id": world.store_ids[s],
+            "ts": ts.strftime("%Y-%m-%dT%H:%M:%S+07:00"),
             "channel": str(rng.choice(["kiosk", "chat"], p=[.7, .3])),
             "transcript": json.dumps(turns, ensure_ascii=False),
-            "gt": json.dumps(gts, ensure_ascii=False),
+            "gt_sku": (primary or {}).get("sku") or "",
+            "gt_outcome": (primary or {}).get("outcome") or "",
         })
     df = pd.DataFrame(out).sort_values("ts").reset_index(drop=True)
     df["conversation_id"] = [f"C{i + 1:06d}" for i in range(len(df))]

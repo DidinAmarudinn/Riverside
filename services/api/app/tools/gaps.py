@@ -13,7 +13,8 @@ def fetch_gaps(runner, store_id: str, n: int) -> list[dict]:
     fq = runner.fq
     params: dict = {"n": n}
     # latest shopper wording per product, joined in (BigQuery does not support correlated ARRAY_AGG subqueries)
-    base = f"{fq}.demand_signals WHERE sandbox_id IS NULL AND outcome = 'not_carried'"
+    # v_signals = one signal per conversation (extractor rows win over the bootstrap seed), base data only
+    base = f"{fq}.v_signals WHERE outcome = 'not_carried'"
     where = "WHERE g.store_id = @store_id" if store_id else ""
     if store_id:
         params["store_id"] = store_id

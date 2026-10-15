@@ -334,27 +334,39 @@ FAMILIES = FAMILIES + (
 
 @dataclass(frozen=True)
 class NotStocked:
-    """Items shoppers ask for that the store does not carry (assortment gaps)."""
+    """Items shoppers ask for that the store does not carry (assortment gaps).
+
+    These land in product_master.csv as `is_carried = false` rows (SKU `NC-001`..), so the
+    assortment-gap views and the extractor catalog treat them exactly like real products.
+    `pack_size`/`price` are nominal reference values (never sold, never simulated).
+    """
     name: str
     category: str
     weight: float
     aliases: tuple[str, ...]
+    pack_size: str = ""
+    price: int = 0
 
 
 NOT_STOCKED: tuple[NotStocked, ...] = (
-    NotStocked("Oat Milk", "Beverages", 5.0, ("oat milk", "susu oat", "oatmilk", "oat mulk")),
-    NotStocked("Almond Milk", "Beverages", 2.2, ("almond milk", "susu almond", "susu kacang almond")),
-    NotStocked("Sambal Ijo Instan", "Cooking Essentials", 3.6, ("sambal ijo", "saus ijo", "sambal hijau", "saos ijo")),
-    NotStocked("Sambal Matah Botolan", "Cooking Essentials", 2.4, ("sambal matah", "matah botolan", "sambel matah")),
-    NotStocked("Greek Yogurt", "Dairy & Eggs", 2.8, ("greek yogurt", "yogurt yunani", "greek yoghurt")),
-    NotStocked("Granola", "Snacks", 1.8, ("granola", "granola bar", "granola cereal")),
-    NotStocked("Kimchi", "Fresh Produce", 1.6, ("kimchi", "kimci", "sawi kimchi")),
-    NotStocked("Brown Rice", "Cooking Essentials", 2.5, ("beras merah", "beras merah organik", "brown rice")),
-    NotStocked("Natural Peanut Butter", "Cooking Essentials", 1.7, ("selai kacang natural", "peanut butter", "selai kacang tanpa gula")),
-    NotStocked("Shirataki Noodles", "Instant Food", 1.2, ("mie shirataki", "shirataki", "mi shirataki")),
-    NotStocked("Microwave Rice", "Instant Food", 1.5, ("nasi instan microwave", "nasi instan", "nasi siap makan")),
-    NotStocked("Extra Virgin Olive Oil", "Cooking Essentials", 1.4, ("minyak zaitun", "olive oil", "minyak zaitun extra virgin")),
-    NotStocked("Frozen Tempe Mendoan", "Frozen", 1.9, ("mendoan beku", "tempe mendoan", "mendoan frozen")),
-    NotStocked("Salmon Fillet", "Meat & Seafood", 1.5, ("salmon", "fillet salmon", "ikan salmon")),
-    NotStocked("Gluten-Free Pasta", "Instant Food", 0.8, ("pasta bebas gluten", "gluten free pasta", "pasta gluten free")),
+    NotStocked("Oat Milk", "Beverages", 5.0, ("oat milk", "susu oat", "oatmilk", "oat mulk"), "1 L", 32000),
+    NotStocked("Almond Milk", "Beverages", 2.2, ("almond milk", "susu almond", "susu kacang almond"), "1 L", 35000),
+    NotStocked("Sambal Ijo Instan", "Cooking Essentials", 3.6, ("sambal ijo", "saus ijo", "sambal hijau", "saos ijo"), "275 ml", 16000),
+    NotStocked("Sambal Matah Botolan", "Cooking Essentials", 2.4, ("sambal matah", "matah botolan", "sambel matah"), "200 ml", 24000),
+    NotStocked("Greek Yogurt", "Dairy & Eggs", 2.8, ("greek yogurt", "yogurt yunani", "greek yoghurt"), "500 g", 45000),
+    NotStocked("Granola", "Snacks", 1.8, ("granola", "granola bar", "granola cereal"), "250 g", 38000),
+    NotStocked("Kimchi", "Fresh Produce", 1.6, ("kimchi", "kimci", "sawi kimchi"), "250 g", 28000),
+    NotStocked("Brown Rice", "Cooking Essentials", 2.5, ("beras merah", "beras merah organik", "brown rice"), "2 kg", 42000),
+    NotStocked("Natural Peanut Butter", "Cooking Essentials", 1.7, ("selai kacang natural", "peanut butter", "selai kacang tanpa gula"), "340 g", 48000),
+    NotStocked("Shirataki Noodles", "Instant Food", 1.2, ("mie shirataki", "shirataki", "mi shirataki"), "200 g", 22000),
+    NotStocked("Microwave Rice", "Instant Food", 1.5, ("nasi instan microwave", "nasi instan", "nasi siap makan"), "250 g", 18000),
+    NotStocked("Extra Virgin Olive Oil", "Cooking Essentials", 1.4, ("minyak zaitun", "olive oil", "minyak zaitun extra virgin"), "250 ml", 65000),
+    NotStocked("Frozen Tempe Mendoan", "Frozen", 1.9, ("mendoan beku", "tempe mendoan", "mendoan frozen"), "400 g", 26000),
+    NotStocked("Salmon Fillet", "Meat & Seafood", 1.5, ("salmon", "fillet salmon", "ikan salmon"), "250 g", 75000),
+    NotStocked("Gluten-Free Pasta", "Instant Food", 0.8, ("pasta bebas gluten", "gluten free pasta", "pasta gluten free"), "400 g", 42000),
 )
+
+
+def nc_sku(idx: int) -> str:
+    """SKU for the idx-th not-stocked item, matching the NC-xxx rows in product_master."""
+    return f"NC-{idx + 1:03d}"

@@ -11,8 +11,8 @@ from app.data import set_repo
 from app.data.local import LocalRepo
 from app.signals import get_publisher, reset_publisher_cache
 
-PRODUCT_COLS = ["sku", "name", "brand", "category", "subcategory", "pack_size", "price_idr",
-                "shelf_life_days", "perishable", "shelf_location"]
+PRODUCT_COLS = ["sku", "name", "brand", "category", "pack_size", "unit", "price_idr", "shelf_life_days", "aisle",
+                "synonyms", "is_carried"]
 PRODUCTS = [
     ("SKU-0001", "Santan Kotak Kara 65 ml", "Kara", "Cooking Essentials", "Coconut Milk", "65 ml", 4500, "A1-2"),
     ("SKU-0002", "Santan Kotak Kara 200 ml", "Kara", "Cooking Essentials", "Coconut Milk", "200 ml", 11500, "A1-3"),
@@ -50,7 +50,8 @@ def write_world(root: Path, stock=STOCK) -> Path:
         w = csv.writer(f)
         w.writerow(PRODUCT_COLS)
         for sku, name, brand, cat, sub, size, price, shelf in PRODUCTS:
-            w.writerow([sku, name, brand, cat, sub, size, price, 365, 0, shelf])
+            w.writerow([sku, name, brand, cat, size, size.split()[-1], price, 365, shelf, sub.lower(), "true"])
+        w.writerow(["SKU-9001", "Oat Milk", "Oatly", "Beverages", "1 L", "L", 38000, 90, "", "susu oat|oat milk", "false"])
     with open(root / "out" / "stock_events.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["date", "store_id", "sku", "opening_stock", "received_units", "closing_stock", "stockout_flag"])
