@@ -299,10 +299,33 @@ def process_pubsub_message(data: dict) -> None:
     conv = _conversation_from_message(data)
     if conv is None:
         return
-    row = extract_one(conv, load_catalog(), model_version=EXTRACTOR_VERSION)
+    catalog = load_catalog()
+    # Rules first: they settle the clear cases in milliseconds (99% outcome accuracy on the eval set).
+    # Gemini reads the chats the rules are unsure about (slang, abbreviations: "bawput", "roit").
+    row = extract_one(conv, catalog, model_version=f"{EXTRACTOR_VERSION}-rules")
+    if row["outcome"] == "low_confidence" and settings.backend == "gcp" and settings.live_extract_llm:
+        llm = _gemini_item(conv, catalog)
+        if llm is not None:
+            second = extract_one(conv, catalog, llm, model_version=f"{EXTRACTOR_VERSION}-gemini")
+            if second["outcome"] != "low_confidence":
+                row = second
+    row["turn"] = int(data.get("turn") or 0)  # later turns of the same chat update the same signal
     if settings.backend == "gcp":
         from .extract import sink
         sink.write_signal(row)
+
+
+def _gemini_item(conv: dict, catalog) -> dict | None:
+    """Gemini structured extraction for one kiosk chat: a single short call without thinking, so the signal
+    still lands in a few seconds. None on timeout/error/no item; the rules' answer then stands."""
+    from .extract.client import extract_item, live_client
+
+    try:
+        return extract_item(live_client(), settings.gemini_model, conv["transcript"], catalog, retries=1,
+                            thinking_budget=settings.gemini_thinking_budget)
+    except Exception:  # never lose the signal because the model call failed
+        logging.getLogger(__name__).warning("live gemini extraction failed; using rules", exc_info=True)
+        return None
 
 
 @app.post("/pubsub/extract", status_code=204)
