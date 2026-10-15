@@ -1,14 +1,18 @@
 """Demand Radar API (FastAPI). Routes follow docs/api-contract.md.
 
-Scaffold stage: endpoints return placeholder payloads; real logic is wired in later.
+Shopper and manager chat are wired to the ADK agents; the other endpoints still return placeholder payloads.
 """
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
+from .agents.manager import manager_agent
+from .agents.runtime import AgentRuntime
+from .agents.shopper import shopper_agent
 from .config import settings
+from .data import get_repo
 
 app = FastAPI(title="Demand Radar API", version="0.1.0")
 app.add_middleware(
@@ -20,16 +24,16 @@ app.add_middleware(
 
 
 class ShopperChatIn(BaseModel):
-    session_id: str
+    session_id: str = Field(min_length=1, max_length=128)
     store_id: str = "S01"
-    message: str
+    message: str = Field(min_length=1, max_length=1000)
 
 
 class ManagerChatIn(BaseModel):
-    session_id: str
-    message: str
+    session_id: str = Field(min_length=1, max_length=128)
+    message: str = Field(min_length=1, max_length=1000)
     store_id: str = "S01"
-    sku: str | None = None
+    sku: str | None = Field(default=None, max_length=64)
 
 
 @app.get("/api/health")
@@ -37,16 +41,56 @@ def health() -> dict:
     return {"status": "ok", "backend": settings.backend, "model": settings.gemini_model}
 
 
+_shopper_runtime: AgentRuntime | None = None
+
+
+def shopper_runtime() -> AgentRuntime:
+    global _shopper_runtime
+    if _shopper_runtime is None:
+        _shopper_runtime = AgentRuntime(shopper_agent, app_name="shopper")
+    return _shopper_runtime
+
+
 @app.post("/api/shopper/chat")
-def shopper_chat(body: ShopperChatIn) -> dict:
-    # TODO: app.agents.shopper (ADK) + publish conversation for signal extraction.
-    return {"session_id": body.session_id, "reply": "(shopper agent not wired yet)", "signal": None}
+async def shopper_chat(body: ShopperChatIn) -> dict:
+    store = get_repo().get_store(body.store_id)
+    if store is None:
+        raise HTTPException(status_code=404, detail=f"unknown store_id {body.store_id!r}")
+    result = await shopper_runtime().run_turn(
+        body.session_id, body.message, {"store_id": store["id"], "store_name": store["name"]}
+    )
+    return {
+        "session_id": result.session_id,
+        "reply": result.reply,
+        "signal": {"conversation_id": result.session_id, "turn": result.turn, "logged": result.logged},
+        "tool_calls": result.tool_calls,
+        "error": result.error,
+    }
+
+
+_manager_runtime: AgentRuntime | None = None
+
+
+def manager_runtime() -> AgentRuntime:
+    global _manager_runtime
+    if _manager_runtime is None:
+        _manager_runtime = AgentRuntime(manager_agent, app_name="manager")
+    return _manager_runtime
 
 
 @app.post("/api/manager/chat")
-def manager_chat(body: ManagerChatIn) -> dict:
-    # TODO: app.agents.manager (ADK) with BigQuery tools.
-    return {"session_id": body.session_id, "reply": "(manager agent not wired yet)", "tool_calls": []}
+async def manager_chat(body: ManagerChatIn) -> dict:
+    context = f"(context: store_id={body.store_id}" + (f"; SKU on screen: {body.sku}" if body.sku else "") + ")"
+    result = await manager_runtime().run_turn(body.session_id, f"{body.message}\n\n{context}", {})
+    last = result.state.get("last_turn", {})
+    return {
+        "session_id": result.session_id,
+        "reply": result.reply,
+        "citations": last.get("citations", []),
+        "unverified_numbers": last.get("unverified_numbers", []),
+        "tool_calls": last.get("tool_calls", []) or result.tool_calls,
+        "error": result.error,
+    }
 
 
 @app.get("/api/skus")
