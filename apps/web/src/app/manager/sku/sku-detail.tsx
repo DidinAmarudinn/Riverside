@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MessageSquareText, Package, Timer, TrendingDown } from "lucide-react";
+import { ChevronRight, MessageSquareText, Package, Timer, TrendingDown } from "lucide-react";
 import { useSkuDetail } from "@/hooks/use-data";
-import { CardSkeleton, ErrorState } from "@/components/common/states";
+import { ErrorState } from "@/components/common/states";
+import { SkuSkeleton } from "@/components/manager/page-skeletons";
 import { RiskBadge } from "@/components/manager/risk-badge";
 import { RecommendationCard } from "@/components/sku/recommendation-card";
 import { EvidenceDrawer } from "@/components/sku/evidence-drawer";
@@ -41,7 +42,7 @@ export function SkuDetail() {
     );
   }
 
-  if (isLoading) return <CardSkeleton rows={8} />;
+  if (isLoading) return <SkuSkeleton />;
   if (isError || !data) {
     return (
       <ErrorState
@@ -66,9 +67,24 @@ export function SkuDetail() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
         <div className="flex flex-col gap-1">
-          <Link href="/manager" className="text-caption text-on-surface-variant hover:text-on-surface">
-            Manager / Product
-          </Link>
+          <nav aria-label="Breadcrumb">
+            <ol className="flex items-center gap-1.5 text-caption text-on-surface-variant">
+              <li>
+                <Link
+                  href="/manager"
+                  className="rounded underline-offset-2 hover:text-on-surface hover:underline focus-visible:outline-2 focus-visible:outline-primary-container"
+                >
+                  Manager
+                </Link>
+              </li>
+              <li aria-hidden>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </li>
+              <li aria-current="page" className="text-on-surface">
+                Product
+              </li>
+            </ol>
+          </nav>
           <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em] text-on-surface sm:text-[36px]">
             {data.name}
           </h1>

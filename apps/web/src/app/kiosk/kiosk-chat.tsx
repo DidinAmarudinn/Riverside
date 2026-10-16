@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AssistantBubble, ShopperBubble } from "@/components/kiosk/chat-bubble";
 import { ChatInput } from "@/components/kiosk/chat-input";
 import { cn } from "@/lib/utils";
+import { ScrollRow } from "@/components/ui/scroll-row";
 
 const QUICK_TAGS = ["Minyak Goreng 2L", "Santan Kotak 65ml", "Beras Pandan Wangi 5kg", "Telur Ayam Negeri", "Gula Pasir 1kg"];
 
@@ -107,8 +108,9 @@ export function KioskPanel({
         </div>
       </header>
 
-      <div className="no-scrollbar flex flex-shrink-0 items-center gap-2 overflow-x-auto border-b border-outline-variant px-4 py-3 sm:px-5">
+      <div className="flex flex-shrink-0 items-center gap-2 border-b border-outline-variant px-4 py-3 sm:px-5">
         <span className="flex-shrink-0 text-caption text-on-surface-variant">Popular:</span>
+        <ScrollRow className="flex-1">
         {quickTags.map((tag) => (
           <button
             key={tag}
@@ -125,6 +127,7 @@ export function KioskPanel({
             {tag}
           </button>
         ))}
+        </ScrollRow>
       </div>
 
       <div ref={scrollRef} className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-surface-container-low px-4 py-5 sm:px-5">

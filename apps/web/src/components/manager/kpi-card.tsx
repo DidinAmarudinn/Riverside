@@ -9,6 +9,7 @@ export function KpiCard({
   footerValue,
   tone = "neutral",
   icon: Icon,
+  loading = false,
 }: {
   label: string;
   value: string;
@@ -17,6 +18,8 @@ export function KpiCard({
   footerValue?: string;
   tone?: "neutral" | "error" | "primary" | "warning" | "lime";
   icon: React.ComponentType<{ className?: string }>;
+  /** Data still on its way: keep the card, pulse where the number goes. */
+  loading?: boolean;
 }) {
   const lime = tone === "lime";
   const caption = [footerValue, footerLabel].filter(Boolean).join(" · ");
@@ -28,11 +31,20 @@ export function KpiCard({
         </span>
         {label}
       </div>
+      {loading ? (
+        <>
+          <span className="h-10 w-24 animate-pulse rounded-md bg-surface-container-low" aria-hidden />
+          <span className="h-4 w-3/4 animate-pulse rounded bg-surface-container-low" aria-hidden />
+        </>
+      ) : (
+      <>
       <div className="flex items-baseline gap-2">
         <span className="text-kpi-stat tabular-nums text-on-surface">{value}</span>
         {suffix ? <span className="text-caption text-on-surface-variant">{suffix}</span> : null}
       </div>
       {caption ? <span className={cn("text-caption", lime ? "text-on-surface" : "text-on-surface-variant")}>{caption}</span> : null}
+      </>
+      )}
     </div>
   );
 }

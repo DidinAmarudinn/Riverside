@@ -105,12 +105,6 @@ export function ResultsPanel() {
       {results.note ? (
         <p className="text-caption text-on-surface-variant">{results.note}</p>
       ) : null}
-      <p className="text-caption text-on-surface-variant">
-        Full report with every table:{" "}
-        <code className="rounded bg-surface-container-low px-1 py-0.5 font-label-mono">
-          docs/results.md
-        </code>
-      </p>
     </div>
   );
 }

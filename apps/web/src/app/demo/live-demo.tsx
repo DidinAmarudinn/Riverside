@@ -76,7 +76,7 @@ export function LiveDemo() {
         setRun(null);
         setNewHeroAsks(0);
         seen.current = null;
-        toast({ title: "Demo reset", description: "Scenario: Tuesday evening", variant: "success" });
+        toast({ title: "Demo reset", description: "Your sandbox is back to the start.", variant: "success" });
       },
       onError: () => toast({ title: "Could not reset the demo", variant: "error" }),
     });

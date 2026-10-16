@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/common/states";
 import { KpiCard } from "@/components/manager/kpi-card";
 import { DecisionBanner } from "@/components/manager/decision-banner";
+import { DecisionBannerSkeleton } from "@/components/manager/page-skeletons";
 import { RecommendationsTable } from "@/components/manager/recommendations-table";
 import { LiveFeed } from "@/components/manager/live-feed";
 import { AlertsPanel } from "@/components/manager/alerts-panel";
@@ -107,14 +108,17 @@ export function ManagerDashboard() {
         </div>
       </div>
 
-      {!riskParam && recommendations.data?.length ? (
+      {!riskParam && recommendations.isLoading ? (
+        <DecisionBannerSkeleton />
+      ) : !riskParam && recommendations.data?.length ? (
         <DecisionBanner recommendations={recommendations.data} />
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard
           label="Revenue lost today"
-          value={effectiveMetrics ? formatRupiah(effectiveMetrics.lostRevenueToday) : "—"}
+          value={effectiveMetrics ? formatRupiah(effectiveMetrics.lostRevenueToday) : ""}
+          loading={!effectiveMetrics}
           tone="error"
           icon={TrendingDown}
           footerValue="Unmet × price"
@@ -122,7 +126,8 @@ export function ManagerDashboard() {
         />
         <KpiCard
           label="Unmet requests today"
-          value={effectiveMetrics ? String(effectiveMetrics.unmetToday) : "—"}
+          value={effectiveMetrics ? String(effectiveMetrics.unmetToday) : ""}
+          loading={!effectiveMetrics}
           suffix="requests"
           tone="primary"
           icon={Radio}
@@ -131,7 +136,8 @@ export function ManagerDashboard() {
         />
         <KpiCard
           label="Out of stock now"
-          value={effectiveMetrics ? String(effectiveMetrics.stockoutSkus) : "—"}
+          value={effectiveMetrics ? String(effectiveMetrics.stockoutSkus) : ""}
+          loading={!effectiveMetrics}
           suffix="products"
           tone="warning"
           icon={TriangleAlert}

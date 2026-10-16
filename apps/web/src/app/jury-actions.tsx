@@ -38,10 +38,10 @@ export function JuryActions() {
   const resetDemo = useResetDemo();
 
   const handleReset = () => {
-    if (!window.confirm("Reset the demo to its starting point (Tuesday evening)?")) return;
+    if (!window.confirm("Reset the demo? Your kiosk chats and signals are cleared.")) return;
     resetDemo.mutate(undefined, {
       onSuccess: () =>
-        toast({ title: "Demo reset", description: "Scenario: Tuesday evening", variant: "success" }),
+        toast({ title: "Demo reset", description: "Your sandbox is back to the start.", variant: "success" }),
       onError: () => toast({ title: "Could not reset the demo", variant: "error" }),
     });
   };
@@ -56,10 +56,6 @@ export function JuryActions() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-status-green-bg px-3 py-1.5 text-caption font-semibold text-status-green">
-            <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            Scenario: {scenarioLabel(demoState?.scenario)}
-          </span>
           {demoState?.lastResetAt ? (
             <span className="text-caption text-on-surface-variant">
               Last reset {formatDateTimeWib(demoState.lastResetAt)}
@@ -90,10 +86,4 @@ export function JuryActions() {
       </div>
     </section>
   );
-}
-
-// The API stores the scenario name in Indonesian; the jury page is in English.
-function scenarioLabel(scenario: string | undefined): string {
-  if (!scenario || scenario === "Selasa malam") return "Tuesday evening";
-  return scenario;
 }

@@ -79,13 +79,8 @@ export default function AboutPage() {
           </ol>
           <p className="mt-4 text-caption text-on-surface-variant">
             Real-time updates (alerts, live demand feed, KPIs) come from
-            read-only Firestore listeners scoped to each visitor&apos;s demo
-            sandbox — see
-            {" "}
-            <code className="rounded bg-surface-container-low px-1 py-0.5 font-label-mono">
-              apps/web/docs/fe-decisions.md
-            </code>
-            .
+            read-only Firestore listeners scoped to each visitor&apos;s private
+            demo sandbox.
           </p>
         </section>
 
