@@ -46,7 +46,9 @@ Views hold base data only; agent tools merge them with the visitor's sandbox dat
 | `sandboxes/{sandboxId}/sessions/{id}/messages/{id}` | kiosk and manager chat history, including agent session state | backend only |
 
 The client reads the latest 20 alerts (by `createdAt`) and liveSignals (by `ts`) and filters by `storeId` itself, so no
-composite index is needed. `low_confidence` signals may be written but are never shown.
+composite index is needed. `low_confidence` signals may be written but are never shown. A kiosk chat writes **one liveSignal per product the
+shopper asks about** (id `sig-{conversationId}`, then `sig-{conversationId}-1`, `-2`…): a turn in which the agent searches
+for a product starts a new one, follow-ups without a search ("boleh", "di rak mana?") update the current one.
 
 Rules: public **read** for base data and `sandboxes/{sandboxId}/**` except `sessions`. `sandboxId` is a random UUID, so it
 cannot be guessed. All client **writes are denied**; the backend writes with the Admin SDK.
@@ -75,7 +77,7 @@ created on first use. The browser creates the id on first visit, keeps it in loc
 | `GET /api/manager/{storeId}/trends` (optional) | | rising new demand |
 | `POST /api/manager/recommendations/{id}/approve` (optional) | | draft PO |
 | `POST /api/demo/reset` | | deletes this visitor's sandbox content; base data untouched |
-| `POST /api/demo/next-morning` | `{storeId}` → `{storeId, updated}` | recomputes the hero scenario's recommendations with the reorder formula (build plan §7); results go to the sandbox |
+| `POST /api/demo/next-morning` | `{storeId}` → `{storeId, updated}` | placeholder, returns `updated: 0`; not used by the web app. The hero recommendations (A 10, B 64) are computed by the forecast pipeline and exist from the start, so the demo has no "next morning" step |
 | `POST /pubsub/extract` | Pub/Sub push envelope (valid OIDC token required) | 204; 401 if the token is invalid |
 
 Uniform error format: `{"error": {"code", "message"}}`. Every response < 10 s; anything slower shows a loading state.

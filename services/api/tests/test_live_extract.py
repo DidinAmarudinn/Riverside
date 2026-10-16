@@ -54,3 +54,25 @@ def test_unsure_chats_ask_gemini(monkeypatch):
                       {"sku": "SKU-0115", "confidence": 0.9, "qty": 1})
     assert calls == [1] and row["sku"] == "SKU-0115" and row["outcome"] == "purchased"
     assert row["model_version"].endswith("-gemini") and row["turn"] == 1
+
+
+def test_each_product_in_a_chat_is_its_own_signal(monkeypatch):
+    import dataclasses
+    import json
+
+    from app.extract import sink
+
+    written = []
+    monkeypatch.setattr(main, "settings", dataclasses.replace(main.settings, backend="gcp", live_extract_llm=False))
+    monkeypatch.setattr(sink, "write_signal", written.append)
+    chat = [{"role": "shopper", "text": "mau beli minyak bimoli"},
+            {"role": "agent", "text": "Ada kak, Minyak Goreng Bimoli 1 L di rak A2-3."},
+            {"role": "shopper", "text": "ada santan kotak kara 65 ml?"},
+            {"role": "agent", "text": "Santan Kotak Kara 65 ml lagi kosong nih kak."}]
+    base = {"conversationId": "c3", "sandboxId": "b", "storeId": "S01"}
+    main.process_pubsub_message({**base, "turn": 1, "request": 0, "requestStart": 0, "transcript": chat[:2]})
+    main.process_pubsub_message({**base, "turn": 2, "request": 1, "requestStart": 2, "transcript": chat})
+    first, second = written
+    assert first["signal_id"] == "sig-c3" and first["outcome"] == "purchased"
+    assert second["signal_id"] == "sig-c3-1" and second["sku"] == "SKU-0001" and second["outcome"] == "out_of_stock"
+    assert second["requested_text"] == "ada santan kotak kara 65 ml?"

@@ -4,17 +4,19 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { KioskPanel, type KioskReplyTiming } from "@/app/kiosk/kiosk-chat";
-import { useResetDemo, useSkuDetail } from "@/hooks/use-data";
+import { useResetDemo, useSkuDetail, useStores } from "@/hooks/use-data";
+import { useStore } from "@/hooks/use-store";
 import { useLiveSignals } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/ui/status-tag";
-import { OutcomePill } from "@/components/manager/outcome-pill";
+import { OutcomePill, OUTCOME_LABEL } from "@/components/manager/outcome-pill";
 import { useToast } from "@/components/ui/toast";
 import { formatNumber, formatTimeWib } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { LiveSignal } from "@/lib/api/types";
 
 const HERO_SKU = "SKU-0001"; // Santan Kotak Kara 65 ml
+const HERO_STORE = "S01"; // the hero stockout runs in this store; elsewhere the 65 ml is on the shelf
 const DEMO_TAGS = ["ada santan kotak kecil?", "kak ad santen kotak yg kcil gk?", "ada oat milk?"] as const;
 
 type HopState = "idle" | "on" | "done";
@@ -27,33 +29,60 @@ interface Run {
 }
 
 const signalKey = (s: LiveSignal) => `${s.id}|${s.requestedText}|${s.outcome}`;
+const UNMET = new Set(["out_of_stock", "not_carried"]);
+// What the shopper asked for: the product, or the words when the store does not sell it.
+const askKey = (s: LiveSignal) => s.sku ?? s.requestedText.trim().toLowerCase();
 
 /**
  * Split screen for judges: the real kiosk on the left, the path of the message in the middle, and the
- * manager's view on the right, fed by the same Firestore listener as the dashboard. Times are measured
- * in this browser: the agent's reply, then the signal's arrival after the reply.
+ * manager's view on the right, fed by the same Firestore listener as the dashboard. The manager card
+ * follows the product of the visitor's latest signal (the hero product until there is one). Times are
+ * measured in this browser: the agent's reply, then the signal's arrival after the reply.
  */
 export function LiveDemo() {
   const signals = useLiveSignals();
-  const { data: hero } = useSkuDetail(HERO_SKU);
+  const { storeId } = useStore();
   const resetDemo = useResetDemo();
   const { toast } = useToast();
   const [run, setRun] = useState<Run | null>(null);
-  const [newHeroAsks, setNewHeroAsks] = useState(0);
+  const [focus, setFocus] = useState<LiveSignal | null>(null);
+  const [yourAsks, setYourAsks] = useState<Record<string, number>>({});
   const seen = useRef<Set<string> | null>(null);
+  const counted = useRef<Set<string>>(new Set()); // signal ids already counted as an unmet ask
+  const [shownStore, setShownStore] = useState(storeId);
+
+  // Another store is another feed: start over from its current list.
+  if (shownStore !== storeId) {
+    setShownStore(storeId);
+    setFocus(null);
+    setRun(null);
+  }
 
   // Remember what was already in the feed, so only signals from this visit light up the path.
   useEffect(() => {
-    if (!signals) return;
+    if (!signals) {
+      seen.current = null; // the next list (a new store's) is the baseline
+      return;
+    }
     if (seen.current === null) {
       seen.current = new Set(signals.map(signalKey));
+      signals.forEach((s) => UNMET.has(s.outcome) && counted.current.add(s.id));
       return;
     }
     const fresh = signals.filter((s) => !seen.current!.has(signalKey(s)));
     fresh.forEach((s) => seen.current!.add(signalKey(s)));
     const latest = fresh[0];
     if (!latest) return;
-    if (latest.sku === HERO_SKU && latest.outcome === "out_of_stock") setNewHeroAsks((n) => n + 1);
+    setFocus(latest);
+    // count a shopper once per product, the first time their ask goes unmet
+    const newlyUnmet = fresh.filter((s) => UNMET.has(s.outcome) && !counted.current.has(s.id));
+    newlyUnmet.forEach((s) => counted.current.add(s.id));
+    if (newlyUnmet.length)
+      setYourAsks((c) => {
+        const next = { ...c };
+        newlyUnmet.forEach((s) => (next[askKey(s)] = (next[askKey(s)] ?? 0) + 1));
+        return next;
+      });
     setRun((r) => {
       if (!r || r.signal) return r;
       const now = Date.now();
@@ -74,15 +103,16 @@ export function LiveDemo() {
     resetDemo.mutate(undefined, {
       onSuccess: () => {
         setRun(null);
-        setNewHeroAsks(0);
-        seen.current = null;
+        setFocus(null);
+        setYourAsks({});
+        // the sandbox is empty now; a null baseline would swallow the next signal when no empty snapshot follows
+        seen.current = new Set();
+        counted.current = new Set();
         toast({ title: "Demo reset", description: "Your sandbox is back to the start.", variant: "success" });
       },
       onError: () => toast({ title: "Could not reset the demo", variant: "error" }),
     });
   };
-
-  const asked = hero ? hero.kpis.unmetRequests : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -118,11 +148,11 @@ export function LiveDemo() {
           <Hop
             n={3}
             state={hopLater}
-            title="Gemini extraction"
+            title="Signal extraction"
             body={
               run?.signal
-                ? `${run.signal.sku ?? run.signal.matchedName ?? "no product"} · ${run.signal.outcome}`
-                : "product · outcome"
+                ? `${run.signal.matchedName ?? run.signal.sku ?? "not in the range"} · ${OUTCOME_LABEL[run.signal.outcome] ?? run.signal.outcome}`
+                : "product · outcome; rules first, Gemini when unsure"
             }
           />
           <Hop
@@ -142,39 +172,7 @@ export function LiveDemo() {
             <h2 className="text-headline-md text-on-surface">Manager</h2>
             <StatusTag tone="green">Live</StatusTag>
           </div>
-          {hero ? (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-lg bg-surface-container-low p-3.5">
-                  <span className="block text-caption text-on-surface">Sales only</span>
-                  <span className="text-[34px] font-medium leading-tight tracking-[-0.03em] tabular-nums text-on-surface">
-                    {hero.recommendation.recommendedQtyA}
-                  </span>
-                </div>
-                <div className="rounded-lg bg-primary-fixed p-3.5 text-on-primary-fixed">
-                  <span className="block text-caption">Demand Radar</span>
-                  <span className="text-[34px] font-medium leading-tight tracking-[-0.03em] tabular-nums">
-                    {hero.recommendation.recommendedQty}
-                  </span>
-                </div>
-              </div>
-              <p className="text-caption text-on-surface-variant">
-                <span className="font-semibold text-on-surface">{formatNumber(asked ?? 0)}</span> shoppers asked for{" "}
-                {hero.name} during the {hero.kpis.stockoutDays}-day stockout
-                {newHeroAsks ? (
-                  <span className="ml-1 rounded-full bg-primary-fixed px-2 py-0.5 font-semibold text-on-primary-fixed">
-                    +{newHeroAsks} from you just now
-                  </span>
-                ) : null}
-                .{" "}
-                <Link href={`/manager/sku?code=${HERO_SKU}`} className="font-semibold text-primary-container hover:underline">
-                  See why →
-                </Link>
-              </p>
-            </>
-          ) : (
-            <div className="h-28 animate-pulse rounded-lg bg-surface-container-low" />
-          )}
+          <ManagerFocus focus={focus} yourAsks={focus ? (yourAsks[askKey(focus)] ?? 0) : 0} />
 
           <span className="mt-1 text-caption text-on-surface-variant">Live demand feed</span>
           <div className="flex max-h-[360px] flex-col gap-2 overflow-y-auto">
@@ -206,6 +204,109 @@ export function LiveDemo() {
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+/** The manager's view of what the visitor just asked about: the hero product until their first signal. */
+function ManagerFocus({ focus, yourAsks }: { focus: LiveSignal | null; yourAsks: number }) {
+  const { storeId, setStoreId } = useStore();
+  const { data: stores } = useStores();
+  const awayFromHero = !focus && storeId !== HERO_STORE;
+  const sku = focus ? (focus.sku ?? null) : awayFromHero ? null : HERO_SKU;
+  const { data: detail } = useSkuDetail(sku);
+  const caption = focus ? "From your last question" : "Hero product · ask about another one and this follows it";
+  const badge = yourAsks ? (
+    <span className="ml-1 rounded-full bg-primary-fixed px-2 py-0.5 font-semibold text-on-primary-fixed">
+      +{yourAsks} from you just now
+    </span>
+  ) : null;
+
+  if (awayFromHero) {
+    const name = (id: string) => stores?.find((s) => s.id === id)?.name ?? id;
+    return (
+      <div className="flex flex-col gap-2">
+        <FocusTitle caption="Hero product" name="Santan Kotak Kara 65 ml" focus={null} />
+        <p className="rounded-lg bg-surface-container-low p-3.5 text-caption text-on-surface-variant">
+          The hero story runs in {name(HERO_STORE)}, where this santan has been sold out for days while shoppers kept
+          asking. In {name(storeId)} it is on the shelf. Ask about any product here and this card follows it.
+        </p>
+        <Button variant="outline" size="sm" className="self-start" onClick={() => setStoreId(HERO_STORE)}>
+          Switch to {name(HERO_STORE)}
+        </Button>
+      </div>
+    );
+  }
+
+  if (focus && !focus.sku) {
+    return (
+      <div className="flex flex-col gap-2">
+        <FocusTitle caption={caption} name={`“${focus.requestedText}”`} focus={focus} />
+        <p className="rounded-lg bg-surface-container-low p-3.5 text-caption text-on-surface-variant">
+          This store does not sell it, so there is no forecast to change. Each ask lands on the Gaps list: products
+          shoppers want that the store could start carrying{badge}.{" "}
+          <Link href="/manager/gaps" className="font-semibold text-primary-container hover:underline">
+            See gaps →
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
+  if (!detail || detail.sku !== sku) {
+    return (
+      <div className="flex flex-col gap-2">
+        <FocusTitle caption={caption} name={focus?.matchedName ?? ""} focus={focus} />
+        <div className="h-28 animate-pulse rounded-lg bg-surface-container-low" />
+      </div>
+    );
+  }
+
+  const { kpis, recommendation: rec } = detail;
+  const ranOut = kpis.stockoutDays > 0 || kpis.unmetRequests > 0;
+  return (
+    <div className="flex flex-col gap-3">
+      <FocusTitle caption={caption} name={detail.name} focus={focus} />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-surface-container-low p-3.5">
+          <span className="block text-caption text-on-surface">Sales only</span>
+          <span className="text-[34px] font-medium leading-tight tracking-[-0.03em] tabular-nums text-on-surface">
+            {rec.recommendedQtyA}
+          </span>
+        </div>
+        <div className="rounded-lg bg-primary-fixed p-3.5 text-on-primary-fixed">
+          <span className="block text-caption">Demand Radar</span>
+          <span className="text-[34px] font-medium leading-tight tracking-[-0.03em] tabular-nums">
+            {rec.recommendedQty}
+          </span>
+        </div>
+      </div>
+      <p className="text-caption text-on-surface-variant">
+        {ranOut ? (
+          <>
+            <span className="font-semibold text-on-surface">{formatNumber(kpis.unmetRequests)}</span> shoppers asked
+            for it during the {kpis.stockoutDays}-day stockout
+          </>
+        ) : (
+          <>It has not run out, so no asks went unmet and both orders agree</>
+        )}
+        {badge}.{" "}
+        <Link href={`/manager/sku?code=${detail.sku}`} className="font-semibold text-primary-container hover:underline">
+          See why →
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function FocusTitle({ caption, name, focus }: { caption: string; name: string; focus: LiveSignal | null }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <span className="min-w-0">
+        <span className="block text-caption text-on-surface-variant">{caption}</span>
+        <span className="block truncate text-body-medium font-semibold text-on-surface">{name}</span>
+      </span>
+      {focus ? <OutcomePill outcome={focus.outcome} /> : null}
     </div>
   );
 }

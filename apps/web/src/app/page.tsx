@@ -27,7 +27,7 @@ export default function HomePage() {
             </h1>
             <p className="max-w-xl text-body-default leading-relaxed text-on-surface-variant">
               When a shelf is empty, the till records zero and the forecast orders less. Demand Radar listens
-              to shopper chats at a store kiosk, lets Gemini turn each request into a product and an outcome,
+              to shopper chats at a store kiosk, turns each request into a product and an outcome (Gemini reads the unclear ones),
               and corrects the reorder with the demand the POS never saw.
             </p>
             <div className="flex flex-wrap items-center gap-2">

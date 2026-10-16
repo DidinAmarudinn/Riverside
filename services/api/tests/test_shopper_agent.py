@@ -158,3 +158,26 @@ def test_negative_budget_leaves_thinking_to_the_model(monkeypatch):
 
     monkeypatch.setattr(llm_mod, "settings", replace(llm_mod.settings, gemini_thinking_budget=-1))
     assert llm_mod.thinking_planner() is None
+
+
+def test_a_new_product_search_starts_a_new_request(world, publisher):
+    _, _, _ = run(
+        [call("search_products", query="minyak"), say("Ada kak, Minyak Goreng Bimoli 1 L di rak A2-3."),
+         call("search_products", query="santan"), say("Ada kak, Santan Kotak Kara 1 L di rak A1-4."),
+         say("Siap kak.")],
+        ["mau beli minyak", "apakah ada santan", "oke makasih"],
+    )
+    third, second, first = publisher.recent()[:3]
+    assert (first.request, first.request_start) == (0, 0)
+    assert (second.request, second.request_start) == (1, 2)  # santan starts at its own shopper message
+    assert (third.request, third.request_start) == (1, 2)  # a follow-up without a search stays with santan
+    assert '"requestStart": 2' in second.to_json()
+
+
+def test_chit_chat_before_the_first_search_is_not_a_request(world, publisher):
+    _, _, _ = run(
+        [say("Halo kak, mau cari apa?"), call("search_products", query="santan"), say("Ada kak.")],
+        ["halo", "ada santan?"],
+    )
+    ev = publisher.recent()[0]
+    assert (ev.request, ev.request_start) == (0, 2)

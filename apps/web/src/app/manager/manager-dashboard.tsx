@@ -138,7 +138,7 @@ export function ManagerDashboard() {
           label="Out of stock now"
           value={effectiveMetrics ? String(effectiveMetrics.stockoutSkus) : ""}
           loading={!effectiveMetrics}
-          suffix="products"
+          suffix={effectiveMetrics?.stockoutSkus === 1 ? "product" : "products"}
           tone="warning"
           icon={TriangleAlert}
           footerValue="Zero on the shelf"

@@ -113,7 +113,7 @@ export function GapsView() {
 
           <p className="flex items-center gap-1.5 border-t border-outline-variant pt-3 text-caption text-on-surface-variant">
             <MessageSquareText className="h-4 w-4 flex-shrink-0 text-primary-container" aria-hidden />
-            Read by Gemini from informal Indonesian kiosk chats.
+            Read by the signal extractor from informal Indonesian kiosk chats.
             {oneOffs > 0 ? ` ${oneOffs} names asked only once are not listed.` : ""}
           </p>
         </section>

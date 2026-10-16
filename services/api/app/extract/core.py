@@ -140,7 +140,8 @@ def extract_one(conv: dict, cat: Catalog, llm: dict | None = None, model_version
 
     ts = str(conv.get("ts", ""))
     return {
-        "signal_id": f"sig-{conv['conversation_id']}",
+        # one signal per product asked in a chat; the first keeps the plain id (batch chats have only that one)
+        "signal_id": f"sig-{conv['conversation_id']}" + (f"-{conv['request']}" if conv.get("request") else ""),
         "conversation_id": conv["conversation_id"],
         "sandbox_id": conv.get("sandbox_id"),
         "store_id": conv.get("store_id"),

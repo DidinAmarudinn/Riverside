@@ -14,6 +14,7 @@ from .catalog import load_catalog
 from .core import DEMAND_SIGNALS_COLUMNS
 
 UNMET = ("out_of_stock", "not_carried")
+OUTCOME_TEXT = {"out_of_stock": "out of stock", "not_carried": "not carried here"}
 
 
 def write_signal(row: dict) -> None:
@@ -78,8 +79,8 @@ def live_signal_doc(row: dict) -> dict:
 def decide(prev: dict | None, outcome: str, turn: int) -> tuple[bool, bool]:
     """(write the signal?, count it as newly unmet?) for one kiosk turn.
 
-    Every turn of a chat re-extracts the whole transcript into the same signal (id = signal_id), so the
-    latest turn wins: a turn older than the stored one (Pub/Sub does not keep order) is dropped. Metrics
+    Every turn re-extracts the shopper's current request (one per product asked in the chat) into the same
+    signal (id = signal_id), so the latest turn wins: a turn older than the stored one (Pub/Sub does not keep order) is dropped. Metrics
     and alerts move only when the signal first becomes unmet, so redeliveries and later turns never count
     the same shopper twice.
     """
@@ -118,7 +119,7 @@ def _write_firestore(row: dict) -> None:
         "storeId": row.get("store_id"), "sku": row.get("sku"),
         "type": "unmet_spike" if row.get("outcome") == "out_of_stock" else "reorder",
         "severity": "medium",
-        "title": f"Permintaan tak terpenuhi: {row.get('normalized_name') or row.get('requested_text')}",
-        "body": f"Shopper mencari '{row.get('requested_text')}' ({row.get('outcome')}).",
+        "title": f"Unmet request: {doc.get('matchedName') or row.get('normalized_name') or row.get('requested_text')}",
+        "body": f"A shopper asked “{row.get('requested_text')}”: {OUTCOME_TEXT.get(row.get('outcome'), row.get('outcome'))}.",
         "createdAt": firestore.SERVER_TIMESTAMP,
     })

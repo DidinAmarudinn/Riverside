@@ -110,6 +110,16 @@ def log_request(callback_context):
     if callback_context.user_content and callback_context.user_content.parts:
         shopper_text = " ".join(p.text or "" for p in callback_context.user_content.parts).strip()
     transcript = list(state.get("transcript", []))
+    calls = list(state.get("turn_tool_calls", []))
+    # A product search starts a new request ("mau minyak" ... "kalau santan ada?"), so each product the shopper
+    # asks about becomes its own signal; follow-ups without a search ("boleh", "di rak mana?") stay with it.
+    request, request_start = int(state.get("request", 0)), int(state.get("request_start", 0))
+    if any(c.get("name") == "search_products" for c in calls):
+        if state.get("request_searched"):
+            request += 1
+        request_start = len(transcript)
+        state["request_searched"] = True
+    state["request"], state["request_start"] = request, request_start
     transcript.append({"role": "shopper", "text": shopper_text})
     transcript.append({"role": "agent", "text": state.get("turn_reply", "")})
     turn = int(state.get("turn", 0)) + 1
@@ -121,7 +131,9 @@ def log_request(callback_context):
         sandbox_id=state.get("sandbox_id"),
         channel="chat",
         transcript=transcript,
-        tool_calls=list(state.get("turn_tool_calls", [])),
+        tool_calls=calls,
+        request=request,
+        request_start=request_start,
     )
     try:
         get_publisher().publish(event)
