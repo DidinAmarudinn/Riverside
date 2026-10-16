@@ -11,17 +11,17 @@ export function formatRupiah(value: number): string {
   return `Rp ${idNumber.format(Math.round(value))}`;
 }
 
-/** Compact currency for tight KPI space, e.g. `Rp 32,8 jt`. */
+/** Compact currency for tight KPI space, e.g. `Rp 32.8M` (manager pages are in English). */
 export function formatRupiahCompact(value: number): string {
   if (Math.abs(value) >= 1_000_000_000) {
-    return `Rp ${(value / 1_000_000_000).toLocaleString("id-ID", {
+    return `Rp ${(value / 1_000_000_000).toLocaleString("en-US", {
       maximumFractionDigits: 1,
-    })} M`;
+    })}B`;
   }
   if (Math.abs(value) >= 1_000_000) {
-    return `Rp ${(value / 1_000_000).toLocaleString("id-ID", {
+    return `Rp ${(value / 1_000_000).toLocaleString("en-US", {
       maximumFractionDigits: 1,
-    })} jt`;
+    })}M`;
   }
   return formatRupiah(value);
 }
@@ -43,7 +43,7 @@ export function formatTimeWib(input: string | number | Date): string {
 
 export function formatDateTimeWib(input: string | number | Date): string {
   const date = new Date(input);
-  const datePart = new Intl.DateTimeFormat("id-ID", {
+  const datePart = new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
     timeZone: JAKARTA,
@@ -53,16 +53,16 @@ export function formatDateTimeWib(input: string | number | Date): string {
 
 export function formatDateWib(input: string | number | Date): string {
   const date = new Date(input);
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
     month: "short",
     timeZone: JAKARTA,
   }).format(date);
 }
 
-const rtf = new Intl.RelativeTimeFormat("id-ID", { numeric: "auto" });
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
-/** Relative time in Indonesian, e.g. "5 menit lalu". */
+/** Relative time, e.g. "5 minutes ago". */
 export function formatRelativeTime(input: string | number | Date): string {
   const then = new Date(input).getTime();
   const diffSeconds = Math.round((then - Date.now()) / 1000);

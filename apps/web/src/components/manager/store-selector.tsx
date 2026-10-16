@@ -12,7 +12,7 @@ export function StoreSelector() {
     <div className="flex items-center gap-2 rounded-xl bg-surface-container-lowest px-4 py-2 shadow-sm">
       <MapPin className="h-[18px] w-[18px] text-primary" aria-hidden />
       <label className="sr-only" htmlFor="store-selector">
-        Pilih toko
+        Choose store
       </label>
       <select
         id="store-selector"

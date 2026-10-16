@@ -26,16 +26,16 @@ export function JuryActions() {
   const nextMorning = useNextMorning();
 
   const handleReset = () => {
-    if (!window.confirm("Reset demo ke kondisi awal (Selasa malam)?")) return;
+    if (!window.confirm("Reset the demo to its starting point (Tuesday evening)?")) return;
     resetDemo.mutate(undefined, {
       onSuccess: () =>
         toast({
-          title: "Demo direset",
-          description: "Skenario: Selasa malam",
+          title: "Demo reset",
+          description: "Scenario: Tuesday evening",
           variant: "success",
         }),
       onError: () =>
-        toast({ title: "Gagal reset demo", variant: "error" }),
+        toast({ title: "Could not reset the demo", variant: "error" }),
     });
   };
 
@@ -43,14 +43,14 @@ export function JuryActions() {
     nextMorning.mutate(undefined, {
       onSuccess: () => {
         toast({
-          title: "Next morning dijalankan",
+          title: "Next morning done",
           description: "Santan: A = 0, B = 60.",
           variant: "success",
         });
         router.push("/manager");
       },
       onError: () =>
-        toast({ title: "Gagal menjalankan next morning", variant: "error" }),
+        toast({ title: "Could not run next morning", variant: "error" }),
     });
   };
 
@@ -62,7 +62,7 @@ export function JuryActions() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
           </span>
-          Scenario: {demoState?.scenario ?? "Selasa malam"}
+          Scenario: {scenarioLabel(demoState?.scenario)}
         </span>
         {demoState?.lastResetAt ? (
           <span className="text-caption text-on-surface-variant">
@@ -75,14 +75,14 @@ export function JuryActions() {
         <ScenarioLink
           href="/kiosk"
           icon={Store}
-          title="Open Kiosk Shopper"
-          description="Ask for a product and watch the assistant handle a stockout."
+          title="1 · Ask the shopper kiosk"
+          description="Ask for small boxed coconut milk. It is sold out; the agent offers an alternative and a nearby branch."
         />
         <ScenarioLink
           href="/manager"
           icon={BarChart3}
-          title="Open Manager Dashboard"
-          description="KPIs, ranked recommendations, live feed and alerts."
+          title="2 · See it on the manager dashboard"
+          description="The unmet request appears in the live feed within seconds."
         />
         <button
           type="button"
@@ -97,7 +97,7 @@ export function JuryActions() {
             <span className="block text-body-medium text-on-surface">
               {nextMorning.isPending
                 ? "Running next morning…"
-                : "Run “Next morning”"}
+                : "3 · Run “Next morning”"}
             </span>
             <span className="mt-0.5 block text-caption text-on-surface-variant">
               Recompute the hero scenario: Santan A = 0, B = 60.
@@ -107,7 +107,7 @@ export function JuryActions() {
         <ScenarioLink
           href={`/manager?q=${encodeURIComponent(JURY_QUESTION)}&sku=${HERO_SKU}`}
           icon={MessageSquareMore}
-          title="Ask the manager agent"
+          title="4 · Ask the manager agent why"
           description="“Why should I order 60 boxes of coconut milk?”"
         />
       </div>
@@ -119,10 +119,10 @@ export function JuryActions() {
           disabled={resetDemo.isPending}
         >
           <RotateCcw className="h-4 w-4" aria-hidden />
-          {resetDemo.isPending ? "Mereset…" : "Reset demo"}
+          {resetDemo.isPending ? "Resetting…" : "Reset demo"}
         </Button>
         <span className="text-caption text-on-surface-variant">
-          Returns the demo to its initial state.
+          Clears your private sandbox. Other visitors are not affected.
         </span>
       </div>
     </div>
@@ -156,4 +156,10 @@ function ScenarioLink({
       </span>
     </Link>
   );
+}
+
+// The API stores the scenario name in Indonesian; the jury page is in English.
+function scenarioLabel(scenario: string | undefined): string {
+  if (!scenario || scenario === "Selasa malam") return "Tuesday evening";
+  return scenario;
 }

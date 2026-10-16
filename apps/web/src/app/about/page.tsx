@@ -86,7 +86,7 @@ export default function AboutPage() {
             sandbox — see
             {" "}
             <code className="rounded bg-surface-container-low px-1 py-0.5 font-label-mono">
-              docs/fe-decisions.md
+              apps/web/docs/fe-decisions.md
             </code>
             .
           </p>

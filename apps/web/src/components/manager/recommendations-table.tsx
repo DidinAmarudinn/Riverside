@@ -22,7 +22,7 @@ export function RecommendationsTable({
             <th className="rounded-l-lg px-3 py-2.5">
               <input
                 type="checkbox"
-                aria-label="Pilih semua"
+                aria-label="Select all"
                 className="h-4 w-4 cursor-pointer accent-primary"
                 disabled
               />
@@ -73,7 +73,7 @@ export function RecommendationsTable({
                 <td className="px-3 py-3.5">
                   <input
                     type="checkbox"
-                    aria-label={`Pilih ${rec.name}`}
+                    aria-label={`Select ${rec.name}`}
                     className="h-4 w-4 cursor-pointer accent-primary"
                     onClick={(e) => e.stopPropagation()}
                     disabled

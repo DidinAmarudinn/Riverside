@@ -17,7 +17,7 @@ export default function HomePage() {
         <div className="flex max-w-3xl flex-col gap-5">
           <span className="inline-flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-surface-container-low px-3 py-1.5 text-caption font-medium text-primary">
             <Sparkles className="h-4 w-4" aria-hidden />
-            Hackathon demo — no login required
+            Google Cloud AI Builder Cup 2026 · no login required
           </span>
 
           <div className="flex items-center gap-4">
@@ -29,13 +29,19 @@ export default function HomePage() {
             </h1>
           </div>
 
-          <p className="text-headline-md font-normal leading-relaxed text-on-surface-variant">
-            Demand Radar captures shopper demand that was never fulfilled — from
-            kiosk conversations — and turns it into reorder recommendations for
-            store managers. It contrasts Forecast A (POS only) against Forecast B
-            (POS + unmet demand) to show why POS data alone misleads when shelves
-            run dry. Open the kiosk, ask for coconut milk, then watch the signal
-            reach the manager dashboard.
+          <p className="text-headline-md font-normal leading-relaxed text-on-surface">
+            POS data tells you what sold. Conversations tell you what people
+            wanted.
+          </p>
+          <p className="max-w-2xl text-body-default leading-relaxed text-on-surface-variant">
+            When a shelf is empty, the till records zero and the forecast orders
+            less. Demand Radar listens to shopper chats at a store kiosk, uses
+            Gemini to turn each request into a product and an outcome, and
+            corrects the reorder with the demand the POS never saw.
+          </p>
+          <p className="text-caption text-on-surface-variant">
+            All stores, stock, sales and conversations are simulated for this
+            demo.
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -53,7 +59,7 @@ export default function HomePage() {
             Try the demo
           </h2>
           <p className="mb-5 text-caption text-on-surface-variant">
-            Four scenarios that exercise the full loop. Reset any time.
+            Four steps through the full loop, in your own private sandbox.
           </p>
           <JuryActions />
         </div>
@@ -71,17 +77,7 @@ function ResourceLink({
   icon: React.ComponentType<{ className?: string }>;
   label: string;
 }) {
-  if (!href) {
-    return (
-      <span
-        title="Belum tersedia"
-        className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-low px-4 py-2 text-caption text-on-surface-variant opacity-60"
-      >
-        <Icon className="h-4 w-4" aria-hidden />
-        {label}
-      </span>
-    );
-  }
+  if (!href) return null;
   return (
     <a
       href={href}
