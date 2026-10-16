@@ -1,1 +1,5 @@
--- TODO: CREATE MODEL ... OPTIONS(model_type='ARIMA_PLUS') for forecast A (POS only) and B (POS + unmet)
+-- Forecast models are not defined here on purpose: `make load` would retrain them every time.
+-- They are created by `make forecast` (services/api/app/forecast/pipeline.py), which renders one statement per model:
+--   CREATE OR REPLACE MODEL m_<kind>_<variant> OPTIONS (model_type='ARIMA_PLUS', time_series_id_col=['store_id','sku'],
+--     horizon=<14|7>, holiday_region='ID', ...) AS SELECT date, store_id, sku, <y_a|y_b|...> AS y FROM fc_series_<kind>
+-- kind: bt (train to day 76), late (train to day 83, stress test), prod (all 90 days); variants: a, b, b_rate_x0_5, b_rate_x1_5.
