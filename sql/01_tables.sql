@@ -45,13 +45,15 @@ CREATE OR REPLACE TABLE `${PROJECT}.${DATASET}.demand_signals` (
   substitute_sku STRING, qty INT64, confidence FLOAT64, model_version STRING
 ) PARTITION BY date CLUSTER BY store_id, sku;
 
-CREATE OR REPLACE TABLE `${PROJECT}.${DATASET}.forecasts` (
+-- Pipeline outputs (make forecast): kept across `make load`, so a reload does not erase them.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.${DATASET}.forecasts` (
   run_date DATE, store_id STRING, sku STRING,
   model STRING,               -- A = POS only, B = POS + unmet demand
   forecast_date DATE, forecast_qty FLOAT64, lower FLOAT64, upper FLOAT64
 ) PARTITION BY run_date CLUSTER BY store_id, sku;
 
-CREATE OR REPLACE TABLE `${PROJECT}.${DATASET}.recommendations` (
+-- Pipeline outputs (make forecast): kept across `make load`, so a reload does not erase them.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.${DATASET}.recommendations` (
   run_date DATE, store_id STRING, sku STRING, on_hand INT64,
   forecast_a_7d FLOAT64, forecast_b_7d FLOAT64, unmet_7d INT64,
   recommended_qty_a INT64, recommended_qty_b INT64,
