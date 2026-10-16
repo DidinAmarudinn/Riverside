@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/common/states";
 import { KpiCard } from "@/components/manager/kpi-card";
+import { DecisionBanner } from "@/components/manager/decision-banner";
 import { RecommendationsTable } from "@/components/manager/recommendations-table";
 import { LiveFeed } from "@/components/manager/live-feed";
 import { AlertsPanel } from "@/components/manager/alerts-panel";
@@ -80,14 +81,12 @@ export function ManagerDashboard() {
   }, [recommendations.isLoading, recommendations.isError, recommendations.data]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col justify-between gap-4 pt-6 md:flex-row md:items-center">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col justify-between gap-4 pt-2 md:flex-row md:items-center">
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="text-headline-lg tracking-tight text-on-surface">
-              {storeName} – Overview
-            </span>
-          </div>
+          <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em] text-on-surface sm:text-[36px]">
+            {storeName}
+          </h1>
           <p className="mt-1 text-caption text-on-surface-variant">
             Unmet shopper demand from kiosk conversations next to POS sales. Simulated data.
           </p>
@@ -95,7 +94,7 @@ export function ManagerDashboard() {
         <div className="flex flex-wrap items-center gap-2">
           <StoreSelector />
           {effectiveMetrics?.posRefreshedAt ? (
-          <div className="flex items-center gap-2 rounded-xl bg-surface-container-lowest px-4 py-2 shadow-sm">
+          <div className="flex items-center gap-2 rounded-full bg-surface-container-lowest px-4 py-2.5">
             <RefreshCw className="h-4 w-4 text-primary" aria-hidden />
             <span className="text-caption text-on-surface-variant">
               POS Refreshed:{" "}
@@ -108,9 +107,13 @@ export function ManagerDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      {!riskParam && recommendations.data?.length ? (
+        <DecisionBanner recommendations={recommendations.data} />
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard
-          label="Revenue Lost Today"
+          label="Revenue lost today"
           value={effectiveMetrics ? formatRupiah(effectiveMetrics.lostRevenueToday) : "—"}
           tone="error"
           icon={TrendingDown}
@@ -118,7 +121,7 @@ export function ManagerDashboard() {
           footerLabel="today"
         />
         <KpiCard
-          label="Unmet Requests Today"
+          label="Unmet requests today"
           value={effectiveMetrics ? String(effectiveMetrics.unmetToday) : "—"}
           suffix="requests"
           tone="primary"
@@ -137,21 +140,18 @@ export function ManagerDashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         <div className="flex flex-col gap-4 lg:col-span-8">
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
+          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6">
             <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-headline-md text-on-surface">
+                  <span className="text-headline-lg text-on-surface">
                     Recommendations
-                  </span>
-                  <span className="rounded-full bg-surface-container px-2 py-0.5 font-label-mono text-caption text-on-surface-variant">
-                    Sorted by Risk
                   </span>
                 </div>
                 <p className="mt-0.5 text-caption text-on-surface-variant">
-                  Actionable reorder adjustments combining POS and unmet demand
+                  Reorder for the next 7 days, most at risk first
                 </p>
               </div>
               {env.featureApprove ? (
@@ -175,10 +175,10 @@ export function ManagerDashboard() {
                     type="button"
                     onClick={() => setRiskFilter(f.value)}
                     className={cn(
-                      "rounded-full px-3 py-1 text-caption font-medium transition",
+                      "rounded-full px-3.5 py-2 text-caption transition",
                       active
-                        ? "bg-primary text-on-primary"
-                        : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container",
+                        ? "bg-primary-fixed font-semibold text-on-primary-fixed"
+                        : "bg-surface-container-low text-on-surface hover:bg-surface-container-high",
                     )}
                   >
                     {f.label}
@@ -221,8 +221,8 @@ export function ManagerDashboard() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-span-4">
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
+        <div className="flex flex-col gap-4 lg:col-span-4">
+          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5">
@@ -230,7 +230,7 @@ export function ManagerDashboard() {
                   <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
                 </span>
                 <span className="text-headline-sm text-on-surface">
-                  Live Demand Feed
+                  Live demand feed
                 </span>
               </div>
               <span className="font-label-mono text-caption text-on-surface-variant">
@@ -249,11 +249,11 @@ export function ManagerDashboard() {
             )}
           </div>
 
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
+          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-headline-sm text-on-surface">
-                  Alerts &amp; Notifications
+                  Alerts
                 </span>
                 {alerts?.length ? (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-error text-[11px] font-bold text-on-error">

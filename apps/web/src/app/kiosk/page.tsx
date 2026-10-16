@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageShell } from "@/components/layout/page-shell";
 import { KioskChat } from "./kiosk-chat";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function KioskPage() {
-  return <KioskChat />;
+  return (
+    <PageShell>
+      <KioskChat />
+    </PageShell>
+  );
 }

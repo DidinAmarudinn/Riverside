@@ -2,10 +2,10 @@ import type { AlertItem } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 const dotTone: Record<AlertItem["type"], string> = {
-  stockout_risk: "bg-error",
-  unmet_spike: "bg-tertiary",
-  overstock: "bg-surface-container-high",
-  reorder: "bg-secondary-container",
+  stockout_risk: "bg-status-red",
+  unmet_spike: "bg-primary-fixed",
+  overstock: "bg-outline",
+  reorder: "bg-status-amber",
 };
 
 export function AlertsPanel({
@@ -21,9 +21,9 @@ export function AlertsPanel({
         <div
           key={alert.id}
           className={cn(
-            "flex items-start gap-2.5 rounded-lg bg-surface-container-low/40 p-2.5 transition-colors",
+            "flex items-start gap-2.5 rounded-xl bg-surface-container-low p-3 transition-colors",
             highlightId === alert.id &&
-              "ring-2 ring-primary/40 animate-pulse",
+              "bg-secondary-fixed ring-2 ring-primary-fixed",
           )}
         >
           <span

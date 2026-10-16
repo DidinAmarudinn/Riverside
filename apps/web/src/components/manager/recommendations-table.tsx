@@ -23,40 +23,40 @@ export function RecommendationsTable({
     <div className="-mx-6 overflow-x-auto px-6">
       <table className="w-full min-w-[760px] text-left">
         <thead>
-          <tr className="bg-surface-container-low text-on-surface-variant">
-            <th className="rounded-l-lg px-3 py-2.5 text-table-header font-medium">
+          <tr className="border-b border-outline-variant text-on-surface-variant">
+            <th className="px-3 py-2.5 text-caption font-medium">
               Product
             </th>
-            <th className="px-3 py-2.5 text-table-header font-medium">
+            <th className="px-3 py-2.5 text-caption font-medium">
               Risk
             </th>
-            <th className="px-3 py-2.5 text-right text-table-header font-medium">
+            <th className="px-3 py-2.5 text-right text-caption font-medium">
               On Hand
             </th>
-            <th className="px-3 py-2.5 text-right text-table-header font-medium">
+            <th className="px-3 py-2.5 text-right text-caption font-medium">
               Forecast A, 7 days
               <span className="block text-[10px] font-normal text-outline">
                 POS only
               </span>
             </th>
-            <th className="px-3 py-2.5 text-right text-table-header font-medium">
+            <th className="px-3 py-2.5 text-right text-caption font-medium">
               Forecast B, 7 days
-              <span className="block text-[10px] font-normal text-primary">
+              <span className="block text-[10px] font-normal text-primary-container">
                 POS + Unmet
               </span>
             </th>
-            <th className="px-3 py-2.5 text-right text-table-header font-medium">
+            <th className="px-3 py-2.5 text-right text-caption font-medium">
               Order
               <span className="block text-[10px] font-normal text-outline">
                 A → B
               </span>
             </th>
-            <th className="rounded-r-lg px-3 py-2.5 text-table-header font-medium">
+            <th className="rounded-r-lg px-3 py-2.5 text-caption font-medium">
               Why
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-surface-container-low">
+        <tbody className="divide-y divide-outline-variant">
           {recommendations.map((rec) => {
             const isHero = rec.sku === "SKU-0001";
             return (
@@ -67,7 +67,7 @@ export function RecommendationsTable({
                 }
                 className={cn(
                   "cursor-pointer transition-colors hover:bg-surface-container-low",
-                  isHero && "bg-surface-container-low/60",
+                  isHero && "bg-secondary-fixed/50",
                 )}
               >
                 <td className="px-3 py-3.5">
@@ -81,7 +81,7 @@ export function RecommendationsTable({
                         />
                       ) : null}
                     </span>
-                    <span className="font-label-mono text-caption text-on-surface-variant">
+                    <span className="text-caption text-on-surface-variant">
                       {rec.category}
                     </span>
                   </div>
@@ -100,7 +100,7 @@ export function RecommendationsTable({
                 <td className="px-3 py-3.5 text-right tabular-nums text-outline">
                   {formatQty(rec.forecastA)}
                 </td>
-                <td className="px-3 py-3.5 text-right font-semibold tabular-nums text-primary">
+                <td className="px-3 py-3.5 text-right font-semibold tabular-nums text-primary-container">
                   {formatQty(rec.forecastB)}
                 </td>
                 <td className="whitespace-nowrap px-3 py-3.5 text-right tabular-nums">
@@ -111,10 +111,8 @@ export function RecommendationsTable({
                   ) : null}
                   <span
                     className={cn(
-                      "rounded px-2 py-0.5 font-semibold",
-                      isHero
-                        ? "bg-primary-fixed text-on-primary-fixed"
-                        : "bg-surface-container text-on-surface",
+                      "rounded-full px-2.5 py-1 font-semibold",
+                      isHero ? "bg-primary-fixed text-on-primary-fixed" : "text-on-surface",
                     )}
                   >
                     {formatNumber(rec.recommendedQty)}

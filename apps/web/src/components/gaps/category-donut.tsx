@@ -2,7 +2,7 @@ import type { GapCategory } from "@/lib/api/types";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const CATEGORY_COLORS = ["#0F766E", "#2563EB", "#F59E0B", "#EA580C"];
+export const CATEGORY_COLORS = ["#0E2A20", "#B7E36A", "#1F8A5B", "#9AA39E", "#C9D3CD", "#5E7A6C"];
 
 export function CategoryDonut({
   categories,
@@ -32,7 +32,7 @@ export function CategoryDonut({
             cy="50"
             r={radius}
             fill="none"
-            stroke="#e5eeff"
+            stroke="#E4E7E5"
             strokeWidth="14"
           />
           {segments.map((s) => (

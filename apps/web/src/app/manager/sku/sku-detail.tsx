@@ -1,86 +1,19 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Banknote,
-  Grid2x2,
-  PackageX,
-  Timer,
-  TrendingUp,
-} from "lucide-react";
+import { MessageSquareText, Package, Timer, TrendingDown } from "lucide-react";
 import { useSkuDetail } from "@/hooks/use-data";
 import { CardSkeleton, ErrorState } from "@/components/common/states";
 import { RiskBadge } from "@/components/manager/risk-badge";
 import { RecommendationCard } from "@/components/sku/recommendation-card";
 import { EvidenceDrawer } from "@/components/sku/evidence-drawer";
 import { Button } from "@/components/ui/button";
-import { formatDateWib, formatNumber, formatRupiah } from "@/lib/format";
-import { cn } from "@/lib/utils";
-
-const ForecastChart = dynamic(
-  () => import("@/components/sku/forecast-chart"),
-  { ssr: false, loading: () => <CardSkeleton rows={5} /> },
-);
-const UnmetChart = dynamic(() => import("@/components/sku/unmet-chart"), {
-  ssr: false,
-  loading: () => <CardSkeleton rows={3} />,
-});
-
-function Kpi({
-  label,
-  value,
-  suffix,
-  note,
-  tone = "neutral",
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  suffix?: string;
-  note: string;
-  tone?: "neutral" | "error" | "tertiary" | "primary";
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  const toneClass =
-    tone === "error"
-      ? "text-error"
-      : tone === "tertiary"
-        ? "text-tertiary-container"
-        : tone === "primary"
-          ? "text-primary-container"
-          : "text-on-surface";
-  return (
-    <div className="flex flex-col justify-between rounded-xl bg-surface-container-lowest p-4 shadow-sm">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="font-microcopy-caps uppercase tracking-wider text-on-surface-variant">
-          {label}
-        </span>
-        <span
-          className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-lg",
-            tone === "error"
-              ? "bg-error-container text-on-error-container"
-              : "bg-surface-container-high text-primary-container",
-          )}
-        >
-          <Icon className="h-4 w-4" aria-hidden />
-        </span>
-      </div>
-      <div className="my-1 flex items-baseline gap-1.5">
-        <span className={cn("text-kpi-stat", toneClass)}>{value}</span>
-        {suffix ? (
-          <span className="text-headline-sm font-normal text-on-surface-variant">
-            {suffix}
-          </span>
-        ) : null}
-      </div>
-      <span className={cn("text-caption", toneClass)}>{note}</span>
-    </div>
-  );
-}
+import { formatDateWib, formatNumber, formatRupiah, formatRupiahCompact } from "@/lib/format";
+import { KpiCard } from "@/components/manager/kpi-card";
+import { AgentChat } from "@/components/manager/agent-chat";
+import { DemandBars } from "@/components/charts/demand-bars";
 
 export function SkuDetail() {
   const searchParams = useSearchParams();
@@ -125,185 +58,100 @@ export function SkuDetail() {
       ? `During this ${unmetDays}-day stockout`
       : `Last ${unmetDays} days`;
 
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2 pt-4">
-        <div className="flex items-center gap-1 text-caption">
-          <Link
-            href="/manager"
-            className="flex items-center gap-1 text-on-surface-variant transition-colors hover:text-primary-container"
-          >
-            <Grid2x2 className="h-[15px] w-[15px]" aria-hidden />
-            Manager
-          </Link>
-          <span className="font-label-mono text-outline-variant">/</span>
-          <span className="text-body-medium text-on-surface">{data.name}</span>
-        </div>
+  const history = data.series.filter((p) => p.posSales != null).slice(-42);
+  const ahead = data.series.filter((p) => p.posSales == null && (p.forecastA != null || p.forecastB != null));
+  const asked = new Map(data.dailyUnmet.map((u) => [u.date, u.count]));
 
-        <div className="flex flex-col justify-between gap-4 rounded-xl bg-surface-container-lowest p-6 shadow-sm lg:flex-row lg:items-center">
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-headline-lg tracking-tight text-on-surface">
-                {data.name}
-              </h1>
-              <RiskBadge risk={data.riskType} />
-            </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-on-surface-variant">
-              <span className="text-body-medium text-on-surface">
-                {data.category}
-              </span>
-              <span className="text-outline-variant">•</span>
-              <span className="font-label-mono">SKU #{data.sku}</span>
-              {data.barcode ? (
-                <>
-                  <span className="text-outline-variant">•</span>
-                  <span className="font-label-mono">Barcode: {data.barcode}</span>
-                </>
-              ) : null}
-              <span className="text-outline-variant">•</span>
-              <span className="font-label-mono font-medium text-on-surface">
-                Price: {formatRupiah(data.priceIdr)}
-              </span>
-            </div>
-          </div>
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
+        <div className="flex flex-col gap-1">
+          <Link href="/manager" className="text-caption text-on-surface-variant hover:text-on-surface">
+            Manager / Product
+          </Link>
+          <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em] text-on-surface sm:text-[36px]">
+            {data.name}
+          </h1>
+          <p className="text-body-default text-on-surface-variant">
+            {data.category} · {data.sku} · {formatRupiah(data.priceIdr)}
+          </p>
         </div>
+        <RiskBadge risk={data.riskType} className="px-3.5 py-2 text-body-default" />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Kpi
-          label="Current On Hand"
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="On hand"
           value={formatNumber(data.kpis.onHand)}
-          suffix="units"
-          note={data.kpis.onHandNote ?? "—"}
-          tone={data.kpis.onHand <= 2 ? "error" : "neutral"}
-          icon={PackageX}
+          footerValue={data.kpis.onHand === 0 ? "empty shelf" : "units on the shelf"}
+          icon={Package}
         />
-        <Kpi
-          label="Lost revenue, last 7 days"
-          value={formatRupiah(data.kpis.lostRevenueIdr)}
-          note={`≈${formatNumber(data.kpis.lostRevenueUnits ?? 0)} units, incl. shoppers who did not ask`}
-          tone="error"
-          icon={Banknote}
-        />
-        <Kpi
-          label={unmetLabel}
-          value={formatNumber(data.kpis.unmetRequests)}
-          suffix="shoppers asked"
-          note="At the kiosk, while it was out of stock"
-          tone="tertiary"
-          icon={TrendingUp}
-        />
-        <Kpi
-          label="Stockout Duration"
-          value={formatNumber(data.kpis.stockoutDays)}
-          suffix="consecutive days"
-          note={
-            data.kpis.stockoutSince
-              ? `Since ${formatDateWib(data.kpis.stockoutSince)}`
-              : "Currently in stock"
-          }
-          tone="neutral"
+        <KpiCard
+          label="Stockout"
+          value={data.kpis.stockoutDays ? `${formatNumber(data.kpis.stockoutDays)} days` : "None"}
+          footerValue={data.kpis.stockoutSince ? `since ${formatDateWib(data.kpis.stockoutSince)}` : "currently in stock"}
           icon={Timer}
         />
+        <KpiCard
+          label="Shoppers asked"
+          value={formatNumber(data.kpis.unmetRequests)}
+          footerValue={unmetLabel.toLowerCase()}
+          tone="lime"
+          icon={MessageSquareText}
+        />
+        <KpiCard
+          label="Lost, last 7 days"
+          value={formatRupiahCompact(data.kpis.lostRevenueIdr)}
+          footerValue={`≈${formatNumber(data.kpis.lostRevenueUnits ?? 0)} units, incl. shoppers who did not ask`}
+          icon={TrendingDown}
+        />
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="flex flex-col gap-6 lg:col-span-8">
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
-            <div className="mb-2 flex flex-col justify-between gap-2 md:flex-row md:items-center">
-              <div>
-                <h2 className="text-headline-md text-on-surface">
-                  Sales and forecast
-                </h2>
-                <p className="mt-0.5 text-caption text-on-surface-variant">
-                  Daily POS sales (bars), then the next 14 days from forecast A and forecast B
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-4 text-caption text-on-surface-variant">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-3 w-3.5 rounded-sm bg-surface-container-high" />
-                  POS Sales
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="h-0.5 w-4 border-t-2 border-dashed border-outline-variant" />
-                  Forecast A (POS only)
-                </span>
-                <span className="flex items-center gap-1.5 font-medium text-primary-container">
-                  <span className="h-1 w-4 rounded bg-primary-container" />
-                  Forecast B (POS + unmet)
-                </span>
-              </div>
-            </div>
-            <ForecastChart data={data.series} />
-            <div className="mt-3 flex items-start gap-2 rounded-lg bg-surface-container-low p-3 text-caption text-on-surface-variant">
-              <TrendingUp className="mt-0.5 h-[18px] w-[18px] shrink-0 text-primary-container" aria-hidden />
-              <p>
-                While the shelf is empty the till records zero, so a sales-only
-                forecast reads it as no demand.{" "}
-                <strong className="font-medium text-on-surface">
-                  Forecast B adds back the shoppers who asked
-                </strong>
-                , estimated from kiosk conversations.
-              </p>
-            </div>
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        <div className="flex min-w-0 flex-col gap-3 rounded-xl bg-surface-container-lowest p-6 lg:col-span-8">
+          <div>
+            <h2 className="text-headline-lg text-on-surface">Sales and forecast</h2>
+            <p className="text-caption text-on-surface-variant">
+              POS sales per day, then the next {ahead.length} days from forecast A and forecast B
+            </p>
           </div>
-
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
-            <div className="mb-2 flex items-center justify-between">
-              <div>
-                <h3 className="text-headline-md text-on-surface">
-                  Shoppers who asked, per day
-                </h3>
-                <p className="mt-0.5 text-caption text-on-surface-variant">
-                  Out-of-stock requests read from kiosk conversations
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-kpi-stat-mobile text-tertiary-container">
-                  {formatNumber(data.kpis.unmetRequests)}
-                </span>
-                <span className="block text-caption text-on-surface-variant">
-                  {unmetLabel.toLowerCase()}
-                </span>
-              </div>
-            </div>
-            <UnmetChart data={data.dailyUnmet} />
+          <DemandBars
+            days={history.map((p) => ({ date: p.date, sold: p.posSales ?? 0, asked: asked.get(p.date) ?? 0 }))}
+            forecast={ahead.map((p) => ({ date: p.date, a: p.forecastA, b: p.forecastB }))}
+            height={240}
+            label={`Daily sales of ${data.name}, shoppers who asked, and forecasts A and B`}
+          />
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-caption text-on-surface-variant">
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-[3px] bg-primary" />POS sales</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-primary-fixed" />shoppers who asked</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-[3px] w-3 bg-outline" />forecast A (POS only)</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-[3px] w-3 bg-primary-container" />forecast B (POS + unmet)</span>
           </div>
+          <p className="rounded-lg bg-surface-container-low p-3 text-caption text-on-surface-variant">
+            While the shelf is empty the till records zero, so a sales-only forecast reads it as no demand.{" "}
+            <strong className="font-semibold text-on-surface">Forecast B adds back the shoppers who asked</strong>,
+            estimated from kiosk conversations.
+          </p>
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-span-4">
-          <RecommendationCard
-            recommendation={data.recommendation}
-            onViewEvidence={() => setManualOpen(true)}
-          />
+        <div className="flex flex-col gap-4 lg:col-span-4">
+          <RecommendationCard recommendation={data.recommendation} />
 
-          <div className="flex flex-col rounded-xl bg-surface-container-lowest p-4 shadow-sm">
-            <div className="mb-1 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="text-headline-md text-on-surface">Evidence</h3>
-                <span className="rounded-full bg-secondary-container px-2 py-0.5 font-label-mono text-[11px] font-bold text-on-secondary-fixed">
-                  {data.evidence.total} in total
-                </span>
-              </div>
+          <div className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-6">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-headline-md text-on-surface">What shoppers typed</h3>
+              <span className="rounded-full bg-surface-container-low px-2.5 py-1 text-caption text-on-surface-variant">
+                {data.evidence.total} in total
+              </span>
             </div>
-            <p className="mb-3 text-caption text-on-surface-variant">
-              What shoppers typed at the kiosk (simulated conversations).
-            </p>
             <div className="flex flex-col gap-2">
               {data.evidence.items.slice(0, 3).map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-lg bg-surface-container-low p-2.5 text-caption italic text-on-surface"
-                >
+                <div key={item.id} className="rounded-xl bg-surface-container-low px-3.5 py-2.5 text-body-default italic text-on-surface">
                   “{item.text}”
                 </div>
               ))}
             </div>
-            <Button
-              variant="secondary"
-              className="mt-3"
-              onClick={() => setManualOpen(true)}
-            >
+            <Button className="self-start" onClick={() => setManualOpen(true)}>
               See all conversations
             </Button>
           </div>
@@ -317,6 +165,9 @@ export function SkuDetail() {
         total={data.evidence.total}
         items={data.evidence.items}
       />
+      <div className="fixed bottom-6 right-6 z-40">
+        <AgentChat sku={data.sku} />
+      </div>
       {highlight ? <span className="sr-only">Highlight {highlight}</span> : null}
     </div>
   );

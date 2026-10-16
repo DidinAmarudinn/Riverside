@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { StatusTag, type StatusTone } from "@/components/ui/status-tag";
 import type { Outcome } from "@/lib/api/types";
 
 const LABEL: Record<Outcome, string> = {
@@ -8,11 +8,11 @@ const LABEL: Record<Outcome, string> = {
   substituted: "Substituted",
 };
 
-const STYLE: Record<Outcome, string> = {
-  purchased: "bg-primary-fixed text-on-primary-fixed",
-  out_of_stock: "bg-error-container/50 text-error",
-  not_carried: "bg-tertiary-fixed text-tertiary",
-  substituted: "bg-surface-container-high text-primary",
+const TONE: Record<Outcome, StatusTone> = {
+  purchased: "green",
+  out_of_stock: "red",
+  not_carried: "grey",
+  substituted: "amber",
 };
 
 export function OutcomePill({
@@ -23,14 +23,8 @@ export function OutcomePill({
   className?: string;
 }) {
   return (
-    <span
-      className={cn(
-        "rounded px-2 py-0.5 font-label-mono text-[11px]",
-        STYLE[outcome],
-        className,
-      )}
-    >
+    <StatusTag tone={TONE[outcome] ?? "grey"} className={className}>
       {LABEL[outcome] ?? outcome}
-    </span>
+    </StatusTag>
   );
 }

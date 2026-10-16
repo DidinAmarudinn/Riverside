@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { MapPin, Radar, RotateCcw, Zap } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useKioskSession } from "@/hooks/use-kiosk-session";
 import { useStores } from "@/hooks/use-data";
 import { useStore } from "@/hooks/use-store";
@@ -10,162 +9,136 @@ import { AssistantBubble, ShopperBubble } from "@/components/kiosk/chat-bubble";
 import { ChatInput } from "@/components/kiosk/chat-input";
 import { cn } from "@/lib/utils";
 
-const QUICK_TAGS = [
-  "Minyak Goreng 2L",
-  "Santan Kotak 65ml",
-  "Beras Pandan Wangi 5kg",
-  "Telur Ayam Negeri",
-  "Gula Pasir 1kg",
-];
+const QUICK_TAGS = ["Minyak Goreng 2L", "Santan Kotak 65ml", "Beras Pandan Wangi 5kg", "Telur Ayam Negeri", "Gula Pasir 1kg"];
 
-export function KioskChat() {
+export interface KioskReplyTiming {
+  /** ms from sending the message to the agent's reply on screen */
+  replyMs: number;
+  /** wall-clock time of the reply, to time the signal that follows */
+  repliedAt: number;
+  text: string;
+}
+
+/**
+ * The shopper kiosk as one card: header with the store picker, quick tags, the chat, and the input.
+ * The /kiosk page shows it alone; /demo shows it next to the signal and the manager's view.
+ */
+export function KioskPanel({
+  quickTags = QUICK_TAGS,
+  highlightTag = "Santan Kotak 65ml",
+  onSend,
+  onReply,
+  onNewChat,
+  className,
+}: {
+  quickTags?: readonly string[];
+  highlightTag?: string;
+  onSend?: (text: string) => void;
+  onReply?: (timing: KioskReplyTiming) => void;
+  onNewChat?: () => void;
+  className?: string;
+}) {
   const { storeId, setStoreId } = useStore();
   const { data: stores } = useStores();
-  const {
-    messages,
-    isTyping,
-    error,
-    send,
-    retryLast,
-    startNew,
-    sessionStatus,
-  } = useKioskSession(storeId);
-
+  const { messages, isTyping, error, send, retryLast, startNew, sessionStatus } = useKioskSession(storeId);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pending = useRef<{ t0: number; text: string } | null>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, isTyping]);
 
-  const lastShopperText = useMemo(() => {
-    const lastShopper = [...messages]
-      .reverse()
-      .find((m) => m.role === "shopper");
-    return lastShopper?.text;
-  }, [messages]);
+  // Report how long the agent took, once its reply is on screen.
+  useEffect(() => {
+    const last = messages[messages.length - 1];
+    if (pending.current && last?.role === "assistant" && !isTyping) {
+      const now = Date.now();
+      onReply?.({ replyMs: now - pending.current.t0, repliedAt: now, text: pending.current.text });
+      pending.current = null;
+    }
+  }, [messages, isTyping, onReply]);
 
-  const storeName = stores?.find((s) => s.id === storeId)?.name ?? storeId;
+  const lastShopperText = useMemo(
+    () => [...messages].reverse().find((m) => m.role === "shopper")?.text,
+    [messages],
+  );
+
   const sessionReady = sessionStatus === "success";
   const inputDisabled = !sessionReady || isTyping;
+  const sendTimed = useCallback(
+    (text: string) => {
+      pending.current = { t0: performance.timeOrigin + performance.now(), text };
+      onSend?.(text);
+      send(text);
+    },
+    [send, onSend],
+  );
+  const newChat = () => {
+    startNew();
+    onNewChat?.();
+  };
 
   return (
-    <div className="flex min-h-screen flex-col bg-kiosk-bg text-slate-800">
-      <header className="sticky top-0 z-30 flex-shrink-0 border-b border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          <div className="flex min-w-0 items-center gap-3.5">
-            <div className="hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border sm:flex border-teal-200 bg-teal-50 text-brand-teal shadow-inner">
-              <Radar className="h-6 w-6" aria-hidden />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-900 sm:text-xl">
-                  Ask the Store Assistant
-                </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                  <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                  ONLINE
-                </span>
-              </div>
-              <p className="hidden text-xs text-slate-500 sm:block">
-                Self-service stock check, alternatives and nearby branches
-              </p>
-            </div>
-          </div>
-
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700">
-              <MapPin className="h-4 w-4 text-brand-teal" aria-hidden />
-              <label className="sr-only" htmlFor="kiosk-store">
-                Choose store
-              </label>
-              <select
-                id="kiosk-store"
-                value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
-                className="min-w-0 max-w-[11rem] cursor-pointer appearance-none truncate bg-transparent focus:outline-none sm:max-w-none"
-              >
-                {(stores ?? [{ id: storeId, name: storeName, city: "" }]).map(
-                  (s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                      {s.city ? ` – ${s.city.split(" ")[0]}` : ""}
-                    </option>
-                  ),
-                )}
-              </select>
-            </div>
-            <button
-              type="button"
-              onClick={startNew}
-              className="tap-active flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold sm:px-4 text-slate-700 transition hover:bg-slate-100"
-            >
-              <RotateCcw className="h-4 w-4 text-slate-500" aria-hidden />
-              New chat
-            </button>
-          </div>
+    <div className={cn("flex min-h-0 flex-col overflow-hidden rounded-2xl bg-surface-container-lowest", className)}>
+      <header className="flex flex-shrink-0 flex-wrap items-center justify-between gap-3 border-b border-outline-variant px-4 py-4 sm:px-5">
+        <div className="min-w-0">
+          <h1 className="text-headline-md text-on-surface">Ask the Store Assistant</h1>
+          <p className="text-caption text-on-surface-variant">Stock check, alternatives and nearby branches</p>
         </div>
-
-        <div className="mt-3.5 flex items-center gap-2 overflow-x-auto border-t border-slate-100 pt-3 pb-0.5 no-scrollbar">
-          <span className="flex flex-shrink-0 items-center gap-1 text-xs font-medium text-slate-500">
-            <Zap className="h-3.5 w-3.5 text-status-amber" aria-hidden />
-            Popular:
-          </span>
-          {QUICK_TAGS.map((tag) => {
-            const highlighted = tag === "Santan Kotak 65ml";
-            return (
-              <button
-                key={tag}
-                type="button"
-                disabled={inputDisabled}
-                onClick={() => send(tag)}
-                className={cn(
-                  "tap-active flex-shrink-0 rounded-lg px-3 py-1.5 text-xs transition disabled:opacity-60",
-                  highlighted
-                    ? "border border-teal-200 bg-teal-50 font-semibold text-brand-teal"
-                    : "border border-slate-200 bg-slate-100 font-medium text-slate-700 hover:bg-slate-200",
-                )}
-              >
-                {tag}
-              </button>
-            );
-          })}
+        <div className="flex min-w-0 items-center gap-2">
+          <label className="sr-only" htmlFor="kiosk-store">
+            Choose store
+          </label>
+          <select
+            id="kiosk-store"
+            value={storeId}
+            onChange={(e) => setStoreId(e.target.value)}
+            className="select-pill min-w-0 max-w-[12rem] truncate bg-surface-container-low sm:max-w-none"
+          >
+            {(stores ?? [{ id: storeId, name: storeId, city: "" }]).map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <Button size="md" onClick={newChat}>
+            New chat
+          </Button>
         </div>
       </header>
 
-      <main
-        ref={scrollRef}
-        className="custom-scrollbar mx-auto w-full max-w-4xl flex-1 space-y-6 overflow-y-auto px-5 py-6"
-      >
-        <div className="flex justify-center">
-          <span className="rounded-full bg-slate-200 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-slate-600">
-            Today • kiosk session
-          </span>
-        </div>
+      <div className="no-scrollbar flex flex-shrink-0 items-center gap-2 overflow-x-auto border-b border-outline-variant px-4 py-3 sm:px-5">
+        <span className="flex-shrink-0 text-caption text-on-surface-variant">Popular:</span>
+        {quickTags.map((tag) => (
+          <button
+            key={tag}
+            type="button"
+            disabled={inputDisabled}
+            onClick={() => sendTimed(tag)}
+            className={cn(
+              "tap-active flex-shrink-0 rounded-full px-3.5 py-2 text-body-default text-on-surface transition disabled:opacity-50",
+              tag === highlightTag
+                ? "bg-secondary-fixed font-semibold shadow-[inset_0_0_0_1.5px_var(--color-primary-fixed)]"
+                : "bg-surface-container-low hover:bg-surface-container-high",
+            )}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
 
+      <div ref={scrollRef} className="custom-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-surface-container-low px-4 py-5 sm:px-5">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand-teal shadow-sm">
-              <Radar className="h-7 w-7" aria-hidden />
+          <div className="flex flex-col gap-3">
+            <div className="max-w-[85%] self-start rounded-[20px] rounded-bl-md bg-surface-container-lowest px-4 py-3 text-on-surface">
+              Halo! Mau cari barang apa hari ini?
+              <span className="mt-1 block text-caption text-on-surface-variant">Hi! What are you looking for today?</span>
             </div>
-            <div>
-              <p className="text-base font-semibold text-slate-700">
-                What are you looking for today?
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Type a product or tap one of the tags above.
-              </p>
-              <p className="mx-auto mt-4 max-w-sm text-xs text-slate-400">
-                Shoppers here write in everyday Indonesian, typos and all. Try{" "}
-                <span className="font-semibold text-slate-500">
-                  &ldquo;ada santan kotak kecil?&rdquo;
-                </span>{" "}
-                (do you have small boxed coconut milk?). All stock and stores are
-                simulated.
-              </p>
-            </div>
+            <p className="max-w-md text-caption text-on-surface-variant">
+              Shoppers here write in everyday Indonesian, typos and all. Try{" "}
+              <span className="font-semibold text-on-surface">&ldquo;ada santan kotak kecil?&rdquo;</span> (do you
+              have small boxed coconut milk?). All stock and stores are simulated.
+            </p>
           </div>
         ) : null}
 
@@ -178,41 +151,32 @@ export function KioskChat() {
         )}
 
         {isTyping ? (
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-teal text-white shadow-md">
-              <Radar className="h-5 w-5" aria-hidden />
-            </div>
-            <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-slate-200/90 bg-white px-4 py-3.5 shadow-sm">
-              <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-              <span className="h-2 w-2 animate-bounce rounded-full bg-slate-400" />
-            </div>
+          <div className="flex items-center gap-1.5 self-start rounded-[20px] bg-surface-container-lowest px-4 py-3.5">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-outline [animation-delay:-0.3s]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-outline [animation-delay:-0.15s]" />
+            <span className="h-2 w-2 animate-bounce rounded-full bg-outline" />
           </div>
         ) : null}
 
         {error ? (
-          <div className="mx-auto flex max-w-md flex-col items-center gap-2 rounded-2xl border border-status-red-border bg-status-red-bg p-4 text-center">
-            <p className="text-sm text-status-red">
-              Sorry, something went wrong: {error}
-            </p>
+          <div className="flex flex-col items-start gap-2 rounded-xl bg-status-red-bg p-4">
+            <p className="text-body-default text-status-red">Sorry, something went wrong: {error}</p>
             {lastShopperText ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => retryLast(lastShopperText)}
-              >
+              <Button variant="outline" size="sm" onClick={() => retryLast(lastShopperText)}>
                 Try again
               </Button>
             ) : null}
           </div>
         ) : null}
-      </main>
+      </div>
 
-      <footer className="sticky bottom-0 z-30 flex-shrink-0 border-t border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5 shadow-[0_-8px_20px_rgba(0,0,0,0.04)]">
-        <div className="mx-auto w-full max-w-4xl">
-          <ChatInput disabled={inputDisabled} onSend={send} />
-        </div>
+      <footer className="flex-shrink-0 border-t border-outline-variant px-4 py-3.5 sm:px-5">
+        <ChatInput disabled={inputDisabled} onSend={sendTimed} />
       </footer>
     </div>
   );
+}
+
+export function KioskChat() {
+  return <KioskPanel className="mx-auto h-[calc(100dvh-190px)] min-h-[560px] w-full max-w-[880px]" />;
 }

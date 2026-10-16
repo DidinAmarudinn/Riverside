@@ -3,8 +3,7 @@ import {
   Cloud,
   Database,
   Globe,
-  Sparkles,
-  ArrowRight,
+  MessagesSquare,
 } from "lucide-react";
 import { PageShell } from "@/components/layout/page-shell";
 import { ResultsPanel } from "@/components/about/results-panel";
@@ -22,14 +21,14 @@ const ROLES = [
     body: "Hosts the FastAPI + ADK service behind the /api prefix: shopper agent, manager agent and the extraction endpoint.",
   },
   {
-    icon: Sparkles,
+    icon: MessagesSquare,
     title: "Gemini (Vertex AI)",
     body: "Turns raw kiosk conversations into structured demand signals (SKU, outcome, confidence) and drafts manager explanations.",
   },
   {
     icon: Database,
     title: "BigQuery + BQML",
-    body: "Stores stores, stock, POS and signals, and trains ARIMA_PLUS time-series models for Forecast A (POS only) and Forecast B (POS + unmet demand).",
+    body: "Stores stores, stock, POS and signals, and trains ARIMA_PLUS models for Forecast A (POS only) and Forecast B (POS + unmet demand).",
   },
   {
     icon: Globe,
@@ -39,19 +38,19 @@ const ROLES = [
 ];
 
 const FLOW = [
-  "Kiosk shopper",
-  "Cloud Run API + agents",
-  "Pub/Sub → Gemini extract",
-  "BigQuery + Forecast A/B",
-  "Manager dashboard",
+  { title: "Shopper asks the kiosk", body: "Firebase Hosting serves the kiosk and dashboard." },
+  { title: "Agents answer", body: "Cloud Run runs the ADK shopper and manager agents." },
+  { title: "Gemini reads the chat", body: "Pub/Sub pushes each chat to the extractor; Gemini on Vertex AI names the product and outcome." },
+  { title: "Forecast A vs B", body: "BigQuery ML forecasts with and without the unmet demand." },
+  { title: "Manager sees it live", body: "Firestore streams the feed and alerts to the dashboard." },
 ];
 
 export default function AboutPage() {
   return (
     <PageShell>
-      <div className="flex flex-col gap-8 py-10">
+      <div className="flex flex-col gap-4 pt-2">
         <div className="max-w-3xl">
-          <h1 className="text-kpi-stat tracking-tight text-on-surface">
+          <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em] text-on-surface sm:text-[36px]">
             How Demand Radar works
           </h1>
           <p className="mt-2 text-body-default leading-relaxed text-on-surface-variant">
@@ -61,25 +60,23 @@ export default function AboutPage() {
           </p>
         </div>
 
-        <section className="rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
+        <section className="rounded-xl bg-surface-container-lowest p-6">
           <h2 className="mb-4 text-headline-md text-on-surface">
-            Architecture
+            From a chat to a reorder
           </h2>
-          <div className="flex flex-col items-stretch gap-3 lg:flex-row lg:items-center">
+          <ol className="grid grid-cols-1 gap-2.5 lg:grid-cols-5">
             {FLOW.map((step, i) => (
-              <div key={step} className="flex flex-1 items-center gap-3">
-                <div className="flex-1 rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-center text-body-medium text-on-surface">
-                  {step}
-                </div>
-                {i < FLOW.length - 1 ? (
-                  <ArrowRight
-                    className="hidden h-5 w-5 flex-shrink-0 text-primary lg:block"
-                    aria-hidden
-                  />
-                ) : null}
-              </div>
+              <li key={step.title} className="flex flex-col gap-1 rounded-lg bg-surface-container-low p-4">
+                <span className="flex items-center gap-2 text-body-medium text-on-surface">
+                  <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-semibold text-primary-fixed">
+                    {i + 1}
+                  </span>
+                  {step.title}
+                </span>
+                <span className="text-caption text-on-surface-variant">{step.body}</span>
+              </li>
             ))}
-          </div>
+          </ol>
           <p className="mt-4 text-caption text-on-surface-variant">
             Real-time updates (alerts, live demand feed, KPIs) come from
             read-only Firestore listeners scoped to each visitor&apos;s demo
@@ -96,9 +93,9 @@ export default function AboutPage() {
           {ROLES.map((role) => (
             <div
               key={role.title}
-              className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-6 shadow-sm"
+              className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-6"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-container-high text-primary-container">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-low text-on-surface">
                 <role.icon className="h-5 w-5" aria-hidden />
               </div>
               <h3 className="text-headline-sm text-on-surface">{role.title}</h3>
@@ -109,12 +106,12 @@ export default function AboutPage() {
           ))}
         </section>
 
-        <section className="rounded-2xl bg-surface-container-lowest p-6 shadow-sm">
-          <h2 className="text-headline-md text-on-surface">
-            Experiment results
+        <section className="flex flex-col">
+          <h2 className="text-headline-lg text-on-surface">
+            Results
           </h2>
-          <p className="mb-5 mt-1 text-caption text-on-surface-variant">
-            Forecast A (POS only) vs. Forecast B (POS + unmet demand), scored against the simulator&apos;s true demand.
+          <p className="mb-3 mt-1 text-caption text-on-surface-variant">
+            Forecast A (POS only) vs. Forecast B (POS + unmet demand), scored against the simulator&apos;s true demand, and how well Gemini reads the chats.
           </p>
           <ResultsPanel />
         </section>

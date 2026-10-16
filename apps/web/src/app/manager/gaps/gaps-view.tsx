@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Info, Sparkles, TrendingUp } from "lucide-react";
+import { Info, Lightbulb, MessageSquareText } from "lucide-react";
 import { useGaps } from "@/hooks/use-data";
 import type { GapCategory, GapItem } from "@/lib/api/types";
 import { Input } from "@/components/ui/input";
@@ -60,15 +60,11 @@ export function GapsView() {
   const categories = ["All Categories", ...counts.keys()];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col justify-between gap-4 pt-6 md:flex-row md:items-end">
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col justify-between gap-4 pt-2 md:flex-row md:items-end">
         <div>
-          <div className="mb-1 flex items-center gap-1 font-microcopy-caps uppercase tracking-wider text-primary-container">
-            <TrendingUp className="h-4 w-4" aria-hidden />
-            Unmet demand
-          </div>
-          <h1 className="text-kpi-stat tracking-tight text-on-surface">
-            Assortment Gaps
+          <h1 className="text-[30px] font-medium leading-tight tracking-[-0.03em] text-on-surface sm:text-[36px]">
+            Assortment gaps
           </h1>
           <p className="mt-1 text-body-default text-on-surface-variant">
             Products shoppers asked the kiosk for that this store does not
@@ -77,7 +73,7 @@ export function GapsView() {
         </div>
       </div>
 
-      <div className="flex flex-col justify-between gap-4 rounded-xl bg-surface-container-lowest p-4 shadow-sm lg:flex-row lg:items-center">
+      <div className="flex flex-col justify-between gap-4 rounded-xl bg-surface-container-lowest p-4 lg:flex-row lg:items-center">
         <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
           {categories.map((c) => {
             const active = category === c;
@@ -88,10 +84,10 @@ export function GapsView() {
                 type="button"
                 onClick={() => setCategory(c)}
                 className={cn(
-                  "flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 font-label-mono text-label-mono transition",
+                  "flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-caption transition",
                   active
-                    ? "bg-primary-container font-medium text-on-primary"
-                    : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface",
+                    ? "bg-primary-fixed font-semibold text-on-primary-fixed"
+                    : "bg-surface-container-low text-on-surface hover:bg-surface-container-high",
                 )}
               >
                 {c}
@@ -100,7 +96,7 @@ export function GapsView() {
                     className={cn(
                       "rounded-full px-1.5 text-[11px]",
                       active
-                        ? "bg-on-primary/20 text-on-primary"
+                        ? "bg-white/60 text-on-primary-fixed"
                         : "bg-surface-container text-on-surface-variant",
                     )}
                   >
@@ -123,10 +119,10 @@ export function GapsView() {
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8">
-          <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm">
+          <div className="overflow-hidden rounded-xl bg-surface-container-lowest">
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
-                <span className="text-headline-sm text-on-surface">
+                <span className="text-headline-lg text-on-surface">
                   Most requested, not carried
                 </span>
                 <span className="rounded-full bg-surface-container-high px-2 py-0.5 font-label-mono text-caption text-on-surface">
@@ -144,11 +140,13 @@ export function GapsView() {
                 description="Try another category or keyword."
               />
             ) : (
-              <GapsTable items={filtered} />
+              <div className="px-6 pb-5">
+                <GapsTable items={filtered} />
+              </div>
             )}
-            <div className="flex flex-col items-center justify-between gap-1 bg-surface-container-low px-6 py-3 text-caption text-on-surface-variant sm:flex-row">
+            <div className="flex flex-col items-center justify-between gap-1 border-t border-outline-variant px-6 py-3 text-caption text-on-surface-variant sm:flex-row">
               <span className="flex items-center gap-1">
-                <Sparkles className="h-4 w-4 text-primary-container" aria-hidden />
+                <MessageSquareText className="h-4 w-4 text-primary-container" aria-hidden />
                 Read by Gemini from informal Indonesian kiosk chats.
                 {oneOffs > 0 ? ` ${oneOffs} names asked only once are not listed.` : ""}
               </span>
@@ -160,10 +158,10 @@ export function GapsView() {
         </div>
 
         <div className="flex flex-col gap-4 lg:col-span-4">
-          <div className="flex flex-col gap-4 rounded-xl bg-surface-container-lowest p-6 shadow-sm">
+          <div className="flex flex-col gap-4 rounded-xl bg-surface-container-lowest p-6">
             <div className="flex items-center justify-between">
               <span className="text-headline-sm text-on-surface">
-                Potential Opportunity
+                Potential opportunity
               </span>
               <span className="rounded bg-surface-container px-2 py-0.5 font-label-mono text-[11px] text-on-surface">
                 90-day simulation
@@ -172,18 +170,18 @@ export function GapsView() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-surface-container-low p-3">
-                <span className="block font-microcopy-caps uppercase tracking-wider text-on-surface-variant">
-                  Unmet Requests
+                <span className="block text-caption text-on-surface-variant">
+                  Unmet requests
                 </span>
                 <span className="mt-1 block text-kpi-stat-mobile tabular-nums text-on-surface">
                   {formatNumber(data.summary.totalRequests)}
                 </span>
               </div>
               <div className="rounded-lg bg-surface-container-low p-3">
-                <span className="block font-microcopy-caps uppercase tracking-wider text-on-surface-variant">
-                  Lost Rev. Exposure
+                <span className="block text-caption text-on-surface-variant">
+                  Revenue at stake
                 </span>
-                <span className="mt-1 block text-kpi-stat-mobile tabular-nums text-primary-container">
+                <span className="mt-1 block text-kpi-stat-mobile tabular-nums text-on-surface">
                   {formatRupiahCompact(data.summary.lostRevenueExposureIdr)}
                 </span>
                 <span className="mt-0.5 block text-caption text-on-surface-variant">
@@ -205,9 +203,9 @@ export function GapsView() {
               />
             </div>
 
-            <div className="rounded-lg border-l-4 border-primary-container bg-surface-container-low p-4">
+            <div className="rounded-lg bg-secondary-fixed p-4">
               <div className="mb-1 flex items-center gap-1 text-headline-sm text-[13px] text-primary-container">
-                <Sparkles className="h-4 w-4" aria-hidden />
+                <Lightbulb className="h-4 w-4" aria-hidden />
                 What stands out
               </div>
               <p className="text-body-default leading-relaxed text-on-surface-variant">

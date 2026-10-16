@@ -25,7 +25,7 @@ export function ChatInput({
   const multimodalEnabled = env.featureMultimodal;
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-2">
       <div className="flex items-center gap-3">
         {/* Photo and voice input are not built; the buttons only show when the flag is on. */}
         {multimodalEnabled ? (
@@ -55,14 +55,14 @@ export function ChatInput({
             disabled={disabled}
             placeholder="Type the product you are looking for…"
             aria-label="Type the product you are looking for"
-            className="h-14 w-full rounded-2xl border-2 border-slate-200 bg-slate-50 pl-5 pr-12 text-base font-medium text-slate-800 placeholder-slate-400 shadow-inner transition focus:border-brand-teal focus:bg-white focus:outline-none disabled:opacity-60"
+            className="h-12 w-full rounded-full bg-surface-container-low pl-5 pr-12 text-body-default text-on-surface placeholder:text-on-surface-variant transition focus:bg-surface-container focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-container disabled:opacity-60"
           />
           {value ? (
             <button
               type="button"
               onClick={() => setValue("")}
               aria-label="Clear input"
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition hover:text-slate-600"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-on-surface-variant transition hover:text-on-surface"
             >
               <X className="h-5 w-5" />
             </button>
@@ -73,7 +73,7 @@ export function ChatInput({
           type="button"
           onClick={submit}
           disabled={disabled || !value.trim()}
-          className="tap-active flex h-14 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand-teal px-4 text-base font-bold sm:px-7 text-white shadow-md transition hover:bg-brand-teal-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="tap-active flex h-12 flex-shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-4 text-body-medium font-semibold text-on-primary transition hover:bg-[#1c3d30] disabled:cursor-not-allowed disabled:opacity-50 sm:px-6"
         >
           <span className="hidden sm:inline">Send</span>
           <Send className="h-5 w-5 -rotate-45" aria-hidden />
@@ -81,9 +81,8 @@ export function ChatInput({
         </button>
       </div>
 
-      <div className="flex items-center justify-between px-1 text-xs text-slate-400">
+      <div className="flex items-center justify-between px-1 text-caption text-on-surface-variant">
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-teal-500" />
           <span>Write the way you talk; slang and typos are fine</span>
         </div>
         <span className="hidden sm:block">Demand Radar kiosk</span>

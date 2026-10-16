@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Design tokens extracted from /Users/ewidedev.2/Documents/EWIDE/Google/UI
+ * Design tokens: grey canvas, white cards, Team Riverside ink #0e2a20 as the strong colour and lime #b7e36a
+ * as the one highlight, green #1f8a5b for good states. Light mode only. Material 3 token names are kept so
+ * components keep their class names.
  * - Kiosk surfaces use the "brand"/"status" palette.
  * - Manager surfaces use the Material 3 palette (primary/surface/error/...).
  * See docs/fe-decisions.md for provenance.
@@ -9,31 +11,31 @@
 
 @theme {
   /* ---- Manager: Material 3 palette ---- */
-  --color-on-surface: #0b1c30;
-  --color-on-surface-variant: #3e4947;
-  --color-on-background: #0b1c30;
+  --color-on-surface: #0e2a20;
+  --color-on-surface-variant: #6d7671;
+  --color-on-background: #0e2a20;
 
-  --color-primary: #005c55;
-  --color-primary-container: #0f766e;
+  --color-primary: #0e2a20;
+  --color-primary-container: #1f8a5b;
   --color-on-primary: #ffffff;
-  --color-on-primary-container: #a3faef;
-  --color-primary-fixed: #9cf2e8;
-  --color-primary-fixed-dim: #80d5cb;
-  --color-on-primary-fixed: #00201d;
-  --color-on-primary-fixed-variant: #00504a;
-  --color-inverse-primary: #80d5cb;
+  --color-on-primary-container: #e3f3ea;
+  --color-primary-fixed: #b7e36a;
+  --color-primary-fixed-dim: #b7e36a;
+  --color-on-primary-fixed: #0e2a20;
+  --color-on-primary-fixed-variant: #2e6b52;
+  --color-inverse-primary: #b7e36a;
 
-  --color-secondary: #855300;
-  --color-secondary-container: #fea619;
+  --color-secondary: #4f6b12;
+  --color-secondary-container: #b7e36a;
   --color-on-secondary: #ffffff;
-  --color-on-secondary-container: #684000;
-  --color-secondary-fixed: #ffddb8;
-  --color-secondary-fixed-dim: #ffb95f;
-  --color-on-secondary-fixed: #2a1700;
-  --color-on-secondary-fixed-variant: #653e00;
+  --color-on-secondary-container: #0e2a20;
+  --color-secondary-fixed: #eef8dc;
+  --color-secondary-fixed-dim: #d9f0ad;
+  --color-on-secondary-fixed: #0e2a20;
+  --color-on-secondary-fixed-variant: #3b5210;
 
-  --color-tertiary: #913200;
-  --color-tertiary-container: #b94200;
+  --color-tertiary: #b7791f;
+  --color-tertiary-container: #b7791f;
   --color-on-tertiary: #ffffff;
   --color-on-tertiary-container: #ffe5dc;
   --color-tertiary-fixed: #ffdbce;
@@ -41,68 +43,76 @@
   --color-on-tertiary-fixed: #370e00;
   --color-on-tertiary-fixed-variant: #7f2b00;
 
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
+  --color-error: #c8432b;
+  --color-error-container: #fbe8e3;
   --color-on-error: #ffffff;
-  --color-on-error-container: #93000a;
+  --color-on-error-container: #8f2a18;
 
-  --color-background: #f8f9ff;
-  --color-surface: #f8f9ff;
-  --color-surface-bright: #f8f9ff;
-  --color-surface-dim: #cbdbf5;
-  --color-surface-variant: #d3e4fe;
+  --color-background: #eef0ee;
+  --color-surface: #eef0ee;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #d5dbd7;
+  --color-surface-variant: #e4e7e5;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #eff4ff;
-  --color-surface-container: #e5eeff;
-  --color-surface-container-high: #dce9ff;
-  --color-surface-container-highest: #d3e4fe;
-  --color-surface-tint: #006a63;
-  --color-outline: #6e7977;
-  --color-outline-variant: #bdc9c6;
-  --color-inverse-surface: #213145;
-  --color-inverse-on-surface: #eaf1ff;
+  --color-surface-container-low: #f4f5f4;
+  --color-surface-container: #eceeec;
+  --color-surface-container-high: #e4e7e5;
+  --color-surface-container-highest: #dadfdc;
+  --color-surface-tint: #1f8a5b;
+  --color-outline: #8a938e;
+  --color-outline-variant: #e4e7e5;
+  --color-inverse-surface: #0e2a20;
+  --color-inverse-on-surface: #f2f8f3;
 
   /* ---- Kiosk: brand + status palette ---- */
-  --color-brand-teal: #0f766e;
-  --color-brand-teal-dark: #115e59;
-  --color-brand-teal-light: #f0fdfa;
-  --color-brand-teal-border: #ccfbf1;
-  --color-kiosk-bg: #f7f8fa;
+  --color-brand-teal: #0e2a20;
+  --color-brand-teal-dark: #0e2a20;
+  --color-brand-teal-light: #eef8dc;
+  --color-brand-teal-border: #b7e36a;
+  --color-kiosk-bg: #f4f5f4;
 
-  --color-status-red: #dc2626;
-  --color-status-red-bg: #fef2f2;
-  --color-status-red-border: #fecaca;
-  --color-status-green: #16a34a;
-  --color-status-green-bg: #f0fdf4;
-  --color-status-green-border: #bbf7d0;
-  --color-status-amber: #f59e0b;
-  --color-status-amber-bg: #fffbeb;
-  --color-status-amber-border: #fde68a;
+  --color-status-red: #c8432b;
+  --color-status-red-bg: #fbe8e3;
+  --color-status-red-border: #f3c7bc;
+  --color-status-green: #1f8a5b;
+  --color-status-green-bg: #e3f3ea;
+  --color-status-green-border: #bfe3cd;
+  --color-status-amber: #b7791f;
+  --color-status-amber-bg: #fbf1dd;
+  --color-status-amber-border: #f0d9a8;
   --color-status-blue: #2563eb;
   --color-status-blue-bg: #eff6ff;
   --color-status-blue-border: #bfdbfe;
 
-  /* ---- Typography scale ---- */
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* ---- Shape: flat white cards on a grey canvas, large radius, no shadows ---- */
+  --shadow-sm: 0 0 #0000;
+  --shadow: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.625rem;
 
-  --text-kpi-stat: 32px;
+  /* ---- Typography scale ---- */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --text-kpi-stat: 34px;
   --text-kpi-stat--line-height: 40px;
-  --text-kpi-stat--font-weight: 700;
-  --text-kpi-stat--letter-spacing: -0.02em;
+  --text-kpi-stat--font-weight: 500;
+  --text-kpi-stat--letter-spacing: -0.03em;
 
   --text-kpi-stat-mobile: 26px;
   --text-kpi-stat-mobile--line-height: 32px;
-  --text-kpi-stat-mobile--font-weight: 700;
+  --text-kpi-stat-mobile--font-weight: 500;
   --text-kpi-stat-mobile--letter-spacing: -0.01em;
 
-  --text-headline-lg: 20px;
+  --text-headline-lg: 22px;
   --text-headline-lg--line-height: 28px;
-  --text-headline-lg--font-weight: 600;
+  --text-headline-lg--font-weight: 500;
   --text-headline-lg--letter-spacing: -0.01em;
 
   --text-headline-md: 18px;
   --text-headline-md--line-height: 24px;
-  --text-headline-md--font-weight: 600;
+  --text-headline-md--font-weight: 500;
 
   --text-headline-sm: 16px;
   --text-headline-sm--line-height: 22px;
@@ -131,8 +141,9 @@
 }
 
 :root {
-  --background: #f8f9ff;
-  --foreground: #0b1c30;
+  color-scheme: light;
+  --background: #eef0ee;
+  --foreground: #1b2420;
 }
 
 * {
@@ -172,4 +183,23 @@ body {
 
 .tap-active:active {
   transform: scale(0.98);
+}
+
+/* Pill-shaped native select with a chevron (store pickers). */
+.select-pill {
+  appearance: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  padding: 0.6rem 2.4rem 0.6rem 1.1rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%230E2A20' stroke-width='1.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 11px;
+}
+.select-pill:focus-visible {
+  outline: 3px solid var(--color-primary-container);
+  outline-offset: 2px;
 }

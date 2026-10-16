@@ -32,7 +32,7 @@ export function EvidenceDrawer({
         <SheetHeader>
           <div className="flex items-center gap-2">
             <SheetTitle>Evidence</SheetTitle>
-            <span className="rounded-full bg-secondary-container px-2 py-0.5 font-label-mono text-[11px] font-bold text-on-secondary-fixed">
+            <span className="rounded-full bg-surface-container-low px-2.5 py-1 text-caption text-on-surface-variant">
               {total} conversations
             </span>
           </div>
@@ -46,22 +46,22 @@ export function EvidenceDrawer({
             <div
               key={item.id}
               className={cn(
-                "flex flex-col gap-1.5 rounded-lg bg-surface-container-low p-3",
+                "flex flex-col gap-1.5 rounded-xl bg-surface-container-low p-3.5",
                 item.highlight && "ring-2 ring-primary/50",
               )}
             >
               <div className="flex items-center justify-between text-caption">
-                <span className="font-label-mono text-[11px] text-on-surface-variant">
+                <span className="text-caption text-on-surface-variant">
                   {formatDateTimeWib(item.ts)} • {item.channel}
                 </span>
                 <OutcomePill outcome={item.outcome} />
               </div>
-              <div className="rounded-lg bg-surface-container-lowest px-2.5 py-2 text-body-medium italic text-on-surface">
+              <div className="text-body-default italic text-on-surface">
                 “{item.text}”
               </div>
               <div className="flex items-center justify-between text-caption text-on-surface-variant">
                 <span className="truncate">Matched: {item.matchedName}</span>
-                <span className="font-label-mono font-medium text-primary-container">
+                <span className="font-medium text-primary-container">
                   {Math.round(item.confidence * 100)}% confidence
                 </span>
               </div>
@@ -74,7 +74,7 @@ export function EvidenceDrawer({
           ))}
         </div>
 
-        <div className="mt-auto flex items-center justify-between border-t border-surface-container px-6 py-3 font-label-mono text-[11px] text-on-surface-variant">
+        <div className="mt-auto flex items-center justify-between border-t border-outline-variant px-6 py-3 text-caption text-on-surface-variant">
           <span className="flex items-center gap-1">
             Read from informal Indonesian by the signal extractor
           </span>
