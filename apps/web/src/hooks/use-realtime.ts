@@ -24,12 +24,13 @@ export function useAlerts(): AlertItem[] | null {
 
 export function useLiveSignals(): LiveSignal[] | null {
   const { storeId } = useStore();
-  const [signals, setSignals] = useState<LiveSignal[] | null>(null);
+  // keyed by store, so after a store switch the old store's list never passes for the new one's
+  const [state, setState] = useState<{ storeId: string; signals: LiveSignal[] } | null>(null);
   useEffect(
-    () => realtime.subscribeLiveSignals(storeId, setSignals),
+    () => realtime.subscribeLiveSignals(storeId, (signals) => setState({ storeId, signals })),
     [storeId],
   );
-  return signals;
+  return state?.storeId === storeId ? state.signals : null;
 }
 
 export function useDemoState(): DemoState | null {

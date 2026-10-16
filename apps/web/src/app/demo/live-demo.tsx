@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { KioskPanel, type KioskReplyTiming } from "@/app/kiosk/kiosk-chat";
-import { useResetDemo, useSkuDetail } from "@/hooks/use-data";
+import { useResetDemo, useSkuDetail, useStores } from "@/hooks/use-data";
+import { useStore } from "@/hooks/use-store";
 import { useLiveSignals } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/ui/status-tag";
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { LiveSignal } from "@/lib/api/types";
 
 const HERO_SKU = "SKU-0001"; // Santan Kotak Kara 65 ml
+const HERO_STORE = "S01"; // the hero stockout runs in this store; elsewhere the 65 ml is on the shelf
 const DEMO_TAGS = ["ada santan kotak kecil?", "kak ad santen kotak yg kcil gk?", "ada oat milk?"] as const;
 
 type HopState = "idle" | "on" | "done";
@@ -39,6 +41,7 @@ const askKey = (s: LiveSignal) => s.sku ?? s.requestedText.trim().toLowerCase();
  */
 export function LiveDemo() {
   const signals = useLiveSignals();
+  const { storeId } = useStore();
   const resetDemo = useResetDemo();
   const { toast } = useToast();
   const [run, setRun] = useState<Run | null>(null);
@@ -46,10 +49,21 @@ export function LiveDemo() {
   const [yourAsks, setYourAsks] = useState<Record<string, number>>({});
   const seen = useRef<Set<string> | null>(null);
   const counted = useRef<Set<string>>(new Set()); // signal ids already counted as an unmet ask
+  const [shownStore, setShownStore] = useState(storeId);
+
+  // Another store is another feed: start over from its current list.
+  if (shownStore !== storeId) {
+    setShownStore(storeId);
+    setFocus(null);
+    setRun(null);
+  }
 
   // Remember what was already in the feed, so only signals from this visit light up the path.
   useEffect(() => {
-    if (!signals) return;
+    if (!signals) {
+      seen.current = null; // the next list (a new store's) is the baseline
+      return;
+    }
     if (seen.current === null) {
       seen.current = new Set(signals.map(signalKey));
       signals.forEach((s) => UNMET.has(s.outcome) && counted.current.add(s.id));
@@ -196,7 +210,10 @@ export function LiveDemo() {
 
 /** The manager's view of what the visitor just asked about: the hero product until their first signal. */
 function ManagerFocus({ focus, yourAsks }: { focus: LiveSignal | null; yourAsks: number }) {
-  const sku = focus ? (focus.sku ?? null) : HERO_SKU;
+  const { storeId, setStoreId } = useStore();
+  const { data: stores } = useStores();
+  const awayFromHero = !focus && storeId !== HERO_STORE;
+  const sku = focus ? (focus.sku ?? null) : awayFromHero ? null : HERO_SKU;
   const { data: detail } = useSkuDetail(sku);
   const caption = focus ? "From your last question" : "Hero product · ask about another one and this follows it";
   const badge = yourAsks ? (
@@ -204,6 +221,22 @@ function ManagerFocus({ focus, yourAsks }: { focus: LiveSignal | null; yourAsks:
       +{yourAsks} from you just now
     </span>
   ) : null;
+
+  if (awayFromHero) {
+    const name = (id: string) => stores?.find((s) => s.id === id)?.name ?? id;
+    return (
+      <div className="flex flex-col gap-2">
+        <FocusTitle caption="Hero product" name="Santan Kotak Kara 65 ml" focus={null} />
+        <p className="rounded-lg bg-surface-container-low p-3.5 text-caption text-on-surface-variant">
+          The hero story runs in {name(HERO_STORE)}, where this santan has been sold out for days while shoppers kept
+          asking. In {name(storeId)} it is on the shelf. Ask about any product here and this card follows it.
+        </p>
+        <Button variant="outline" size="sm" className="self-start" onClick={() => setStoreId(HERO_STORE)}>
+          Switch to {name(HERO_STORE)}
+        </Button>
+      </div>
+    );
+  }
 
   if (focus && !focus.sku) {
     return (
