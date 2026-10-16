@@ -23,17 +23,22 @@ SERIES_SCHEMA_FIELDS = [
     ("is_stockout", "BOOL"), ("unmet_signals", "FLOAT64"), ("ask_rate_hat", "FLOAT64"), ("y_a", "FLOAT64"),
     ("y_b", "FLOAT64"), ("y_b_rate_x0_5", "FLOAT64"), ("y_b_rate_x1_5", "FLOAT64"),
 ]
-# (table, cutoff kind, variants trained on it)  variant -> (series column)
-CUTOFFS = {"bt": "fc_series_bt", "prod": "fc_series_prod"}
-VARIANTS = {
-    "bt": {"a": "y_a", "b": "y_b", "b_rate_x0_5": "y_b_rate_x0_5", "b_rate_x1_5": "y_b_rate_x1_5"},
-    "prod": {"a": "y_a", "b": "y_b"},
+_ALL = {"a": "y_a", "b": "y_b", "b_rate_x0_5": "y_b_rate_x0_5", "b_rate_x1_5": "y_b_rate_x1_5"}
+# kind -> training table, days of history used (None = all), forecast horizon, model variants (variant -> series column)
+KINDS = {
+    "bt": {"table": "fc_series_bt", "train_days": params.BACKTEST_TRAIN_DAYS, "horizon": params.HORIZON_DAYS, "variants": _ALL},
+    "late": {"table": "fc_series_late", "train_days": params.LATE_TRAIN_DAYS, "horizon": params.LATE_HORIZON_DAYS,
+             "variants": _ALL},
+    "prod": {"table": "fc_series_prod", "train_days": None, "horizon": params.HORIZON_DAYS,
+             "variants": {"a": "y_a", "b": "y_b"}},
 }
+CUTOFFS = {k: v["table"] for k, v in KINDS.items()}
+VARIANTS = {k: v["variants"] for k, v in KINDS.items()}
 
 
 def cutoff_dates(c) -> dict[str, dt.date]:
     d0, d1 = bqio.data_span(c)
-    return {"bt": d0 + dt.timedelta(days=params.BACKTEST_TRAIN_DAYS - 1), "prod": d1}
+    return {k: (d0 + dt.timedelta(days=v["train_days"] - 1)) if v["train_days"] else d1 for k, v in KINDS.items()}
 
 
 def model_name(kind: str, variant: str) -> str:
@@ -75,7 +80,7 @@ def create_model_sql(kind: str, variant: str, column: str) -> str:
     F = bqio.fq()
     return f"""CREATE OR REPLACE MODEL {F}.{model_name(kind, variant)}
 OPTIONS (model_type = 'ARIMA_PLUS', time_series_timestamp_col = 'date', time_series_data_col = 'y',
-         time_series_id_col = ['store_id', 'sku'], horizon = {params.HORIZON_DAYS}, auto_arima = TRUE,
+         time_series_id_col = ['store_id', 'sku'], horizon = {KINDS[kind]["horizon"]}, auto_arima = TRUE,
          data_frequency = 'DAILY', holiday_region = 'ID')
 AS SELECT date, store_id, sku, {column} AS y FROM {F}.{CUTOFFS[kind]}"""
 
@@ -106,17 +111,18 @@ def train_all(c, only: list[str] | None = None) -> None:
 def _forecast_select(kind: str, variant: str, label: str) -> str:
     """ML.FORECAST of one model as rows (negative demand clipped to 0): variant, store, SKU, day, qty, interval."""
     F = bqio.fq()
-    return (f"SELECT '{label}' AS variant, store_id, sku, DATE(forecast_timestamp) AS forecast_date, "
+    return (f"SELECT '{kind}' AS kind, '{label}' AS variant, store_id, sku, DATE(forecast_timestamp) AS forecast_date, "
             f"GREATEST(0.0, forecast_value) AS forecast_qty, GREATEST(0.0, prediction_interval_lower_bound) AS lower, "
             f"GREATEST(0.0, prediction_interval_upper_bound) AS upper "
             f"FROM ML.FORECAST(MODEL {F}.{model_name(kind, variant)}, "
-            f"STRUCT({params.HORIZON_DAYS} AS horizon, {params.INTERVAL_CONFIDENCE} AS confidence_level))")
+            f"STRUCT({KINDS[kind]['horizon']} AS horizon, {params.INTERVAL_CONFIDENCE} AS confidence_level))")
 
 
 def forecast_all(c) -> dt.date:
-    """Backtest forecasts of every variant -> bt_forecasts; production A and B -> the contract `forecasts` table."""
+    """Backtest forecasts (day 76 and the day 83 stress test, every variant) -> bt_forecasts; production A and B -> the
+    contract `forecasts` table."""
     F = bqio.fq()
-    bt = " UNION ALL ".join(_forecast_select("bt", v, v) for v in VARIANTS["bt"])
+    bt = " UNION ALL ".join(_forecast_select(k, v, v) for k in ("bt", "late") for v in VARIANTS[k])
     bqio.execute(c, f"CREATE OR REPLACE TABLE {F}.bt_forecasts AS {bt}")
     run_date = cutoff_dates(c)["prod"] + dt.timedelta(days=1)   # the forecast is made the morning after the last data day
     bqio.execute(c, f"DELETE FROM {F}.forecasts WHERE run_date = DATE '{run_date}'")

@@ -1,1 +1,2 @@
--- TODO: compare forecast A / B against true_demand (WAPE, bias, preventable stockout days)
+-- The backtest against true_demand (WAPE, bias, order-policy replay, ask-rate sensitivity) runs in Python because it
+-- replays the stock simulation: `make experiment` (services/api/app/forecast/experiment.py) writes docs/results.md.

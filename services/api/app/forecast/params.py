@@ -3,6 +3,8 @@ from __future__ import annotations
 
 HORIZON_DAYS = 14                 # ARIMA_PLUS horizon (build plan 7.3)
 BACKTEST_TRAIN_DAYS = 76          # train up to day 76, predict the next 14 days (7.8)
+LATE_TRAIN_DAYS = 83              # stress test: cutoff while stockouts are still going on ...
+LATE_HORIZON_DAYS = 7             # ... scored over the 7 days of true demand that remain
 
 # --- ask rate estimate (7.2): estimated from the training data only, never read from the generator's config ---
 ASK_WINDOW_DAYS = 28              # in-stock days within +-28 days, same weekday, give the expected demand
