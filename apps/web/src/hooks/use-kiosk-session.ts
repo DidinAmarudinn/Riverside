@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { ApiError } from "@/lib/api/client";
 import { realtime } from "@/lib/realtime";
 import type { KioskMessageResponse } from "@/lib/api/types";
 
@@ -23,6 +24,7 @@ function nextId() {
 }
 
 export function useKioskSession(storeId: string) {
+  const qc = useQueryClient();
   const [sessionEpoch, setSessionEpoch] = useState(0);
   const sessionQuery = useQuery({
     queryKey: ["kiosk-session", storeId, sessionEpoch],
@@ -48,11 +50,17 @@ export function useKioskSession(storeId: string) {
       ]);
       setIsTyping(true);
       try {
-        const response = await api.sendKioskMessage({
-          sessionId,
-          storeId,
-          text,
-        });
+        let response: KioskMessageResponse;
+        try {
+          response = await api.sendKioskMessage({ sessionId, storeId, text });
+        } catch (err) {
+          if (!(err instanceof ApiError && err.status === 404)) throw err;
+          // The API keeps kiosk chats in memory, so a new or replaced Cloud Run instance does not know this
+          // session: open a fresh one and send the message again instead of showing an error.
+          const fresh = await api.createKioskSession(storeId);
+          qc.setQueryData(["kiosk-session", storeId, sessionEpoch], fresh);
+          response = await api.sendKioskMessage({ sessionId: fresh.sessionId, storeId, text });
+        }
         setMessages((prev) => [
           ...prev,
           {
@@ -71,7 +79,7 @@ export function useKioskSession(storeId: string) {
         setIsTyping(false);
       }
     },
-    [storeId, sessionId],
+    [storeId, sessionId, sessionEpoch, qc],
   );
 
   const retryLast = useCallback(
