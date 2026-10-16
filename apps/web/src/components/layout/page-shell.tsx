@@ -12,8 +12,8 @@ export function PageShell({
   return (
     <div className="flex min-h-screen flex-col">
       <TopNav />
-      <main className={cn("flex-1 pt-16", className)}>
-        <div className="mx-auto w-full max-w-[1600px] px-8 py-6">
+      <main className={cn("flex-1 pt-28 md:pt-16", className)}>
+        <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-8">
           {children}
         </div>
       </main>
