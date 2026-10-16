@@ -91,9 +91,12 @@ def _check_reply(callback_context, llm_response):
         state["promise_searches"] = int(state.get("promise_searches", 0)) + 1
         call = types.FunctionCall(name="search_products", args={"query": user_text})
         return LlmResponse(content=types.Content(role="model", parts=[types.Part(function_call=call)]))
-    allowed = set(state.get("grounded", [])) | guards.numbers_in(user_text)
-    bad = guards.ungrounded(text, allowed)
-    if bad:
+    bad = guards.ungrounded(text, set(state.get("grounded", [])), guards.numbers_in(user_text))
+    if guards.leaks_internals(text):
+        log.warning("reply recites internal instructions or tool names (%r); replaced", text)
+        state["guard_violations"] = int(state.get("guard_violations", 0)) + 1
+        text = guards.REFUSAL_REPLY
+    elif bad:
         log.warning("ungrounded numbers %s in reply %r; replaced", sorted(bad), text)
         state["guard_violations"] = int(state.get("guard_violations", 0)) + 1
         text = guards.FALLBACK_REPLY

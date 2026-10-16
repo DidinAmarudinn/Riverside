@@ -15,6 +15,20 @@ def strip_markers(reply: str) -> str:
     return re.sub(r"\s+([.,;:!?])", r"\1", _MARKER.sub("", reply)).strip()
 
 
+_BOLD = re.compile(r"(\*\*|__)(.+?)\1")
+_BULLET = re.compile(r"^[ \t]*[*•][ \t]+", re.M)
+_HEADING = re.compile(r"^[ \t]*#{1,6}[ \t]+", re.M)
+
+
+def plain_text(reply: str) -> str:
+    """The UI shows replies as plain text: turn leftover markdown (**bold**, `code`, # headings, * bullets) into
+    plain words and "- " list lines so no stray asterisks reach the screen."""
+    text = _BOLD.sub(r"\2", reply)
+    text = _HEADING.sub("", text)
+    text = _BULLET.sub("- ", text)
+    return re.sub(r"[`]", "", text).replace("*", "").strip()
+
+
 def _kiosk_product(item: dict, units: int | None, in_stock: bool) -> dict:
     out = {"sku": item["sku"], "name": item["name"], "inStock": in_stock, "aisle": item.get("shelf_location", "")}
     if item.get("price_idr") is not None:
@@ -24,8 +38,22 @@ def _kiosk_product(item: dict, units: int | None, in_stock: bool) -> dict:
     return out
 
 
-def kiosk_payload(tool_calls: list[dict]) -> dict:
-    """products / alternatives / nearestBranch from the shopper tools called in this turn."""
+def _mentions(reply: str, item: dict) -> bool:
+    """Does the reply talk about this candidate? Its price must appear and at least half of the words of its
+    name ("Beras Pandan Wangi Cianjur 5 kg" is often shortened), so a same-priced bystander is not carded."""
+    price = item.get("price_idr")
+    low = reply.lower()
+    if price is None or not (f"{price:,}".replace(",", ".") in low or str(price) in low):
+        return False
+    words = [w for w in re.findall(r"[a-z]{3,}", item["name"].lower())]
+    return bool(words) and sum(w in low for w in words) * 2 >= len(words)
+
+
+def kiosk_payload(tool_calls: list[dict], reply: str = "") -> dict:
+    """products / alternatives / nearestBranch from the shopper tools called in this turn.
+
+    `reply` lets the cards follow the words: every searched candidate the reply quotes a price for also gets
+    a card, so a number the shopper reads can be checked against a product on screen."""
     products, alternatives, branch = {}, {}, None
     for call in tool_calls:
         res = call.get("result") or {}
@@ -33,6 +61,9 @@ def kiosk_payload(tool_calls: list[dict]) -> dict:
             best = res["matches"][0]  # searched with the store: the product the reply is about
             if best["units"] is not None:
                 products[best["sku"]] = _kiosk_product(best, best["units"], best["units"] > 0)
+            for other in res["matches"][1:]:
+                if other.get("units") is not None and other["sku"] not in products and _mentions(reply, other):
+                    products[other["sku"]] = _kiosk_product(other, other["units"], other["units"] > 0)
             for alt in res.get("alternatives") or []:
                 alternatives[alt["sku"]] = _kiosk_product(alt, alt["units"], True)
             b = res.get("nearest_branch")

@@ -109,6 +109,9 @@ def _hermetic(tmp_path, monkeypatch):
     monkeypatch.setattr(main, "_shopper_runtime", AgentRuntime(build_shopper_agent(model=Ok([])), "h-shopper"))
     monkeypatch.setattr(main, "_manager_runtime", AgentRuntime(build_manager_agent(model=Ok([])), "h-manager"))
     main._kiosk_sessions.clear()
+    from app.ratelimit import limiter
+
+    limiter.reset()
     yield
     set_repo(None)
     set_runner(None)
