@@ -11,6 +11,10 @@ E2E_WORKERS=1 make e2e                                   # if Gemini returns 429
 
 Notes for writing tests here:
 
+- CI runs Node 20 with npm 10.8.2 (`npm ci`). A lockfile written by a newer npm fails the deploy with
+  `Missing: @emnapi/runtime ... from lock file`. Change dependencies with `npx npm@10.8.2 install <pkg>` and check
+  with `npx npm@10.8.2 ci --dry-run` before pushing.
+
 - Never wait for `networkidle`: Firestore listeners keep a connection open. Wait on elements.
 - LLM replies are nondeterministic. Assert invariants (grounding, isolation, no leaks), not wording, and run a new
   probe with `--repeat-each=5` before trusting it. Several "passes" in a single run turned out to be luck.
