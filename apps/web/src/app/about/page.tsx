@@ -23,7 +23,7 @@ const ROLES = [
   {
     icon: MessagesSquare,
     title: "Gemini (Vertex AI)",
-    body: "Turns raw kiosk conversations into structured demand signals (SKU, outcome, confidence) and drafts manager explanations.",
+    body: "Runs both agents, reads the kiosk chats that rules cannot place into structured demand signals (SKU, outcome, confidence) and drafts manager explanations.",
   },
   {
     icon: Database,
@@ -40,7 +40,7 @@ const ROLES = [
 const FLOW = [
   { title: "Shopper asks the kiosk", body: "Firebase Hosting serves the kiosk and dashboard." },
   { title: "Agents answer", body: "Cloud Run runs the ADK shopper and manager agents." },
-  { title: "Gemini reads the chat", body: "Pub/Sub pushes each chat to the extractor; Gemini on Vertex AI names the product and outcome." },
+  { title: "The chat becomes a signal", body: "Pub/Sub pushes each chat to the extractor; rules name the product and outcome, Gemini on Vertex AI takes the unclear chats." },
   { title: "Forecast A vs B", body: "BigQuery ML forecasts with and without the unmet demand." },
   { title: "Manager sees it live", body: "Firestore streams the feed and alerts to the dashboard." },
 ];
