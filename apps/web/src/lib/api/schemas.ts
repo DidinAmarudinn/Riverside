@@ -177,6 +177,8 @@ export const skuDetailSchema = z.object({
     lostRevenueIdr: z.number(),
     lostRevenueUnits: z.number().optional(),
     unmetRequests: z.number(),
+    unmetWindowDays: z.number().optional(),
+    unmetRequests7d: z.number().optional(),
     stockoutDays: z.number(),
     stockoutSince: z.string().nullish(),
   }),

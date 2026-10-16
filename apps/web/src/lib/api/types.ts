@@ -159,7 +159,10 @@ export interface SkuKpis {
   onHandNote?: string;
   lostRevenueIdr: number;
   lostRevenueUnits?: number;
+  /** Over the running stockout (unmetWindowDays long), else the last 7 days. */
   unmetRequests: number;
+  unmetWindowDays?: number;
+  unmetRequests7d?: number;
   stockoutDays: number;
   stockoutSince?: string;
 }

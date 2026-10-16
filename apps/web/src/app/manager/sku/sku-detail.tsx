@@ -6,10 +6,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Banknote,
-  Download,
   Grid2x2,
   PackageX,
-  ShoppingCart,
   Timer,
   TrendingUp,
 } from "lucide-react";
@@ -19,7 +17,7 @@ import { RiskBadge } from "@/components/manager/risk-badge";
 import { RecommendationCard } from "@/components/sku/recommendation-card";
 import { EvidenceDrawer } from "@/components/sku/evidence-drawer";
 import { Button } from "@/components/ui/button";
-import { formatNumber, formatRupiah } from "@/lib/format";
+import { formatDateWib, formatNumber, formatRupiah } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const ForecastChart = dynamic(
@@ -97,13 +95,13 @@ export function SkuDetail() {
   if (!code) {
     return (
       <div className="py-16 text-center">
-        <p className="text-headline-md text-on-surface">SKU tidak dipilih</p>
+        <p className="text-headline-md text-on-surface">No product selected</p>
         <p className="mt-1 text-caption text-on-surface-variant">
-          Buka detail dari tabel rekomendasi.
+          Open a product from the recommendations table.
         </p>
         <Link href="/manager" className="mt-4 inline-block">
           <Button variant="outline" size="sm">
-            Kembali ke dashboard
+            Back to the dashboard
           </Button>
         </Link>
       </div>
@@ -114,12 +112,18 @@ export function SkuDetail() {
   if (isError || !data) {
     return (
       <ErrorState
-        title="Gagal memuat detail SKU"
-        description={`SKU ${code} tidak ditemukan atau respons tidak valid.`}
+        title="Could not load this product"
+        description={`SKU ${code} was not found or the response was invalid.`}
         onRetry={() => refetch()}
       />
     );
   }
+
+  const unmetDays = data.kpis.unmetWindowDays ?? 7;
+  const unmetLabel =
+    data.kpis.stockoutDays > 0
+      ? `During this ${unmetDays}-day stockout`
+      : `Last ${unmetDays} days`;
 
   return (
     <div className="flex flex-col gap-6">
@@ -134,9 +138,6 @@ export function SkuDetail() {
           </Link>
           <span className="font-label-mono text-outline-variant">/</span>
           <span className="text-body-medium text-on-surface">{data.name}</span>
-          <span className="ml-2 rounded bg-surface-container px-2 py-0.5 font-label-mono text-[11px] text-on-surface-variant">
-            WIB Shifts Active
-          </span>
         </div>
 
         <div className="flex flex-col justify-between gap-4 rounded-xl bg-surface-container-lowest p-6 shadow-sm lg:flex-row lg:items-center">
@@ -161,19 +162,9 @@ export function SkuDetail() {
               ) : null}
               <span className="text-outline-variant">•</span>
               <span className="font-label-mono font-medium text-on-surface">
-                Unit Price: {formatRupiah(data.priceIdr)}
+                Price: {formatRupiah(data.priceIdr)}
               </span>
             </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="md" disabled title="Segera hadir">
-              <Download className="h-[18px] w-[18px]" aria-hidden />
-              Export telemetry
-            </Button>
-            <Button variant="primary" size="md" disabled title="Segera hadir">
-              <ShoppingCart className="h-[18px] w-[18px]" aria-hidden />
-              Create PO ({data.recommendation.recommendedQty} units)
-            </Button>
           </div>
         </div>
       </div>
@@ -188,17 +179,17 @@ export function SkuDetail() {
           icon={PackageX}
         />
         <Kpi
-          label="Lost Revenue (5d)"
+          label="Lost revenue, last 7 days"
           value={formatRupiah(data.kpis.lostRevenueIdr)}
-          note={`${formatNumber(data.kpis.lostRevenueUnits ?? 0)} units missed`}
+          note={`≈${formatNumber(data.kpis.lostRevenueUnits ?? 0)} units, incl. shoppers who did not ask`}
           tone="error"
           icon={Banknote}
         />
         <Kpi
-          label="Unmet Requests (5d)"
+          label={unmetLabel}
           value={formatNumber(data.kpis.unmetRequests)}
-          suffix="shoppers"
-          note="Kiosk & voice signals"
+          suffix="shoppers asked"
+          note="At the kiosk, while it was out of stock"
           tone="tertiary"
           icon={TrendingUp}
         />
@@ -208,7 +199,7 @@ export function SkuDetail() {
           suffix="consecutive days"
           note={
             data.kpis.stockoutSince
-              ? `Since ${new Date(data.kpis.stockoutSince).toLocaleDateString("id-ID")}`
+              ? `Since ${formatDateWib(data.kpis.stockoutSince)}`
               : "Currently in stock"
           }
           tone="neutral"
@@ -222,10 +213,10 @@ export function SkuDetail() {
             <div className="mb-2 flex flex-col justify-between gap-2 md:flex-row md:items-center">
               <div>
                 <h2 className="text-headline-md text-on-surface">
-                  30-Day Demand &amp; Sales Trajectory
+                  Sales and forecast
                 </h2>
                 <p className="mt-0.5 text-caption text-on-surface-variant">
-                  Daily POS units sold against machine-learned shopper demand
+                  Daily POS sales (bars), then the next 14 days from forecast A and forecast B
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-caption text-on-surface-variant">
@@ -247,12 +238,12 @@ export function SkuDetail() {
             <div className="mt-3 flex items-start gap-2 rounded-lg bg-surface-container-low p-3 text-caption text-on-surface-variant">
               <TrendingUp className="mt-0.5 h-[18px] w-[18px] shrink-0 text-primary-container" aria-hidden />
               <p>
-                Traditional ERP auto-reorder formulas read stockout zero-sales as
-                tapering interest, dropping replenishment to 0.{" "}
+                While the shelf is empty the till records zero, so a sales-only
+                forecast reads it as no demand.{" "}
                 <strong className="font-medium text-on-surface">
-                  Demand Radar corrects this distortion
-                </strong>{" "}
-                by blending conversational queries into SKU velocity.
+                  Forecast B adds back the shoppers who asked
+                </strong>
+                , estimated from kiosk conversations.
               </p>
             </div>
           </div>
@@ -261,10 +252,10 @@ export function SkuDetail() {
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <h3 className="text-headline-md text-on-surface">
-                  Unmet Shopper Requests per Day
+                  Shoppers who asked, per day
                 </h3>
                 <p className="mt-0.5 text-caption text-on-surface-variant">
-                  Voice queries &amp; terminal searches logged while on-hand was 0
+                  Out-of-stock requests read from kiosk conversations
                 </p>
               </div>
               <div className="text-right">
@@ -272,7 +263,7 @@ export function SkuDetail() {
                   {formatNumber(data.kpis.unmetRequests)}
                 </span>
                 <span className="block text-caption text-on-surface-variant">
-                  Last 5 days
+                  {unmetLabel.toLowerCase()}
                 </span>
               </div>
             </div>
@@ -291,12 +282,12 @@ export function SkuDetail() {
               <div className="flex items-center gap-2">
                 <h3 className="text-headline-md text-on-surface">Evidence</h3>
                 <span className="rounded-full bg-secondary-container px-2 py-0.5 font-label-mono text-[11px] font-bold text-on-secondary-fixed">
-                  {data.evidence.total} conversations
+                  {data.evidence.total} in total
                 </span>
               </div>
             </div>
             <p className="mb-3 text-caption text-on-surface-variant">
-              Verbatim quotes that justify the forecast.
+              What shoppers typed at the kiosk (simulated conversations).
             </p>
             <div className="flex flex-col gap-2">
               {data.evidence.items.slice(0, 3).map((item) => (
@@ -313,7 +304,7 @@ export function SkuDetail() {
               className="mt-3"
               onClick={() => setManualOpen(true)}
             >
-              Buka evidence drawer
+              See all conversations
             </Button>
           </div>
         </div>

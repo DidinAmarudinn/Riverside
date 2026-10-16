@@ -157,6 +157,8 @@ export function adaptSkuDetail(raw: Raw<typeof skuDetailSchema>): SkuDetail {
       lostRevenueIdr: kpis.lostRevenueIdr,
       lostRevenueUnits: kpis.lostRevenueUnits,
       unmetRequests: kpis.unmetRequests,
+      unmetWindowDays: kpis.unmetWindowDays,
+      unmetRequests7d: kpis.unmetRequests7d,
       stockoutDays: kpis.stockoutDays,
       stockoutSince: kpis.stockoutSince ?? undefined,
     },

@@ -127,13 +127,13 @@ export function ManagerDashboard() {
           footerLabel="out of stock or not carried"
         />
         <KpiCard
-          label="SKUs At Risk"
+          label="Out of stock now"
           value={effectiveMetrics ? String(effectiveMetrics.stockoutSkus) : "—"}
           suffix="products"
           tone="warning"
           icon={TriangleAlert}
-          footerValue="Out of stock"
-          footerLabel="needs action"
+          footerValue="Zero on the shelf"
+          footerLabel="see Recommendations"
         />
       </div>
 
