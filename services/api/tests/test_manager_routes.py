@@ -142,3 +142,8 @@ def test_manager_reads_are_cached_per_runner():
     assert n > 0 and get("/api/manager/S01/gaps", r).json() == first and len(calls) == n  # second answer from cache
     get("/api/manager/S01/gaps")  # a different runner is never served the first runner's answer
     assert len(calls) == n
+
+
+def test_chat_for_an_unknown_store_is_404_before_any_llm_turn():
+    r = client.post("/api/manager/S99/chat", headers=H, json={"message": "ringkas"})
+    assert r.status_code == 404 and r.json()["error"]["code"] == "store_not_found"

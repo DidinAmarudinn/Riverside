@@ -63,3 +63,13 @@ def test_reset_endpoint_drops_only_this_sandboxs_kiosk_sessions():
     assert client.post("/api/demo/reset", headers={"X-Sandbox-Id": mine}).status_code == 204
     assert sessions[mine] not in main._kiosk_sessions
     assert sessions[other] in main._kiosk_sessions
+
+
+def test_next_morning_is_honest_about_not_being_built():
+    from fastapi.testclient import TestClient
+
+    from app import main
+
+    r = TestClient(main.app).post("/api/demo/next-morning", json={"storeId": "S01"},
+                                  headers={"X-Sandbox-Id": "6f1c1e0e-5a56-4b0e-9d1c-0c3a9c1d2e3f"})
+    assert r.status_code == 501 and r.json()["error"]["code"] == "not_implemented"

@@ -38,6 +38,18 @@ export function useKioskSession(storeId: string) {
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Another store is another conversation: do not leave the previous store's answers on screen.
+  const [messagesStoreId, setMessagesStoreId] = useState(storeId);
+  if (messagesStoreId !== storeId) {
+    setMessagesStoreId(storeId);
+    setMessages([]);
+    setError(null);
+  }
+  const activeStoreId = useRef(storeId);
+  useEffect(() => {
+    activeStoreId.current = storeId;
+  }, [storeId]);
+
   const send = useCallback(
     async (raw: string) => {
       const text = raw.trim();
@@ -61,6 +73,7 @@ export function useKioskSession(storeId: string) {
           qc.setQueryData(["kiosk-session", storeId, sessionEpoch], fresh);
           response = await api.sendKioskMessage({ sessionId: fresh.sessionId, storeId, text });
         }
+        if (activeStoreId.current !== storeId) return; // answer for a store the shopper has left
         setMessages((prev) => [
           ...prev,
           {

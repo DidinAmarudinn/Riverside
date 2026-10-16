@@ -1,7 +1,7 @@
 """Demand Radar API (FastAPI). Routes follow docs/api-contract.md §3.
 
 Kiosk messages run the shopper agent and manager chat runs the manager agent; the manager GET routes read BigQuery.
-The next-morning demo endpoint is still a placeholder.
+The next-morning demo endpoint is not implemented and answers 501 (recommendations exist from the start).
 """
 from __future__ import annotations
 
@@ -25,6 +25,7 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from . import contract, manager_api
+from .ratelimit import limiter
 from .agents.manager import manager_agent
 from .agents.runtime import USER_ID, AgentRuntime
 from .agents.shopper import shopper_agent
@@ -72,7 +73,9 @@ def error(status: int, code: str, message: str) -> JSONResponse:
 @app.exception_handler(StarletteHTTPException)
 async def http_error(_: Request, exc: StarletteHTTPException) -> JSONResponse:
     code = exc.detail if isinstance(exc.detail, str) and exc.detail.isidentifier() else f"http_{exc.status_code}"
-    return error(exc.status_code, code, str(exc.detail))
+    res = error(exc.status_code, code, str(exc.detail))
+    res.headers.update(exc.headers or {})  # e.g. Retry-After on 429
+    return res
 
 
 @app.exception_handler(RequestValidationError)
@@ -90,6 +93,33 @@ def sandbox_id(x_sandbox_id: str | None = Header(default=None)) -> str:
     if value.version != 4:
         raise HTTPException(400, "invalid_sandbox_id")
     return str(value)  # TODO: create sandboxes/{id} in Firestore on first use
+
+
+# ---------- rate limits (app/ratelimit.py) ----------
+
+def client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    return forwarded.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+
+
+def _throttle(*checks: tuple[str, int]) -> None:
+    for key, limit in checks:
+        wait = limiter.retry_after(key, limit)
+        if wait:
+            raise HTTPException(429, "rate_limited", headers={"Retry-After": str(wait)})
+
+
+def throttle_session(request: Request) -> None:
+    _throttle((f"sess-ip:{client_ip(request)}", settings.rate_limit_sessions_ip))
+
+
+def throttle_agent(request: Request, sandbox: str = Depends(sandbox_id)) -> None:
+    """Anything that runs an agent turn (a Gemini call). Runs after the sandbox header is validated."""
+    _throttle(
+        (f"sandbox:{sandbox}", settings.rate_limit_sandbox),
+        (f"ip:{client_ip(request)}", settings.rate_limit_ip),
+        ("instance", settings.rate_limit_instance),
+    )
 
 
 # ---------- request bodies ----------
@@ -190,7 +220,7 @@ def shopper_runtime() -> AgentRuntime:
 
 
 @app.post("/api/kiosk/sessions")
-def kiosk_session(body: KioskSessionIn, sandbox: str = Depends(sandbox_id)) -> dict:
+def kiosk_session(body: KioskSessionIn, sandbox: str = Depends(sandbox_id), _: None = Depends(throttle_session)) -> dict:
     if get_repo().get_store(body.storeId) is None:
         raise HTTPException(404, "store_not_found")
     session_id = str(uuid.uuid4())
@@ -199,7 +229,8 @@ def kiosk_session(body: KioskSessionIn, sandbox: str = Depends(sandbox_id)) -> d
 
 
 @app.post("/api/kiosk/sessions/{session_id}/messages")
-async def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = Depends(sandbox_id)) -> dict:
+async def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = Depends(sandbox_id),
+                        _: None = Depends(throttle_agent)) -> dict:
     session = _kiosk_sessions.get(session_id)
     if session is None or session["sandboxId"] != sandbox:  # another visitor's session looks like a missing one
         raise HTTPException(404, "session_not_found")
@@ -213,7 +244,7 @@ async def kiosk_message(session_id: str, body: KioskMessageIn, sandbox: str = De
         {"store_id": store["id"], "store_name": store["name"], "sandbox_id": sandbox},
     )
     last = result.state.get("last_turn", {})
-    return {"reply": result.reply, **contract.kiosk_payload(last.get("tool_calls", []))}
+    return {"reply": result.reply, **contract.kiosk_payload(last.get("tool_calls", []), result.reply)}
 
 
 # ---------- manager ----------
@@ -258,7 +289,9 @@ def _chat_context(store_id: str, sku: str | None) -> str:
 
 
 @app.post("/api/manager/{store_id}/chat")
-async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id)) -> dict:
+async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depends(sandbox_id),
+                       _: None = Depends(throttle_agent)) -> dict:
+    _known_store(store_id)  # before any LLM turn: a made-up store must not cost a Gemini call
     if not body.message.strip() or len(body.message) > 1000:
         raise HTTPException(422, "invalid_request")
     session_id = body.sessionId or str(uuid.uuid4())
@@ -269,7 +302,7 @@ async def manager_chat(store_id: str, body: ManagerChatIn, sandbox: str = Depend
     )
     last = result.state.get("last_turn", {})
     return {
-        "reply": contract.strip_markers(result.reply),
+        "reply": contract.plain_text(contract.strip_markers(result.reply)),
         "citations": contract.citations(last.get("citations", [])),
         "sessionId": session_id,
     }
@@ -296,8 +329,9 @@ async def demo_reset(sandbox: str = Depends(sandbox_id)) -> Response:
 
 @app.post("/api/demo/next-morning")
 def demo_next_morning(body: NextMorningIn, sandbox: str = Depends(sandbox_id)) -> dict:
-    # TODO: recompute the hero scenario with the reorder formula (build plan §7) into the sandbox.
-    return {"storeId": body.storeId, "updated": 0}
+    # Not built: the hero recommendations already exist from the start (see infra/smoke_test.py), so no UI calls
+    # this. Answer honestly instead of a 200 that claims nothing changed.
+    raise HTTPException(501, "not_implemented")
 
 
 # ---------- Pub/Sub push (not behind Hosting; Pub/Sub calls the Cloud Run URL directly) ----------

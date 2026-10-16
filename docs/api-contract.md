@@ -77,7 +77,7 @@ created on first use. The browser creates the id on first visit, keeps it in loc
 | `GET /api/manager/{storeId}/trends` (optional) | | rising new demand |
 | `POST /api/manager/recommendations/{id}/approve` (optional) | | draft PO |
 | `POST /api/demo/reset` | | deletes this visitor's sandbox content; base data untouched |
-| `POST /api/demo/next-morning` | `{storeId}` → `{storeId, updated}` | placeholder, returns `updated: 0`; not used by the web app. The hero recommendations (A 10, B 64) are computed by the forecast pipeline and exist from the start, so the demo has no "next morning" step |
+| `POST /api/demo/next-morning` | `{storeId}` → `{storeId, updated}` | **not implemented, answers `501 not_implemented`**; not used by the web app. The hero recommendations (A 10, B 64) are computed by the forecast pipeline and exist from the start, so the demo has no "next morning" step |
 | `POST /pubsub/extract` | Pub/Sub push envelope (valid OIDC token required) | 204; 401 if the token is invalid |
 
 Uniform error format: `{"error": {"code", "message"}}`. Every response < 10 s; anything slower shows a loading state.

@@ -45,6 +45,12 @@ class Settings:
     publisher: str = os.getenv("PUBLISHER", "local")
     # Repo `data/` directory (product master, seed_scenarios.yaml, and simulator output in data/out)
     data_dir: Path = Path(os.getenv("DATA_DIR", Path(__file__).resolve().parents[3] / "data"))
+    # Requests per minute (0 = off). Sandbox and IP limits apply to calls that run an agent; the instance limit
+    # is a spend breaker across all visitors. Sessions only create in-memory state, so they get a looser IP limit.
+    rate_limit_sandbox: int = int(os.getenv("RATE_LIMIT_SANDBOX", "20"))
+    rate_limit_ip: int = int(os.getenv("RATE_LIMIT_IP", "90"))
+    rate_limit_instance: int = int(os.getenv("RATE_LIMIT_INSTANCE", "300"))
+    rate_limit_sessions_ip: int = int(os.getenv("RATE_LIMIT_SESSIONS_IP", "120"))
     cors_origins: tuple[str, ...] = tuple(
         o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",") if o.strip()
     )
