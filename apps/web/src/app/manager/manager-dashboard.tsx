@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { RefreshCw, Sunrise, TrendingDown, Radio, TriangleAlert } from "lucide-react";
+import { RefreshCw, TrendingDown, Radio, TriangleAlert } from "lucide-react";
 import {
-  useNextMorning,
   useOverview,
   useRecommendations,
   useStores,
@@ -13,7 +12,6 @@ import { useAlerts, useLiveSignals, useMetrics } from "@/hooks/use-realtime";
 import type { RiskType } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/common/states";
 import { KpiCard } from "@/components/manager/kpi-card";
 import { RecommendationsTable } from "@/components/manager/recommendations-table";
@@ -39,14 +37,12 @@ export function ManagerDashboard() {
   const riskParam = searchParams.get("risk") as RiskType | null;
   const prefillQuestion = searchParams.get("q") ?? undefined;
   const chatSku = searchParams.get("sku") ?? undefined;
-  const { toast } = useToast();
 
   const overview = useOverview();
   const recommendations = useRecommendations(riskParam ?? undefined);
   const metrics = useMetrics();
   const alerts = useAlerts();
   const signals = useLiveSignals();
-  const nextMorning = useNextMorning();
   const stores = useStores();
   const { storeId } = useStore();
   const storeName = stores.data?.find((s) => s.id === storeId)?.name ?? storeId;
@@ -98,38 +94,17 @@ export function ManagerDashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StoreSelector />
+          {effectiveMetrics?.posRefreshedAt ? (
           <div className="flex items-center gap-2 rounded-xl bg-surface-container-lowest px-4 py-2 shadow-sm">
             <RefreshCw className="h-4 w-4 text-primary" aria-hidden />
             <span className="text-caption text-on-surface-variant">
               POS Refreshed:{" "}
               <span className="font-semibold text-on-surface">
-                {effectiveMetrics?.posRefreshedAt
-                  ? `${formatTimeWib(effectiveMetrics.posRefreshedAt)} WIB`
-                  : "—"}
+                {formatTimeWib(effectiveMetrics.posRefreshedAt)} WIB
               </span>
             </span>
           </div>
-          <Button
-            variant="primary"
-            onClick={() =>
-              nextMorning.mutate(undefined, {
-                onSuccess: () =>
-                  toast({
-                    title: "Recommendations recomputed",
-                    variant: "success",
-                  }),
-                onError: () =>
-                  toast({
-                    title: "Could not run next morning",
-                    variant: "error",
-                  }),
-              })
-            }
-            disabled={nextMorning.isPending}
-          >
-            <Sunrise className="h-4 w-4" aria-hidden />
-            {nextMorning.isPending ? "Computing…" : "Next morning"}
-          </Button>
+          ) : null}
         </div>
       </div>
 
@@ -222,7 +197,7 @@ export function ManagerDashboard() {
             ) : tableState === "empty" ? (
               <EmptyState
                 title="No recommendations yet"
-                description="Try another risk filter, or run Next morning."
+                description="Try another risk filter."
               />
             ) : (
               <RecommendationsTable recommendations={recommendations.data ?? []} />

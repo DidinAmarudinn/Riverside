@@ -1,29 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   BarChart3,
   MessageSquareMore,
   RotateCcw,
   Store,
-  Sunrise,
 } from "lucide-react";
-import { useNextMorning, useResetDemo } from "@/hooks/use-data";
+import { useResetDemo } from "@/hooks/use-data";
 import { useDemoState } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import { formatDateTimeWib } from "@/lib/format";
 
-const JURY_QUESTION = "Why should I order 60 boxes of coconut milk?";
+const JURY_QUESTION = "Why should I order 64 boxes of coconut milk?";
 const HERO_SKU = "SKU-0001"; // Santan Kotak Kara 65 ml (data/seed_scenarios.yaml hero_santan)
 
 export function JuryActions() {
-  const router = useRouter();
   const { toast } = useToast();
   const demoState = useDemoState();
   const resetDemo = useResetDemo();
-  const nextMorning = useNextMorning();
 
   const handleReset = () => {
     if (!window.confirm("Reset the demo to its starting point (Tuesday evening)?")) return;
@@ -36,21 +32,6 @@ export function JuryActions() {
         }),
       onError: () =>
         toast({ title: "Could not reset the demo", variant: "error" }),
-    });
-  };
-
-  const handleNextMorning = () => {
-    nextMorning.mutate(undefined, {
-      onSuccess: () => {
-        toast({
-          title: "Next morning done",
-          description: "Santan: A = 0, B = 60.",
-          variant: "success",
-        });
-        router.push("/manager");
-      },
-      onError: () =>
-        toast({ title: "Could not run next morning", variant: "error" }),
     });
   };
 
@@ -71,7 +52,7 @@ export function JuryActions() {
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <ScenarioLink
           href="/kiosk"
           icon={Store}
@@ -82,33 +63,13 @@ export function JuryActions() {
           href="/manager"
           icon={BarChart3}
           title="2 · See it on the manager dashboard"
-          description="The unmet request appears in the live feed within seconds."
+          description="The request shows up in the live feed within seconds. The coconut milk tops the reorder list."
         />
-        <button
-          type="button"
-          onClick={handleNextMorning}
-          disabled={nextMorning.isPending}
-          className="flex items-start gap-3 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 text-left shadow-sm transition hover:border-primary/40 hover:shadow disabled:opacity-60"
-        >
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary-container/30 text-secondary">
-            <Sunrise className="h-5 w-5" aria-hidden />
-          </span>
-          <span>
-            <span className="block text-body-medium text-on-surface">
-              {nextMorning.isPending
-                ? "Running next morning…"
-                : "3 · Run “Next morning”"}
-            </span>
-            <span className="mt-0.5 block text-caption text-on-surface-variant">
-              Recompute the hero scenario: Santan A = 0, B = 60.
-            </span>
-          </span>
-        </button>
         <ScenarioLink
           href={`/manager?q=${encodeURIComponent(JURY_QUESTION)}&sku=${HERO_SKU}`}
           icon={MessageSquareMore}
-          title="4 · Ask the manager agent why"
-          description="“Why should I order 60 boxes of coconut milk?”"
+          title="3 · Ask the manager agent why"
+          description="“Why should I order 64 boxes of coconut milk?” A sales-only forecast would order 10."
         />
       </div>
 

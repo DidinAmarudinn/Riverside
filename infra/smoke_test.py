@@ -5,11 +5,11 @@ Checks the public app from the outside, the same way a judge would, each run in 
   gate1  hosting pages -> /api/healthz -> kiosk message -> Pub/Sub -> extractor -> Firestore liveSignals,
          /pubsub/extract without token = 401, sessions not publicly readable.
   gate2  gate1 basics plus the §11 demo flow in one sandbox, in order: reset -> kiosk asks for santan and gets
-         a rescue -> signal and metrics delta in Firestore < 5 s -> next morning gives A ~ 0 / B ~ 60 and an alert
-         -> manager agent explains "why 60" with numbers and citations -> gaps lists oat milk; another sandbox
+         a rescue -> signal and metrics delta in Firestore < 5 s -> hero reorder A low / B high (10 vs 64) and an alert
+         -> manager agent explains "why 64" with numbers and citations -> gaps lists oat milk; another sandbox
          stays empty; first experiment numbers exist in BigQuery.
   judge  everything in gate1 plus: page load < 3 s, informal/typo input, out-of-stock rescue, demo reset,
-         two concurrent sandboxes isolated, hero scenario A ~ 0 / B ~ 60, evidence, manager agent answers
+         two concurrent sandboxes isolated, hero scenario A low / B high, evidence, manager agent answers
          with numbers, assortment gaps, /about names the Google services, forbidden terms absent.
 Checks that need human eyes are printed as a manual list at the end.
 
@@ -19,9 +19,8 @@ Standard library only. Usage:
 
 Optional env:
   STORE_ID (S01), HERO_QUERY ("santan kotak 65"), HERO_SKU (skip the product lookup),
-  HERO_A_MAX (5), HERO_B_RANGE ("50-70"), SIGNAL_TIMEOUT (15 s), AGENT_TIMEOUT (30 s),
-  GAP_QUERY ("oat"), EVAL_TABLE (demand_radar.forecast_eval; gate2 reads it with the bq CLI, skipped if bq
-    is missing), BQ_PROJECT (FIREBASE_PROJECT),
+  HERO_A_MAX (15), HERO_B_RANGE ("55-75"), SIGNAL_TIMEOUT (15 s), AGENT_TIMEOUT (30 s),
+  GAP_QUERY ("oat"), RESULTS_PATH ("/results.json", the experiment numbers /about shows),
   FORBIDDEN_TERMS: comma-separated words that must not appear in the UI bundle or any API response.
     Keep the values in your local shell, never in the repo.
 Paths follow the build plan contract (§4.3); override with HEALTH_PATH, KIOSK_SESSIONS_PATH, EXTRACT_PATH,
@@ -32,8 +31,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import shutil
-import subprocess
 import sys
 import time
 import urllib.error
@@ -48,13 +45,12 @@ FIRESTORE_BASE = os.getenv("FIRESTORE_BASE", "https://firestore.googleapis.com")
 STORE_ID = os.getenv("STORE_ID", "S01")
 HERO_QUERY = os.getenv("HERO_QUERY", "santan kotak 65")
 HERO_SKU = os.getenv("HERO_SKU", "")
-HERO_A_MAX = float(os.getenv("HERO_A_MAX", "5"))
-HERO_B_MIN, HERO_B_MAX = (float(v) for v in os.getenv("HERO_B_RANGE", "50-70").split("-"))
+HERO_A_MAX = float(os.getenv("HERO_A_MAX", "15"))
+HERO_B_MIN, HERO_B_MAX = (float(v) for v in os.getenv("HERO_B_RANGE", "55-75").split("-"))
 SIGNAL_TIMEOUT = float(os.getenv("SIGNAL_TIMEOUT", "15"))
 AGENT_TIMEOUT = float(os.getenv("AGENT_TIMEOUT", "30"))
 GAP_QUERY = os.getenv("GAP_QUERY", "oat").lower()
-EVAL_TABLE = os.getenv("EVAL_TABLE", "demand_radar.forecast_eval")
-BQ_PROJECT = os.getenv("BQ_PROJECT", FIREBASE_PROJECT)
+RESULTS_PATH = os.getenv("RESULTS_PATH", "/results.json")
 FORBIDDEN_TERMS = [t.strip().lower() for t in os.getenv("FORBIDDEN_TERMS", "").split(",") if t.strip()]
 HEALTH_PATH = os.getenv("HEALTH_PATH", "/api/healthz")
 KIOSK_SESSIONS_PATH = os.getenv("KIOSK_SESSIONS_PATH", "/api/kiosk/sessions")
@@ -65,9 +61,9 @@ DEMO_PATH = os.getenv("DEMO_PATH", "/api/demo")
 
 KIOSK_TEXT = "ada santan kotak kecil?"
 KIOSK_TYPO_TEXT = "kak ad santen kotak yg kcil gk?"
-WHY_QUESTION = "Why 60?"
+WHY_QUESTION = "Why 64?"
 MANAGER_QUESTIONS = [
-    "Why should I order 60 boxes of coconut milk?",
+    "Why should I order 64 boxes of coconut milk?",
     "Which products are most at risk of stocking out this week?",
     "What are shoppers asking for that we don't sell?",
     "How much revenue did we lose to stockouts yesterday?",
@@ -295,7 +291,7 @@ def check_demo_flow(sku: str) -> None:
                      "§11.1 Another sandbox stays untouched"):
             record(None, name, no_fs)
 
-    # 4. next morning: A ~ 0, B ~ 60, alert in real time
+    # 4. hero reorder: A low, B high (no next-morning step; recommendations exist from the start), alert in real time
     since = time.monotonic()
     if check_hero_scenario(box, sku, fresh=False) and firestore:
         while True:
@@ -331,20 +327,15 @@ def check_demo_flow(sku: str) -> None:
 
 
 def check_experiment_numbers() -> None:
-    check = f"First experiment numbers in {EVAL_TABLE}"
-    if not shutil.which("bq") or not BQ_PROJECT:
-        record(None, check, "bq CLI or BQ_PROJECT/FIREBASE_PROJECT missing")
-        return
-    query = f"select count(*) as n from `{BQ_PROJECT}.{EVAL_TABLE}`"
-    try:
-        out = subprocess.run(["bq", "query", f"--project_id={BQ_PROJECT}", "--use_legacy_sql=false",
-                              "--format=json", query], capture_output=True, text=True, timeout=60)
-    except subprocess.TimeoutExpired:
-        record(False, check, "bq query timed out")
-        return
-    rows = as_json(out.stdout) if out.returncode == 0 else None
-    n = int(rows[0]["n"]) if rows else 0
-    record(n > 0, check, f"{n} row(s)" if out.returncode == 0 else (out.stderr or out.stdout).strip()[-120:])
+    """/about shows public/results.json, copied from docs/results.md; it must hold real groups, not placeholders."""
+    check = f"Experiment numbers in {RESULTS_PATH}"
+    status, text, _ = http("GET", BASE_URL + RESULTS_PATH)
+    body = as_json(text) if status == 200 else None
+    groups = body.get("groups") if isinstance(body, dict) else None
+    placeholder = "placeholder" in text.lower()
+    ok = bool(groups) and all(isinstance(g.get("a"), (int, float)) and isinstance(g.get("b"), (int, float))
+                              for g in groups) and not placeholder
+    record(ok, check, f"HTTP {status}, {len(groups or [])} group(s), placeholder {placeholder}")
 
 
 # ---------------------------------------------------------------- judge checklist
@@ -408,14 +399,10 @@ def pick_number(d: dict, patterns: list[str]) -> float | None:
 
 def check_hero_scenario(sandbox: str, sku: str, fresh: bool = True) -> bool:
     if not sku:
-        record(False, "Hero scenario: A ~ 0, B ~ 60", f"no SKU found for {HERO_QUERY!r} (set HERO_SKU)")
+        record(False, "Hero scenario: A low, B high", f"no SKU found for {HERO_QUERY!r} (set HERO_SKU)")
         return False
     if fresh:
         reset(sandbox)
-    status, _, secs = http("POST", f"{BASE_URL}{DEMO_PATH}/next-morning", {"storeId": STORE_ID}, sandbox,
-                           timeout=AGENT_TIMEOUT)
-    if not record(status in (200, 204), "Next morning recomputes recommendations", f"HTTP {status}, {secs:.1f}s"):
-        return False
     status, text, _ = http("GET", f"{BASE_URL}{MANAGER_PATH}/{STORE_ID}/recommendations", sandbox=sandbox)
     rows = [d for d in walk(as_json(text)) if str(d.get("sku", "")) == sku]
     a = b = None

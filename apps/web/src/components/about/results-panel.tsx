@@ -3,47 +3,56 @@
 import { useEffect, useState } from "react";
 import { CardSkeleton, ErrorState } from "@/components/common/states";
 
+/** One row of public/results.json, copied from docs/results.md (make experiment). */
+interface ResultGroup {
+  key: string;
+  title: string;
+  detail: string;
+  metric: "WAPE" | "Bias";
+  a: number;
+  b: number;
+  verdict: string;
+}
+
 interface Results {
-  wapeA: number;
-  wapeB: number;
-  stockoutDaysA: number;
-  stockoutDaysB: number;
-  overstockUnitsA: number;
-  overstockUnitsB: number;
-  horizonDays: number;
+  source: string;
+  groups: ResultGroup[];
   note?: string;
 }
 
-function Stat({
-  label,
-  a,
-  b,
-  format = (v: number) => String(v),
-}: {
-  label: string;
-  a: number;
-  b: number;
-  format?: (v: number) => string;
-}) {
+function formatMetric(metric: ResultGroup["metric"], value: number): string {
+  const pct = (value * 100).toFixed(1);
+  return metric === "Bias" && value > 0 ? `+${pct}%` : `${pct}%`;
+}
+
+function Group({ group }: { group: ResultGroup }) {
   return (
-    <div className="rounded-xl bg-surface-container-low p-4">
-      <span className="font-microcopy-caps uppercase tracking-wider text-on-surface-variant">
-        {label}
-      </span>
-      <div className="mt-2 grid grid-cols-2 gap-2">
+    <div className="flex flex-col gap-3 rounded-xl bg-surface-container-low p-4">
+      <div>
+        <span className="block text-headline-sm text-on-surface">{group.title}</span>
+        <span className="text-caption text-on-surface-variant">{group.detail}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
         <div>
-          <span className="block text-caption text-outline">Forecast A</span>
-          <span className="text-headline-md text-on-surface">
-            {format(a)}
+          <span className="block text-caption text-outline">
+            {group.metric} · Forecast A
+          </span>
+          <span className="text-headline-md tabular-nums text-on-surface">
+            {formatMetric(group.metric, group.a)}
           </span>
         </div>
         <div>
-          <span className="block text-caption text-primary">Forecast B</span>
-          <span className="text-headline-md text-primary-container">
-            {format(b)}
+          <span className="block text-caption text-primary">
+            {group.metric} · Forecast B
+          </span>
+          <span className="text-headline-md tabular-nums text-primary-container">
+            {formatMetric(group.metric, group.b)}
           </span>
         </div>
       </div>
+      <p className="text-caption leading-relaxed text-on-surface-variant">
+        {group.verdict}
+      </p>
     </div>
   );
 }
@@ -73,8 +82,8 @@ export function ResultsPanel() {
   if (error) {
     return (
       <ErrorState
-        title="Hasil eksperimen tidak tersedia"
-        description="File public/results.json tidak ditemukan atau tidak valid."
+        title="Experiment results are not available"
+        description="public/results.json is missing or invalid."
       />
     );
   }
@@ -83,27 +92,20 @@ export function ResultsPanel() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <Stat
-          label={`WAPE (${results.horizonDays}d)`}
-          a={results.wapeA}
-          b={results.wapeB}
-          format={(v) => `${Math.round(v * 100)}%`}
-        />
-        <Stat
-          label="Stockout days"
-          a={results.stockoutDaysA}
-          b={results.stockoutDaysB}
-        />
-        <Stat
-          label="Overstock units"
-          a={results.overstockUnitsA}
-          b={results.overstockUnitsB}
-        />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {results.groups.map((group) => (
+          <Group key={group.key} group={group} />
+        ))}
       </div>
       {results.note ? (
         <p className="text-caption text-on-surface-variant">{results.note}</p>
       ) : null}
+      <p className="text-caption text-on-surface-variant">
+        Full report with every table:{" "}
+        <code className="rounded bg-surface-container-low px-1 py-0.5 font-label-mono">
+          docs/results.md
+        </code>
+      </p>
     </div>
   );
 }
