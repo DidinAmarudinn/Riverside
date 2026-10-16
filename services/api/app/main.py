@@ -10,7 +10,10 @@ import binascii
 import datetime as dt
 import json
 import logging
+import os
 import re
+import threading
+import time
 import uuid
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
@@ -28,9 +31,30 @@ from .agents.shopper import shopper_agent
 from .config import settings
 from .data import get_repo
 from .demo.sandbox import reset_sandbox
+from .tools.bq import get_runner
 from .tools.products import search_products
 
 app = FastAPI(title="Demand Radar API", version="0.2.0")
+
+
+@app.on_event("startup")
+def _warm_manager_cache() -> None:
+    """Fill the cache for the pages judges open first, in the background, so the first visit is fast."""
+    if settings.backend != "gcp" or _CACHE_SECONDS <= 0:
+        return
+
+    def warm() -> None:
+        jobs = [(manager_api.sku_detail, ("S01", "SKU-0001"))]
+        for store in ("S01", "S02", "S03"):
+            jobs += [(manager_api.gaps, (store,)), (manager_api.overview, (store,)),
+                     (manager_api.recommendations, (store, None))]
+        for fn, args in jobs:
+            try:
+                bigquery(fn, *args)
+            except Exception:  # noqa: BLE001 - a cold cache is fine; the page just loads slower
+                logging.getLogger(__name__).warning("cache warm-up failed for %s", fn.__name__)
+
+    threading.Thread(target=warm, name="warm-manager-cache", daemon=True).start()
 app.add_middleware(  # local dev only; in production Hosting rewrites /api/** so no CORS is needed
     CORSMiddleware,
     allow_origins=list(settings.cors_origins),
@@ -97,10 +121,29 @@ def healthz() -> dict:
     return {"ok": True, "backend": settings.backend, "model": settings.gemini_model}
 
 
+# Manager reads come from base tables that change only when the forecast pipeline or a data load runs, so
+# answers are kept for a few minutes: a BigQuery round trip costs 1.5-3 s per page. Keyed by the runner too,
+# so tests that swap in a fake runner never see another runner's answer.
+_CACHE_SECONDS = float(os.getenv("MANAGER_CACHE_SECONDS", "600"))
+_cache: dict[tuple, tuple[float, object, object]] = {}
+_cache_lock = threading.Lock()
+
+
 def bigquery(fn, *args):
     """Run a BigQuery-backed lookup; a missing store/SKU is a 404, any other failure a uniform 503."""
+    runner = get_runner()
+    key = (id(runner), fn.__name__, args)
+    now = time.monotonic()
+    with _cache_lock:
+        hit = _cache.get(key)
+    if hit and hit[0] > now:
+        return hit[2]
     try:
-        return fn(*args)
+        result = fn(*args)
+        if _CACHE_SECONDS > 0:
+            with _cache_lock:
+                _cache[key] = (now + _CACHE_SECONDS, runner, result)
+        return result
     except manager_api.NotFound:
         raise HTTPException(404, "not_found") from None
     except HTTPException:
