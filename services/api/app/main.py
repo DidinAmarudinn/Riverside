@@ -325,8 +325,16 @@ def _conversation_from_message(data: dict) -> dict | None:
     transcript = data.get("transcript")
     if transcript is None:
         return None
+    if isinstance(transcript, str):
+        try:
+            transcript = json.loads(transcript)
+        except json.JSONDecodeError:
+            pass
+    if isinstance(transcript, list):  # only the current request: what the shopper asked from there on
+        transcript = transcript[max(0, int(data.get("requestStart") or 0)):]
     return {
         "conversation_id": data.get("conversationId") or data.get("conversation_id") or str(uuid.uuid4()),
+        "request": int(data.get("request") or 0),
         "sandbox_id": data.get("sandboxId") or data.get("sandbox_id"),
         "store_id": data.get("storeId") or data.get("store_id"),
         "ts": data.get("ts") or dt.datetime.now(dt.timezone.utc).isoformat(),

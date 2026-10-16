@@ -20,9 +20,10 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class ConversationEvent:
-    """One completed agent turn. `transcript` is the whole conversation so far; the extractor keeps the
-    latest turn per `conversation_id`. `tool_calls` carry the grounded stock/search results, so an
-    out-of-stock outcome does not have to be guessed from chat text."""
+    """One completed agent turn. `transcript` is the whole conversation so far; `request` numbers the product
+    the shopper is asking about in this chat and `request_start` is where its first shopper message sits in
+    the transcript, so the extractor keeps one signal per product (the latest turn wins). `tool_calls` carry
+    the grounded stock/search results, so an out-of-stock outcome does not have to be guessed from chat text."""
 
     conversation_id: str
     turn: int
@@ -32,12 +33,14 @@ class ConversationEvent:
     transcript: list[dict]
     tool_calls: list[dict] = field(default_factory=list)
     sandbox_id: str | None = None  # per-visitor sandbox (docs/api-contract.md §2); None outside the demo
+    request: int = 0
+    request_start: int = 0
 
     def to_json(self) -> str:
         """Top-level keys are camelCase like every other JSON in the contract; tool results keep the tools' own keys."""
         d = asdict(self)
         keys = {"conversation_id": "conversationId", "store_id": "storeId", "sandbox_id": "sandboxId",
-                "tool_calls": "toolCalls"}
+                "tool_calls": "toolCalls", "request_start": "requestStart"}
         return json.dumps({keys.get(k, k): v for k, v in d.items()}, ensure_ascii=False)
 
 

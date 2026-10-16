@@ -46,7 +46,9 @@ Views hold base data only; agent tools merge them with the visitor's sandbox dat
 | `sandboxes/{sandboxId}/sessions/{id}/messages/{id}` | kiosk and manager chat history, including agent session state | backend only |
 
 The client reads the latest 20 alerts (by `createdAt`) and liveSignals (by `ts`) and filters by `storeId` itself, so no
-composite index is needed. `low_confidence` signals may be written but are never shown.
+composite index is needed. `low_confidence` signals may be written but are never shown. A kiosk chat writes **one liveSignal per product the
+shopper asks about** (id `sig-{conversationId}`, then `sig-{conversationId}-1`, `-2`…): a turn in which the agent searches
+for a product starts a new one, follow-ups without a search ("boleh", "di rak mana?") update the current one.
 
 Rules: public **read** for base data and `sandboxes/{sandboxId}/**` except `sessions`. `sandboxId` is a random UUID, so it
 cannot be guessed. All client **writes are denied**; the backend writes with the Admin SDK.
