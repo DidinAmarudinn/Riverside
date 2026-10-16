@@ -7,7 +7,7 @@ include .env
 export
 endif
 
-.PHONY: setup product-master sim extract eval load forecast experiment sync-firestore api web test smoke
+.PHONY: setup product-master sim extract eval load forecast experiment sync-firestore api web test smoke e2e e2e-gaps
 setup:
 	python3 -m venv .venv && .venv/bin/pip install -r services/api/requirements.txt pytest nbformat
 	cd apps/web && npm install
@@ -45,3 +45,8 @@ test:
 	cd services/api && PYTHONPATH=.:../../data ../../$(PY) -m pytest -q
 smoke:
 	python3 infra/smoke_test.py $(or $(SUITE),judge)
+# Playwright against the deployed site (BASE_URL overrides). e2e = invariants that must pass; e2e-gaps = open findings.
+e2e:
+	cd apps/web && npm run e2e
+e2e-gaps:
+	cd apps/web && npm run e2e:gaps
