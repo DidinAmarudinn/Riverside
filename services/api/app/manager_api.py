@@ -117,7 +117,11 @@ def sku_detail(store_id: str, sku: str) -> dict:
         if not d["is_stockout"]:
             break
         streak += 1
+    # Unmet requests over the stockout that is still running (the story the page tells), else the last 7 days.
+    window = streak if streak else len(last7)
+    unmet_window = sum(d["unmet"] for d in days[-window:]) if window else 0
     rec = out["rec"][0] if out["rec"] else None
+    lost_idr = rec["lost_revenue_idr"] if rec and rec.get("lost_revenue_idr") is not None else unmet_7d * prod["price_idr"]
     risk = rec["risk_type"] if rec and rec.get("risk_type") in RISK_TYPES else _derived_risk(
         latest["closing_stock"], unmet_7d)
     forecasts = {"A": [], "B": []}
@@ -132,9 +136,12 @@ def sku_detail(store_id: str, sku: str) -> dict:
         "riskType": risk,
         "kpis": {
             "onHand": latest["closing_stock"],
-            "lostRevenueIdr": rec["lost_revenue_idr"] if rec and rec.get("lost_revenue_idr") is not None
-            else unmet_7d * prod["price_idr"],
-            "lostRevenueUnits": unmet_7d, "unmetRequests": unmet_7d, "stockoutDays": streak,
+            # lost revenue covers the last 7 days; with forecasts it also counts shoppers who never asked
+            # (unmet / estimated ask rate), so its units are derived from the money, not the request count
+            "lostRevenueIdr": lost_idr,
+            "lostRevenueUnits": round(lost_idr / prod["price_idr"]) if prod["price_idr"] else unmet_7d,
+            "unmetRequests": unmet_window, "unmetWindowDays": window, "unmetRequests7d": unmet_7d,
+            "stockoutDays": streak,
             **({"stockoutSince": days[-streak]["date"]} if streak else {}),
         },
         "sales": [{"date": d["date"], "qty": d["qty_sold"], "isStockout": bool(d["is_stockout"])} for d in days],

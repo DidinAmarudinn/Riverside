@@ -59,7 +59,7 @@ export default function HomePage() {
             Try the demo
           </h2>
           <p className="mb-5 text-caption text-on-surface-variant">
-            Four steps through the full loop, in your own private sandbox.
+            Three steps through the full loop, in your own private sandbox.
           </p>
           <JuryActions />
         </div>

@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AudioLines } from "lucide-react";
 import type { EvidenceItem } from "@/lib/api/types";
 import {
   Sheet,
@@ -14,8 +12,6 @@ import { cn } from "@/lib/utils";
 import { formatDateTimeWib } from "@/lib/format";
 import { OutcomePill } from "@/components/manager/outcome-pill";
 
-const FILTERS = ["All", "Voice Kiosks", "Search Bar"] as const;
-type Filter = (typeof FILTERS)[number];
 
 export function EvidenceDrawer({
   open,
@@ -30,14 +26,6 @@ export function EvidenceDrawer({
   total: number;
   items: EvidenceItem[];
 }) {
-  const [filter, setFilter] = useState<Filter>("All");
-
-  const filtered = useMemo(() => {
-    if (filter === "All") return items;
-    const needle = filter === "Voice Kiosks" ? "voice" : "search";
-    return items.filter((i) => i.channel.toLowerCase().includes(needle));
-  }, [filter, items]);
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full max-w-lg">
@@ -49,30 +37,12 @@ export function EvidenceDrawer({
             </span>
           </div>
           <SheetDescription>
-            Direct conversational logs &amp; touchpoint transcripts for {skuName}
+            What shoppers typed at the kiosk about {skuName}. Simulated conversations.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto px-6">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={cn(
-                "whitespace-nowrap rounded-full px-2.5 py-1 text-[12px] font-medium transition",
-                filter === f
-                  ? "bg-primary-container text-on-primary"
-                  : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container",
-              )}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-
         <div className="flex flex-col gap-2 overflow-y-auto px-6 pb-6">
-          {filtered.map((item) => (
+          {items.map((item) => (
             <div
               key={item.id}
               className={cn(
@@ -92,7 +62,7 @@ export function EvidenceDrawer({
               <div className="flex items-center justify-between text-caption text-on-surface-variant">
                 <span className="truncate">Matched: {item.matchedName}</span>
                 <span className="font-label-mono font-medium text-primary-container">
-                  {Math.round(item.confidence * 100)}% conf.
+                  {Math.round(item.confidence * 100)}% confidence
                 </span>
               </div>
               {item.intent ? (
@@ -106,10 +76,11 @@ export function EvidenceDrawer({
 
         <div className="mt-auto flex items-center justify-between border-t border-surface-container px-6 py-3 font-label-mono text-[11px] text-on-surface-variant">
           <span className="flex items-center gap-1">
-            <AudioLines className="h-[13px] w-[13px] text-primary-container" aria-hidden />
-            Audio &amp; Query NLP engine
+            Read from informal Indonesian by the signal extractor
           </span>
-          <span>v2.8 Bahasa-ID</span>
+          <span>
+            Showing {items.length} of {total}
+          </span>
         </div>
       </SheetContent>
     </Sheet>

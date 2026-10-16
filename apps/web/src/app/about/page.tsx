@@ -114,7 +114,7 @@ export default function AboutPage() {
             Experiment results
           </h2>
           <p className="mb-5 mt-1 text-caption text-on-surface-variant">
-            Backtest against simulated ground truth: Forecast A vs. Forecast B.
+            Forecast A (POS only) vs. Forecast B (POS + unmet demand), scored against the simulator&apos;s true demand.
           </p>
           <ResultsPanel />
         </section>
