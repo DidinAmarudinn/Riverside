@@ -32,9 +32,9 @@ export function LoadingBlock({
 
 export function CardSkeleton({ rows = 4 }: { rows?: number }) {
   return (
-    <div className="space-y-3 p-4">
+    <div className="space-y-3" aria-hidden>
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} className="h-10 w-full" />
+        <Skeleton key={i} className="h-11 w-full rounded-lg" />
       ))}
     </div>
   );

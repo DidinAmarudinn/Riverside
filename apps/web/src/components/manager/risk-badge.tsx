@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import type { RiskType } from "@/lib/api/types";
+import { StatusTag, type StatusTone } from "@/components/ui/status-tag";
 
 const LABEL: Record<RiskType, string> = {
   stockout_risk: "Stockout risk",
@@ -8,30 +8,18 @@ const LABEL: Record<RiskType, string> = {
   unmet_spike: "Unmet spike",
 };
 
-const STYLE: Record<RiskType, string> = {
-  stockout_risk: "bg-error-container/50 text-error",
-  overstock: "bg-surface-container-high text-primary",
-  reorder: "bg-secondary-fixed text-on-secondary-fixed-variant",
-  unmet_spike: "bg-tertiary-fixed text-tertiary",
+const TONE: Record<RiskType, StatusTone> = {
+  stockout_risk: "red",
+  overstock: "grey",
+  reorder: "amber",
+  unmet_spike: "lime",
 };
 
-export function RiskBadge({
-  risk,
-  className,
-}: {
-  risk: RiskType;
-  className?: string;
-}) {
+export function RiskBadge({ risk, className }: { risk: RiskType; className?: string }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 font-label-mono text-caption whitespace-nowrap",
-        STYLE[risk],
-        className,
-      )}
-    >
+    <StatusTag tone={TONE[risk]} className={className}>
       {LABEL[risk]}
-    </span>
+    </StatusTag>
   );
 }
 

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
   display: "swap",
 });
@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   description:
     "Demand Radar turns unmet shopper demand into reorder recommendations. Forecast A (POS only) vs. Forecast B (POS + unmet demand).",
   applicationName: "Demand Radar",
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default function RootLayout({
@@ -28,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} h-full`}>
+    <html lang="en" className={`${jakarta.variable} h-full`}>
       <body className="min-h-full bg-background">
         <Providers>{children}</Providers>
       </body>

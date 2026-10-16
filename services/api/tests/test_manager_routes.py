@@ -130,3 +130,15 @@ def test_bigquery_outage_is_a_uniform_503(path):
 
 def test_sandbox_header_is_still_required():
     assert client.get("/api/manager/S01/overview").status_code == 400
+
+
+def test_manager_reads_are_cached_per_runner():
+    r = FakeRunner()
+    calls = []
+    rows = r.rows
+    r.rows = lambda *a, **k: calls.append(1) or rows(*a, **k)
+    first = get("/api/manager/S01/gaps", r).json()
+    n = len(calls)
+    assert n > 0 and get("/api/manager/S01/gaps", r).json() == first and len(calls) == n  # second answer from cache
+    get("/api/manager/S01/gaps")  # a different runner is never served the first runner's answer
+    assert len(calls) == n

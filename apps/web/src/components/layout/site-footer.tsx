@@ -1,26 +1,21 @@
-import { Clock, Radar } from "lucide-react";
+import { RiverMark } from "./river-mark";
+import { env } from "@/lib/env";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-12 w-full bg-surface-container-lowest">
-      <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-between gap-4 px-8 py-8 md:flex-row">
+    <footer className="mx-auto mt-10 w-full max-w-[1400px] px-4 pb-8 sm:px-8">
+      <div className="flex flex-col items-start justify-between gap-3 border-t border-outline-variant pt-6 text-caption text-on-surface-variant md:flex-row md:items-center">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-surface-container-low text-primary-container">
-            <Radar className="h-4 w-4" aria-hidden />
-          </div>
-          <span className="text-headline-sm text-on-surface">Demand Radar</span>
-          <span className="text-caption text-on-surface-variant">
-            © {new Date().getFullYear()} · Hackathon demo build
-          </span>
+          <RiverMark className="h-6 w-6" />
+          <span>Demand Radar by Team Riverside · Google Cloud AI Builder Cup 2026</span>
         </div>
-        <div className="flex items-center gap-6 text-caption text-on-surface-variant">
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4 text-primary-container" aria-hidden />
-            Timezone Asia/Jakarta
-          </span>
-          <span className="hidden items-center gap-1.5 sm:flex">
-            Forecast A (POS) vs. Forecast B (POS + unmet demand)
-          </span>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          <span>All data is simulated · times in WIB (Asia/Jakarta)</span>
+          {env.githubUrl ? (
+            <a href={env.githubUrl} target="_blank" rel="noreferrer" className="font-semibold text-on-surface hover:underline">
+              GitHub
+            </a>
+          ) : null}
         </div>
       </div>
     </footer>

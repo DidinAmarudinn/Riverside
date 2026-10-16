@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { ManagerDashboard } from "./manager-dashboard";
-import { LoadingBlock } from "@/components/common/states";
+import { DashboardSkeleton } from "@/components/manager/page-skeletons";
 
 export const metadata: Metadata = {
   title: "Manager Dashboard",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ManagerPage() {
   return (
-    <Suspense fallback={<LoadingBlock label="Loading dashboard…" />}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <ManagerDashboard />
     </Suspense>
   );

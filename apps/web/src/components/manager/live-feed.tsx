@@ -34,10 +34,10 @@ export function LiveFeed({ signals }: { signals: LiveSignal[] }) {
       {signals.slice(0, 30).map((signal) => (
         <div
           key={signal.id}
-          className="flex flex-col gap-1 rounded-lg bg-surface-container-low/70 p-2.5"
+          className="flex flex-col gap-1 rounded-xl bg-surface-container-low p-3"
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="font-label-mono text-caption text-on-surface-variant">
+            <span className="text-caption text-on-surface-variant">
               {formatTimeWib(signal.ts)} WIB • {signal.source ?? "Kiosk"}
             </span>
             <OutcomePill outcome={signal.outcome} />

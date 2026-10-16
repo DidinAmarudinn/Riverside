@@ -3,11 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  Bot,
-  ChevronsDownUp,
-  Maximize2,
+  MessageSquareText,
   Send,
-  Sparkles,
+  X,
 } from "lucide-react";
 import { useAgentChat } from "@/hooks/use-agent-chat";
 import { useStore } from "@/hooks/use-store";
@@ -54,38 +52,41 @@ export function AgentChat({
     setInput("");
   };
 
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        className={cn(
+          "flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-body-medium font-semibold text-on-primary shadow-[0_8px_24px_rgba(14,42,32,0.25)] transition hover:bg-[#1c3d30]",
+          className,
+        )}
+      >
+        <MessageSquareText className="h-[18px] w-[18px]" aria-hidden />
+        Ask why
+      </button>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "w-96 max-w-[calc(100vw-2rem)] rounded-xl bg-surface-container-lowest shadow-xl",
+        "w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl bg-surface-container-lowest shadow-[0_12px_40px_rgba(14,42,32,0.18)]",
         className,
       )}
     >
-      <div className="flex items-center justify-between rounded-t-xl bg-surface-container-low p-3.5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-on-primary">
-            <Bot className="h-[18px] w-[18px]" aria-hidden />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-headline-sm leading-tight text-on-surface">
-              Ask Demand Radar AI
-            </span>
-            <span className="text-[11px] leading-none text-on-surface-variant">
-              Gemini agent · answers cite the data
-            </span>
-          </div>
+      <div className="flex items-center justify-between bg-primary px-4 py-3.5 text-on-primary">
+        <div className="flex flex-col">
+          <span className="text-headline-sm leading-tight">Ask why</span>
+          <span className="text-[11px] leading-none text-white/70">Gemini agent · answers cite the data</span>
         </div>
         <button
           type="button"
-          aria-label={collapsed ? "Open panel" : "Collapse panel"}
-          onClick={() => setCollapsed((v) => !v)}
-          className="rounded p-1 text-on-surface-variant transition hover:text-on-surface"
+          aria-label="Close panel"
+          onClick={() => setCollapsed(true)}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
         >
-          {collapsed ? (
-            <Maximize2 className="h-[18px] w-[18px]" />
-          ) : (
-            <ChevronsDownUp className="h-[18px] w-[18px]" />
-          )}
+          <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
 
@@ -102,7 +103,7 @@ export function AgentChat({
                     key={q}
                     type="button"
                     onClick={() => submit(q)}
-                    className="flex items-center justify-between rounded-lg bg-surface-container px-2.5 py-1.5 text-left text-caption text-on-surface transition hover:bg-surface-container-high"
+                    className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-left text-caption text-on-surface transition hover:bg-surface-container-high"
                   >
                     <span>“{q}”</span>
                     <ArrowRight className="h-[14px] w-[14px] text-primary" aria-hidden />
@@ -128,10 +129,6 @@ export function AgentChat({
                     key={m.id}
                     className="rounded-2xl rounded-tl-sm bg-surface-container-low p-2.5 text-caption text-on-surface"
                   >
-                    <div className="mb-1 flex items-center gap-1 font-semibold text-primary">
-                      <Sparkles className="h-[14px] w-[14px]" aria-hidden />
-                      Demand Radar Insights
-                    </div>
                     <p className="leading-relaxed">{m.text}</p>
                     {m.citations.length ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -163,14 +160,14 @@ export function AgentChat({
                 if (e.key === "Enter") submit(input);
               }}
               placeholder="Ask anything about store demand…"
-              className="flex-1 rounded-lg bg-surface-container-low px-3 py-2 text-caption text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+              className="flex-1 rounded-full bg-surface-container-low px-4 py-2.5 text-caption text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
             />
             <button
               type="button"
               aria-label="Kirim pertanyaan"
               onClick={() => submit(input)}
               disabled={isSending}
-              className="flex items-center justify-center rounded-lg bg-primary p-2 text-on-primary transition hover:bg-primary-container disabled:opacity-50"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-on-primary transition hover:bg-[#1c3d30] disabled:opacity-50"
             >
               <Send className="h-[18px] w-[18px]" aria-hidden />
             </button>

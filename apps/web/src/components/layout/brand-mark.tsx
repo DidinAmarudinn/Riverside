@@ -1,28 +1,18 @@
-import { Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RiverMark } from "./river-mark";
 
-export function BrandMark({
-  compact = false,
-  className,
-}: {
-  compact?: boolean;
-  className?: string;
-}) {
+export function BrandMark({ className }: { className?: string }) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-container-low text-primary-container">
-        <Radar className="h-[22px] w-[22px]" aria-hidden />
+    <div className={cn("flex items-center gap-2.5", className)}>
+      <RiverMark className="h-10 w-10" />
+      <div className="flex flex-col">
+        <span className="text-[19px] font-semibold leading-tight tracking-[-0.03em] text-on-surface">
+          Demand Radar
+        </span>
+        <span className="text-caption leading-none text-on-surface-variant">
+          by Team Riverside
+        </span>
       </div>
-      {!compact ? (
-        <div className="flex flex-col">
-          <span className="text-headline-sm leading-none tracking-tight text-on-surface">
-            Demand Radar
-          </span>
-          <span className="mt-1 font-label-mono text-caption leading-none text-on-surface-variant">
-            Retail Intelligence
-          </span>
-        </div>
-      ) : null}
     </div>
   );
 }

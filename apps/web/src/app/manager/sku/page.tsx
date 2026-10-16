@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SkuDetail } from "./sku-detail";
-import { CardSkeleton } from "@/components/common/states";
+import { SkuSkeleton } from "@/components/manager/page-skeletons";
 
 export const metadata: Metadata = {
   title: "SKU Detail",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function SkuPage() {
   return (
-    <Suspense fallback={<CardSkeleton rows={8} />}>
+    <Suspense fallback={<SkuSkeleton />}>
       <SkuDetail />
     </Suspense>
   );

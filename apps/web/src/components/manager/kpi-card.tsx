@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 
+/** White card: round icon chip and label, one big light-weight number, one caption. `lime` marks the one card that matters. */
 export function KpiCard({
   label,
   value,
@@ -8,74 +9,42 @@ export function KpiCard({
   footerValue,
   tone = "neutral",
   icon: Icon,
+  loading = false,
 }: {
   label: string;
   value: string;
   suffix?: string;
-  footerLabel: string;
-  footerValue: string;
-  tone?: "neutral" | "error" | "primary" | "warning";
+  footerLabel?: string;
+  footerValue?: string;
+  tone?: "neutral" | "error" | "primary" | "warning" | "lime";
   icon: React.ComponentType<{ className?: string }>;
+  /** Data still on its way: keep the card, pulse where the number goes. */
+  loading?: boolean;
 }) {
-  const valueTone =
-    tone === "error"
-      ? "text-error"
-      : tone === "primary"
-        ? "text-on-surface"
-        : "text-on-surface";
-  const iconTone =
-    tone === "error"
-      ? "bg-error-container/40 text-error"
-      : tone === "warning"
-        ? "bg-secondary-container/30 text-secondary"
-        : "bg-surface-container-high text-primary";
-  const footerTone =
-    tone === "error"
-      ? "text-error"
-      : tone === "primary"
-        ? "text-primary"
-        : "text-secondary";
-
+  const lime = tone === "lime";
+  const caption = [footerValue, footerLabel].filter(Boolean).join(" · ");
   return (
-    <div className="flex flex-col justify-between rounded-xl bg-surface-container-lowest p-6 shadow-sm">
-      <div>
-        <div className="mb-1 flex items-center justify-between">
-          <span className="font-microcopy-caps text-microcopy-caps uppercase text-on-surface-variant">
-            {label}
-          </span>
-          <div
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-lg",
-              iconTone,
-            )}
-          >
-            <Icon className="h-[18px] w-[18px]" aria-hidden />
-          </div>
-        </div>
-        <div className="mt-1 flex items-baseline gap-2">
-          <span
-            className={cn(
-              "text-kpi-stat tabular-nums tracking-tight",
-              valueTone,
-            )}
-          >
-            {value}
-          </span>
-          {suffix ? (
-            <span className="text-caption text-on-surface-variant">
-              {suffix}
-            </span>
-          ) : null}
-        </div>
-      </div>
-      <div className="mt-4 flex items-center justify-between border-t border-surface-container pt-3">
-        <span className={cn("font-label-mono text-caption", footerTone)}>
-          {footerValue}
+    <div className={cn("flex flex-col gap-2.5 rounded-xl p-5", lime ? "bg-primary-fixed" : "bg-surface-container-lowest")}>
+      <div className="flex items-center gap-2.5 text-body-default text-on-surface">
+        <span className={cn("flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full", lime ? "bg-white" : "bg-surface-container-low")}>
+          <Icon className="h-[17px] w-[17px] text-on-surface" aria-hidden />
         </span>
-        <span className="text-caption text-on-surface-variant">
-          {footerLabel}
-        </span>
+        {label}
       </div>
+      {loading ? (
+        <>
+          <span className="h-10 w-24 animate-pulse rounded-md bg-surface-container-low" aria-hidden />
+          <span className="h-4 w-3/4 animate-pulse rounded bg-surface-container-low" aria-hidden />
+        </>
+      ) : (
+      <>
+      <div className="flex items-baseline gap-2">
+        <span className="text-kpi-stat tabular-nums text-on-surface">{value}</span>
+        {suffix ? <span className="text-caption text-on-surface-variant">{suffix}</span> : null}
+      </div>
+      {caption ? <span className={cn("text-caption", lime ? "text-on-surface" : "text-on-surface-variant")}>{caption}</span> : null}
+      </>
+      )}
     </div>
   );
 }

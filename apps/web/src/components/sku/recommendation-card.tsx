@@ -8,33 +8,29 @@ import { env } from "@/lib/env";
 /** The decision side by side: what a sales-only forecast would order vs. what Demand Radar orders. */
 export function RecommendationCard({
   recommendation,
-  onViewEvidence,
 }: {
   recommendation: SkuRecommendation;
-  onViewEvidence: () => void;
 }) {
   const qtyA = recommendation.recommendedQtyA;
   const qtyB = recommendation.recommendedQty;
 
   return (
-    <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6 shadow-sm">
-      <span className="font-microcopy-caps font-semibold uppercase tracking-wider text-on-surface-variant">
-        Reorder for the next 7 days
-      </span>
+    <div className="flex flex-col rounded-xl bg-surface-container-lowest p-6">
+      <h3 className="text-headline-md text-on-surface">Reorder for the next 7 days</h3>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-surface-container-low p-4">
+        <div className="rounded-lg bg-surface-container-low p-4">
           <span className="block text-caption text-on-surface-variant">
             Sales only (A)
           </span>
-          <span className="mt-1 block text-kpi-stat-mobile tabular-nums text-on-surface-variant">
+          <span className="mt-1 block text-[40px] font-medium leading-tight tracking-[-0.03em] tabular-nums text-on-surface">
             {qtyA != null ? qtyA : "—"}
           </span>
           <span className="text-caption text-outline">units</span>
         </div>
-        <div className="rounded-xl bg-primary-container p-4 text-on-primary">
+        <div className="rounded-lg bg-primary-fixed p-4 text-on-primary-fixed">
           <span className="block text-caption opacity-90">Demand Radar (B)</span>
-          <span className="mt-1 block text-kpi-stat-mobile tabular-nums">
+          <span className="mt-1 block text-[40px] font-medium leading-tight tracking-[-0.03em] tabular-nums">
             {qtyB}
           </span>
           <span className="text-caption opacity-90">units</span>
@@ -65,9 +61,6 @@ export function RecommendationCard({
             Approve Order ({qtyB} units)
           </Button>
         ) : null}
-        <Button variant="secondary" onClick={onViewEvidence}>
-          See the shopper conversations
-        </Button>
       </div>
     </div>
   );
