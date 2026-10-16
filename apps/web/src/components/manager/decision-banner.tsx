@@ -6,11 +6,11 @@ import { formatNumber } from "@/lib/format";
 
 /**
  * The one decision the dashboard should lead with: the product where adding the shoppers who asked
- * changes the order the most (largest B - A). Hidden when no recommendation differs.
+ * changes the order the most (largest B - A). Hidden when no product with kiosk requests differs.
  */
 export function DecisionBanner({ recommendations }: { recommendations: Recommendation[] }) {
   const top = [...recommendations]
-    .filter((r) => r.recommendedQty > r.recommendedQtyA)
+    .filter((r) => r.recommendedQty > r.recommendedQtyA && r.unmet7d > 0)
     .sort((a, b) => b.recommendedQty - b.recommendedQtyA - (a.recommendedQty - a.recommendedQtyA))[0];
   if (!top) return null;
 
@@ -25,7 +25,7 @@ export function DecisionBanner({ recommendations }: { recommendations: Recommend
         </h2>
         <p className="mt-1 max-w-2xl text-body-default text-white/70">
           {top.onHand === 0 ? "Out of stock. " : `${formatNumber(top.onHand)} on hand. `}
-          {formatNumber(top.unmet7d)} shoppers asked for it at the kiosk in the last 7 days. Sales
+          {formatNumber(top.unmet7d)} {top.unmet7d === 1 ? "shopper" : "shoppers"} asked for it at the kiosk in the last 7 days. Sales
           data alone missed them.
         </p>
       </div>

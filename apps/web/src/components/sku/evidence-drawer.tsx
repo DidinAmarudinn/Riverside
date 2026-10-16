@@ -37,7 +37,7 @@ export function EvidenceDrawer({
             </span>
           </div>
           <SheetDescription>
-            What shoppers typed at the kiosk about {skuName}. Simulated conversations.
+            What shoppers typed at the kiosk about {skuName}, every chat that ended out of stock or with a substitute. Simulated conversations.
           </SheetDescription>
         </SheetHeader>
 
@@ -60,7 +60,7 @@ export function EvidenceDrawer({
                 “{item.text}”
               </div>
               <div className="flex items-center justify-between text-caption text-on-surface-variant">
-                <span className="truncate">Matched: {item.matchedName}</span>
+                <span className="truncate">Matched: {item.matchedName ?? skuName}</span>
                 <span className="font-medium text-primary-container">
                   {Math.round(item.confidence * 100)}% confidence
                 </span>

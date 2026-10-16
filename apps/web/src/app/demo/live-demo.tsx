@@ -8,7 +8,7 @@ import { useResetDemo, useSkuDetail } from "@/hooks/use-data";
 import { useLiveSignals } from "@/hooks/use-realtime";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/ui/status-tag";
-import { OutcomePill } from "@/components/manager/outcome-pill";
+import { OutcomePill, OUTCOME_LABEL } from "@/components/manager/outcome-pill";
 import { useToast } from "@/components/ui/toast";
 import { formatNumber, formatTimeWib } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -75,7 +75,8 @@ export function LiveDemo() {
       onSuccess: () => {
         setRun(null);
         setNewHeroAsks(0);
-        seen.current = null;
+        // the sandbox is empty now; a null baseline would swallow the next signal when no empty snapshot follows
+        seen.current = new Set();
         toast({ title: "Demo reset", description: "Your sandbox is back to the start.", variant: "success" });
       },
       onError: () => toast({ title: "Could not reset the demo", variant: "error" }),
@@ -118,11 +119,11 @@ export function LiveDemo() {
           <Hop
             n={3}
             state={hopLater}
-            title="Gemini extraction"
+            title="Signal extraction"
             body={
               run?.signal
-                ? `${run.signal.sku ?? run.signal.matchedName ?? "no product"} · ${run.signal.outcome}`
-                : "product · outcome"
+                ? `${run.signal.matchedName ?? run.signal.sku ?? "not in the range"} · ${OUTCOME_LABEL[run.signal.outcome] ?? run.signal.outcome}`
+                : "product · outcome; rules first, Gemini when unsure"
             }
           />
           <Hop

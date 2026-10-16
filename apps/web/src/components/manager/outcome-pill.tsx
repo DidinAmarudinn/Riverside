@@ -1,7 +1,7 @@
 import { StatusTag, type StatusTone } from "@/components/ui/status-tag";
 import type { Outcome } from "@/lib/api/types";
 
-const LABEL: Record<Outcome, string> = {
+export const OUTCOME_LABEL: Record<Outcome, string> = {
   purchased: "Purchased",
   out_of_stock: "Out of stock",
   not_carried: "Not carried",
@@ -24,7 +24,7 @@ export function OutcomePill({
 }) {
   return (
     <StatusTag tone={TONE[outcome] ?? "grey"} className={className}>
-      {LABEL[outcome] ?? outcome}
+      {OUTCOME_LABEL[outcome] ?? outcome}
     </StatusTag>
   );
 }

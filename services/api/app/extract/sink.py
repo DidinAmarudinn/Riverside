@@ -14,6 +14,7 @@ from .catalog import load_catalog
 from .core import DEMAND_SIGNALS_COLUMNS
 
 UNMET = ("out_of_stock", "not_carried")
+OUTCOME_TEXT = {"out_of_stock": "out of stock", "not_carried": "not carried here"}
 
 
 def write_signal(row: dict) -> None:
@@ -118,7 +119,7 @@ def _write_firestore(row: dict) -> None:
         "storeId": row.get("store_id"), "sku": row.get("sku"),
         "type": "unmet_spike" if row.get("outcome") == "out_of_stock" else "reorder",
         "severity": "medium",
-        "title": f"Permintaan tak terpenuhi: {row.get('normalized_name') or row.get('requested_text')}",
-        "body": f"Shopper mencari '{row.get('requested_text')}' ({row.get('outcome')}).",
+        "title": f"Unmet request: {doc.get('matchedName') or row.get('normalized_name') or row.get('requested_text')}",
+        "body": f"A shopper asked “{row.get('requested_text')}”: {OUTCOME_TEXT.get(row.get('outcome'), row.get('outcome'))}.",
         "createdAt": firestore.SERVER_TIMESTAMP,
     })
