@@ -96,7 +96,7 @@ Firestore). Amounts in IDR are integers.
 | Branch | storeId, name, distanceKm, stockQty |
 | Metrics | lostRevenueToday, unmetToday, stockoutSkus, posRefreshedAt? |
 | Recommendation | storeId, sku, name, category, onHand, forecastA7d, forecastB7d, unmet7d, recommendedQtyA, recommendedQtyB, riskType, lostRevenueIdr, reasonText |
-| SkuDetail | storeId, sku, product: {name, brand, category, packSize, priceIdr, aisle}, riskType, kpis: {onHand, lostRevenueIdr, lostRevenueUnits, unmetRequests, stockoutDays, stockoutSince?}, sales: [{date, qty, isStockout}], forecastA: [{date, qty, lower?, upper?}], forecastB: [same], unmetDaily: [{date, count}], evidence: {total, items: [Evidence]}, reason: {recommendedQtyA, recommendedQtyB, reasonText, leadTimeDays?} |
+| SkuDetail | storeId, sku, product: {name, brand, category, packSize, priceIdr, aisle}, riskType, kpis: {onHand, lostRevenueIdr (last 7 days), lostRevenueUnits (lostRevenueIdr / price), unmetRequests (over the running stockout, else last 7 days), unmetWindowDays, unmetRequests7d, stockoutDays, stockoutSince?}, sales: [{date, qty, isStockout}], forecastA: [{date, qty, lower?, upper?}], forecastB: [same], unmetDaily: [{date, count}], evidence: {total, items: [Evidence]}, reason: {recommendedQtyA, recommendedQtyB, reasonText, leadTimeDays?} |
 | Evidence | id (conversation_id), ts, channel, quote (what the shopper said), outcome, confidence |
 | Citation | label, sku? (links to that SKU's evidence drawer), date?, quote? |
 | GapItem | name (normalized_name), category, requests, firstSeen, lastSeen, daily: [counts for the last 14 days, oldest first], trend7dPct (last 7 days vs the 7 before, %), quote? (one shopper quote), estRevenueIdr? (requests × typical category price) |

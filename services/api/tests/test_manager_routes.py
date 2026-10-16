@@ -73,6 +73,7 @@ def test_sku_detail_shape_without_forecasts():
     k = d["kpis"]
     assert (k["onHand"], k["stockoutDays"], k["unmetRequests"], k["lostRevenueUnits"]) == (0, 7, 14, 14)
     assert k["lostRevenueIdr"] == 14 * 4500 and k["stockoutSince"] == "2026-10-06"
+    assert (k["unmetWindowDays"], k["unmetRequests7d"]) == (7, 14)  # the stockout started 7 days ago
     assert len(d["sales"]) == 28 and d["sales"][0]["date"] < d["sales"][-1]["date"]  # oldest first
     assert d["sales"][-1] == {"date": "2026-10-12", "qty": 0, "isStockout": True}
     assert d["unmetDaily"][-1] == {"date": "2026-10-12", "count": 2} and len(d["unmetDaily"]) == 7
