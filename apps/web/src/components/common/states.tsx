@@ -10,7 +10,7 @@ export function InlineSpinner({ className }: { className?: string }) {
 }
 
 export function LoadingBlock({
-  label = "Memuat data…",
+  label = "Loading…",
   className,
 }: {
   label?: string;
@@ -91,7 +91,7 @@ export function ErrorState({
       </div>
       {onRetry ? (
         <Button variant="outline" size="sm" onClick={onRetry}>
-          Coba lagi
+          Try again
         </Button>
       ) : null}
     </div>

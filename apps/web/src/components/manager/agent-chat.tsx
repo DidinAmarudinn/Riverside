@@ -27,7 +27,8 @@ export function AgentChat({
 }) {
   const { storeId } = useStore();
   const { messages, send, isSending, error } = useAgentChat(storeId, sku);
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts closed so it does not cover the feed; the jury link (?q=) opens it with the question.
+  const [collapsed, setCollapsed] = useState(!initialQuestion);
   const [input, setInput] = useState("");
   const bodyRef = useRef<HTMLDivElement>(null);
   const sentInitial = useRef(false);
@@ -70,13 +71,13 @@ export function AgentChat({
               Ask Demand Radar AI
             </span>
             <span className="text-[11px] leading-none text-on-surface-variant">
-              Telemetry &amp; Anomaly Intelligence
+              Gemini agent · answers cite the data
             </span>
           </div>
         </div>
         <button
           type="button"
-          aria-label={collapsed ? "Buka panel" : "Penyatukan panel"}
+          aria-label={collapsed ? "Open panel" : "Collapse panel"}
           onClick={() => setCollapsed((v) => !v)}
           className="rounded p-1 text-on-surface-variant transition hover:text-on-surface"
         >
@@ -93,7 +94,7 @@ export function AgentChat({
           {messages.length === 0 ? (
             <>
               <p className="text-caption text-on-surface-variant">
-                Instant insights on lost revenue and demand anomalies.
+                Ask about lost sales, stockouts and what shoppers want. Answers cite the data they use.
               </p>
               <div className="my-1 flex flex-col gap-1.5">
                 {sampleQuestions.map((q) => (

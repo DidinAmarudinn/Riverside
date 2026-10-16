@@ -1,6 +1,13 @@
 import { cn } from "@/lib/utils";
 import type { Outcome } from "@/lib/api/types";
 
+const LABEL: Record<Outcome, string> = {
+  purchased: "Purchased",
+  out_of_stock: "Out of stock",
+  not_carried: "Not carried",
+  substituted: "Substituted",
+};
+
 const STYLE: Record<Outcome, string> = {
   purchased: "bg-primary-fixed text-on-primary-fixed",
   out_of_stock: "bg-error-container/50 text-error",
@@ -23,7 +30,7 @@ export function OutcomePill({
         className,
       )}
     >
-      {outcome}
+      {LABEL[outcome] ?? outcome}
     </span>
   );
 }

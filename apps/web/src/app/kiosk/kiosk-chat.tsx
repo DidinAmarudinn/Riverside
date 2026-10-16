@@ -47,45 +47,45 @@ export function KioskChat() {
     return lastShopper?.text;
   }, [messages]);
 
-  const storeName = stores?.find((s) => s.id === storeId)?.name ?? "Toko 1";
+  const storeName = stores?.find((s) => s.id === storeId)?.name ?? storeId;
   const sessionReady = sessionStatus === "success";
   const inputDisabled = !sessionReady || isTyping;
 
   return (
     <div className="flex min-h-screen flex-col bg-kiosk-bg text-slate-800">
-      <header className="sticky top-0 z-30 flex-shrink-0 border-b border-slate-200 bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-teal-200 bg-teal-50 text-brand-teal shadow-inner">
+      <header className="sticky top-0 z-30 flex-shrink-0 border-b border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+          <div className="flex min-w-0 items-center gap-3.5">
+            <div className="hidden h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border sm:flex border-teal-200 bg-teal-50 text-brand-teal shadow-inner">
               <Radar className="h-6 w-6" aria-hidden />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold leading-tight tracking-tight text-slate-900">
-                  Tanya Asisten Toko
+                <h1 className="text-lg font-bold leading-tight tracking-tight text-slate-900 sm:text-xl">
+                  Ask the Store Assistant
                 </h1>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
                   ONLINE
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                Layanan mandiri pintar &amp; pencarian stok instan
+              <p className="hidden text-xs text-slate-500 sm:block">
+                Self-service stock check, alternatives and nearby branches
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700">
               <MapPin className="h-4 w-4 text-brand-teal" aria-hidden />
               <label className="sr-only" htmlFor="kiosk-store">
-                Pilih toko
+                Choose store
               </label>
               <select
                 id="kiosk-store"
                 value={storeId}
                 onChange={(e) => setStoreId(e.target.value)}
-                className="cursor-pointer appearance-none bg-transparent focus:outline-none"
+                className="min-w-0 max-w-[11rem] cursor-pointer appearance-none truncate bg-transparent focus:outline-none sm:max-w-none"
               >
                 {(stores ?? [{ id: storeId, name: storeName, city: "" }]).map(
                   (s) => (
@@ -100,10 +100,10 @@ export function KioskChat() {
             <button
               type="button"
               onClick={startNew}
-              className="tap-active flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
+              className="tap-active flex flex-shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold sm:px-4 text-slate-700 transition hover:bg-slate-100"
             >
               <RotateCcw className="h-4 w-4 text-slate-500" aria-hidden />
-              Mulai baru
+              New chat
             </button>
           </div>
         </div>
@@ -111,7 +111,7 @@ export function KioskChat() {
         <div className="mt-3.5 flex items-center gap-2 overflow-x-auto border-t border-slate-100 pt-3 pb-0.5 no-scrollbar">
           <span className="flex flex-shrink-0 items-center gap-1 text-xs font-medium text-slate-500">
             <Zap className="h-3.5 w-3.5 text-status-amber" aria-hidden />
-            Sering dicari:
+            Popular:
           </span>
           {QUICK_TAGS.map((tag) => {
             const highlighted = tag === "Santan Kotak 65ml";
@@ -141,7 +141,7 @@ export function KioskChat() {
       >
         <div className="flex justify-center">
           <span className="rounded-full bg-slate-200 px-3.5 py-1 text-[11px] font-semibold tracking-wide text-slate-600">
-            Hari ini • sesi kiosk
+            Today • kiosk session
           </span>
         </div>
 
@@ -152,10 +152,18 @@ export function KioskChat() {
             </div>
             <div>
               <p className="text-base font-semibold text-slate-700">
-                Mau cari barang apa hari ini?
+                What are you looking for today?
               </p>
               <p className="mt-1 text-sm text-slate-500">
-                Tulis nama barang atau ketuk salah satu tag di atas.
+                Type a product or tap one of the tags above.
+              </p>
+              <p className="mx-auto mt-4 max-w-sm text-xs text-slate-400">
+                Shoppers here write in everyday Indonesian, typos and all. Try{" "}
+                <span className="font-semibold text-slate-500">
+                  &ldquo;ada santan kotak kecil?&rdquo;
+                </span>{" "}
+                (do you have small boxed coconut milk?). All stock and stores are
+                simulated.
               </p>
             </div>
           </div>
@@ -185,7 +193,7 @@ export function KioskChat() {
         {error ? (
           <div className="mx-auto flex max-w-md flex-col items-center gap-2 rounded-2xl border border-status-red-border bg-status-red-bg p-4 text-center">
             <p className="text-sm text-status-red">
-              Maaf, ada kendala: {error}
+              Sorry, something went wrong: {error}
             </p>
             {lastShopperText ? (
               <Button
@@ -193,14 +201,14 @@ export function KioskChat() {
                 size="sm"
                 onClick={() => retryLast(lastShopperText)}
               >
-                Coba lagi
+                Try again
               </Button>
             ) : null}
           </div>
         ) : null}
       </main>
 
-      <footer className="sticky bottom-0 z-30 flex-shrink-0 border-t border-slate-200 bg-white px-6 py-5 shadow-[0_-8px_20px_rgba(0,0,0,0.04)]">
+      <footer className="sticky bottom-0 z-30 flex-shrink-0 border-t border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5 shadow-[0_-8px_20px_rgba(0,0,0,0.04)]">
         <div className="mx-auto w-full max-w-4xl">
           <ChatInput disabled={inputDisabled} onSend={send} />
         </div>

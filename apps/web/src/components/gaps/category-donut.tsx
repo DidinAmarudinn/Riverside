@@ -54,7 +54,7 @@ export function CategoryDonut({
             {formatNumber(total)}
           </span>
           <span className="mt-0.5 text-[10px] uppercase text-on-surface-variant">
-            Logs
+            requests
           </span>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   useNextMorning,
   useOverview,
   useRecommendations,
+  useStores,
 } from "@/hooks/use-data";
 import { useAlerts, useLiveSignals, useMetrics } from "@/hooks/use-realtime";
 import type { RiskType } from "@/lib/api/types";
@@ -20,6 +21,7 @@ import { LiveFeed } from "@/components/manager/live-feed";
 import { AlertsPanel } from "@/components/manager/alerts-panel";
 import { AgentChat } from "@/components/manager/agent-chat";
 import { StoreSelector } from "@/components/manager/store-selector";
+import { useStore } from "@/hooks/use-store";
 import { formatRupiah, formatTimeWib } from "@/lib/format";
 import { env } from "@/lib/env";
 
@@ -45,6 +47,9 @@ export function ManagerDashboard() {
   const alerts = useAlerts();
   const signals = useLiveSignals();
   const nextMorning = useNextMorning();
+  const stores = useStores();
+  const { storeId } = useStore();
+  const storeName = stores.data?.find((s) => s.id === storeId)?.name ?? storeId;
 
   const effectiveMetrics = metrics ?? overview.data?.metrics ?? null;
 
@@ -84,14 +89,11 @@ export function ManagerDashboard() {
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="text-headline-lg tracking-tight text-on-surface">
-              Toko 1 – Overview
-            </span>
-            <span className="rounded-full bg-surface-container-high px-2 py-0.5 font-label-mono text-caption text-primary">
-              WIB Active Shift
+              {storeName} – Overview
             </span>
           </div>
           <p className="mt-1 text-caption text-on-surface-variant">
-            Supermarket telemetry, floor voice queries &amp; POS reconciliation
+            Unmet shopper demand from kiosk conversations next to POS sales. Simulated data.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -113,12 +115,12 @@ export function ManagerDashboard() {
               nextMorning.mutate(undefined, {
                 onSuccess: () =>
                   toast({
-                    title: "Rekomendasi dihitung ulang",
+                    title: "Recommendations recomputed",
                     variant: "success",
                   }),
                 onError: () =>
                   toast({
-                    title: "Gagal menjalankan next morning",
+                    title: "Could not run next morning",
                     variant: "error",
                   }),
               })
@@ -126,7 +128,7 @@ export function ManagerDashboard() {
             disabled={nextMorning.isPending}
           >
             <Sunrise className="h-4 w-4" aria-hidden />
-            {nextMorning.isPending ? "Menghitung…" : "Next morning"}
+            {nextMorning.isPending ? "Computing…" : "Next morning"}
           </Button>
         </div>
       </div>
@@ -143,19 +145,19 @@ export function ManagerDashboard() {
         <KpiCard
           label="Unmet Requests Today"
           value={effectiveMetrics ? String(effectiveMetrics.unmetToday) : "—"}
-          suffix="queries"
+          suffix="requests"
           tone="primary"
           icon={Radio}
-          footerValue="Voice & Kiosk"
-          footerLabel="in-store kiosks"
+          footerValue="Kiosk chats"
+          footerLabel="out of stock or not carried"
         />
         <KpiCard
           label="SKUs At Risk"
           value={effectiveMetrics ? String(effectiveMetrics.stockoutSkus) : "—"}
-          suffix="critical lines"
+          suffix="products"
           tone="warning"
           icon={TriangleAlert}
-          footerValue="stockout_risk"
+          footerValue="Out of stock"
           footerLabel="needs action"
         />
       </div>
@@ -214,13 +216,13 @@ export function ManagerDashboard() {
               <CardSkeleton rows={6} />
             ) : tableState === "error" ? (
               <ErrorState
-                description="Gagal memuat rekomendasi."
+                description="Could not load recommendations."
                 onRetry={() => recommendations.refetch()}
               />
             ) : tableState === "empty" ? (
               <EmptyState
-                title="Tidak ada rekomendasi"
-                description="Coba ubah filter risiko atau jalankan Next morning."
+                title="No recommendations yet"
+                description="Try another risk filter, or run Next morning."
               />
             ) : (
               <RecommendationsTable recommendations={recommendations.data ?? []} />
@@ -230,11 +232,11 @@ export function ManagerDashboard() {
               <div className="flex flex-wrap items-center gap-4">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-outline" />
-                  Forecast A: Historical POS Run-rate
+                  Forecast A: POS sales only
                 </span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
-                  Forecast B: True Demand (POS + Kiosk Intent)
+                  Forecast B: POS + unmet kiosk demand
                 </span>
               </div>
               <span className="font-label-mono">
@@ -257,15 +259,15 @@ export function ManagerDashboard() {
                 </span>
               </div>
               <span className="font-label-mono text-caption text-on-surface-variant">
-                SCBD Terminals
+                Kiosk signals
               </span>
             </div>
             {signals === null ? (
               <CardSkeleton rows={5} />
             ) : signals.length === 0 ? (
               <EmptyState
-                title="Belum ada sinyal"
-                description="Sinyal muncul < 5 detik setelah percakapan kiosk."
+                title="No signals yet"
+                description="Ask the kiosk for something out of stock; it shows up here within seconds."
               />
             ) : (
               <LiveFeed signals={signals} />
@@ -291,7 +293,7 @@ export function ManagerDashboard() {
             {alerts === null ? (
               <CardSkeleton rows={3} />
             ) : alerts.length === 0 ? (
-              <EmptyState title="Tidak ada alert" />
+              <EmptyState title="No alerts yet" />
             ) : (
               <AlertsPanel alerts={alerts} highlightId={highlightAlert} />
             )}

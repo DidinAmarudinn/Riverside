@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity } from "lucide-react";
 import { BrandMark } from "./brand-mark";
 import { cn } from "@/lib/utils";
 import { env } from "@/lib/env";
 
 const NAV = [
   { href: "/", label: "Overview" },
+  { href: "/kiosk", label: "Kiosk" },
   { href: "/manager", label: "Manager" },
   { href: "/manager/gaps", label: "Gaps" },
   { href: "/about", label: "About" },
@@ -19,7 +19,7 @@ export function TopNav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-6 px-8">
+      <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-6 px-4 sm:px-8">
         <div className="flex items-center gap-8">
           <Link href="/" aria-label="Demand Radar home">
             <BrandMark />
@@ -29,10 +29,7 @@ export function TopNav() {
             className="hidden items-center gap-1 rounded-xl bg-surface-container-low p-1 md:flex"
           >
             {NAV.map((item) => {
-              const active =
-                item.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.href);
+              const active = isActive(pathname, item.href);
               return (
                 <Link
                   key={item.href}
@@ -73,12 +70,36 @@ export function TopNav() {
               GitHub
             </a>
           ) : null}
-          <span className="hidden items-center gap-1.5 rounded-lg bg-surface-container-low px-3 py-2 text-caption text-on-surface-variant xl:flex">
-            <Activity className="h-4 w-4 text-primary" aria-hidden />
-            WIB Active Shift
-          </span>
         </div>
       </div>
+      {/* Phones: the same links in a scrollable second row. */}
+      <nav
+        aria-label="Primary mobile"
+        className="no-scrollbar flex h-12 items-center gap-1 overflow-x-auto border-t border-outline-variant/40 px-4 md:hidden"
+      >
+        {NAV.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            aria-current={isActive(pathname, item.href) ? "page" : undefined}
+            className={cn(
+              "flex-shrink-0 rounded-lg px-3 py-1.5 text-body-medium transition-all",
+              isActive(pathname, item.href)
+                ? "bg-surface-container text-primary-container"
+                : "text-on-surface-variant",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
+}
+
+// "/manager" must not light up on "/manager/gaps", which has its own tab.
+function isActive(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  if (href === "/manager") return pathname === "/manager" || pathname.startsWith("/manager/sku");
+  return pathname.startsWith(href);
 }

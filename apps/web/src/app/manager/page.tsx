@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ManagerPage() {
   return (
-    <Suspense fallback={<LoadingBlock label="Memuat dashboard…" />}>
+    <Suspense fallback={<LoadingBlock label="Loading dashboard…" />}>
       <ManagerDashboard />
     </Suspense>
   );

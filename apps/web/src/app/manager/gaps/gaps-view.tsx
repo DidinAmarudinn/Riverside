@@ -1,15 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Download,
-  Info,
-  ListPlus,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { Info, Sparkles, TrendingUp } from "lucide-react";
 import { useGaps } from "@/hooks/use-data";
-import { Button } from "@/components/ui/button";
+import type { GapCategory, GapItem } from "@/lib/api/types";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/common/states";
 import { GapsTable } from "@/components/gaps/gaps-table";
@@ -24,14 +18,21 @@ export function GapsView() {
 
   const counts = useMemo(() => {
     const map = new Map<string, number>();
-    data?.items.forEach((i) =>
+    data?.items.filter((i) => i.requests > 1).forEach((i) =>
       map.set(i.category, (map.get(i.category) ?? 0) + 1),
     );
     return map;
   }, [data]);
 
+  // Names asked only once are mostly unmatched typos; they stay in the totals but not in the ranked list.
+  const ranked = useMemo(
+    () => (data?.items ?? []).filter((i) => i.requests > 1),
+    [data],
+  );
+  const oneOffs = (data?.items.length ?? 0) - ranked.length;
+
   const filtered = useMemo(() => {
-    let items = data?.items ?? [];
+    let items = ranked;
     if (category !== "All Categories") {
       items = items.filter((i) => i.category === category);
     }
@@ -44,13 +45,13 @@ export function GapsView() {
       );
     }
     return items;
-  }, [data, category, search]);
+  }, [ranked, category, search]);
 
   if (isLoading) return <CardSkeleton rows={8} />;
   if (isError || !data) {
     return (
       <ErrorState
-        title="Gagal memuat assortment gaps"
+        title="Could not load assortment gaps"
         onRetry={() => refetch()}
       />
     );
@@ -64,25 +65,15 @@ export function GapsView() {
         <div>
           <div className="mb-1 flex items-center gap-1 font-microcopy-caps uppercase tracking-wider text-primary-container">
             <TrendingUp className="h-4 w-4" aria-hidden />
-            Lost Sale Telemetry
+            Unmet demand
           </div>
           <h1 className="text-kpi-stat tracking-tight text-on-surface">
             Assortment Gaps
           </h1>
           <p className="mt-1 text-body-default text-on-surface-variant">
-            Products shoppers request on the floor that we currently do not
-            carry.
+            Products shoppers asked the kiosk for that this store does not
+            carry. Spelling variants are merged under one name.
           </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" disabled title="Segera hadir">
-            <Download className="h-[18px] w-[18px]" aria-hidden />
-            Export (CSV)
-          </Button>
-          <Button variant="primary" disabled title="Segera hadir">
-            <ListPlus className="h-[18px] w-[18px]" aria-hidden />
-            Add to Category Review
-          </Button>
         </div>
       </div>
 
@@ -90,7 +81,7 @@ export function GapsView() {
         <div className="flex items-center gap-1 overflow-x-auto pb-1 lg:pb-0">
           {categories.map((c) => {
             const active = category === c;
-            const count = c === "All Categories" ? data.items.length : counts.get(c);
+            const count = c === "All Categories" ? ranked.length : counts.get(c);
             return (
               <button
                 key={c}
@@ -124,8 +115,8 @@ export function GapsView() {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter uncarried items or keywords…"
-            aria-label="Cari produk"
+            placeholder="Filter by product or quote…"
+            aria-label="Filter gaps"
           />
         </div>
       </div>
@@ -136,21 +127,21 @@ export function GapsView() {
             <div className="flex items-center justify-between px-6 py-4">
               <div className="flex items-center gap-2">
                 <span className="text-headline-sm text-on-surface">
-                  Ranked Gap Inventory
+                  Most requested, not carried
                 </span>
                 <span className="rounded-full bg-surface-container-high px-2 py-0.5 font-label-mono text-caption text-on-surface">
-                  {data.items.length} critical opportunities
+                  {ranked.length} products
                 </span>
               </div>
               <span className="flex items-center gap-1 text-caption text-on-surface-variant">
                 <Info className="h-4 w-4 text-primary-container" aria-hidden />
-                Sorted by query intensity
+                Sorted by requests
               </span>
             </div>
             {filtered.length === 0 ? (
               <EmptyState
-                title="Tidak ada item cocok"
-                description="Ubah filter kategori atau kata kunci."
+                title="No matching products"
+                description="Try another category or keyword."
               />
             ) : (
               <GapsTable items={filtered} />
@@ -158,10 +149,11 @@ export function GapsView() {
             <div className="flex flex-col items-center justify-between gap-1 bg-surface-container-low px-6 py-3 text-caption text-on-surface-variant sm:flex-row">
               <span className="flex items-center gap-1">
                 <Sparkles className="h-4 w-4 text-primary-container" aria-hidden />
-                Aisle speech model: Bahasa Indonesia colloquial enabled.
+                Read by Gemini from informal Indonesian kiosk chats.
+                {oneOffs > 0 ? ` ${oneOffs} names asked only once are not listed.` : ""}
               </span>
               <span className="font-label-mono">
-                Displaying 1-{filtered.length} of {data.items.length} items
+                Showing {filtered.length} of {ranked.length}
               </span>
             </div>
           </div>
@@ -174,7 +166,7 @@ export function GapsView() {
                 Potential Opportunity
               </span>
               <span className="rounded bg-surface-container px-2 py-0.5 font-label-mono text-[11px] text-on-surface">
-                30D Rollup
+                90-day simulation
               </span>
             </div>
 
@@ -195,16 +187,16 @@ export function GapsView() {
                   {formatRupiahCompact(data.summary.lostRevenueExposureIdr)}
                 </span>
                 <span className="mt-0.5 block text-caption text-on-surface-variant">
-                  Est. per month
+                  Requests × typical category price
                 </span>
               </div>
             </div>
 
             <div>
               <div className="mb-2 flex items-center justify-between text-body-medium font-semibold text-on-surface">
-                <span>Query Share by Category</span>
+                <span>Requests by category</span>
                 <span className="text-caption text-on-surface-variant">
-                  {data.summary.categories.length} active verticals
+                  {data.summary.categories.length} categories
                 </span>
               </div>
               <CategoryDonut
@@ -216,25 +208,23 @@ export function GapsView() {
             <div className="rounded-lg border-l-4 border-primary-container bg-surface-container-low p-4">
               <div className="mb-1 flex items-center gap-1 text-headline-sm text-[13px] text-primary-container">
                 <Sparkles className="h-4 w-4" aria-hidden />
-                Demand Radar Insights
+                What stands out
               </div>
               <p className="text-body-default leading-relaxed text-on-surface-variant">
-                {Math.round(
-                  (data.summary.categories[0]?.percent ?? 0) * 100,
-                )}
-                % of uncarried queries mention plant-based or specialized health
-                diets. Introducing top-ranked items could capture new basket
-                value without cannibalizing fresh dairy.
+                {insight(ranked[0], data.summary.categories[0])}
               </p>
             </div>
-
-            <Button variant="primary" disabled title="Segera hadir">
-              <ListPlus className="h-[18px] w-[18px]" aria-hidden />
-              Generate Assortment Pitch Deck
-            </Button>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+/** One sentence built from the data on screen, never canned copy. */
+function insight(top: GapItem | undefined, category: GapCategory | undefined): string {
+  if (!top) return "No product has been asked for more than once yet.";
+  const lead = `${top.name} is the most requested product this store does not carry (${formatNumber(top.requests)} requests).`;
+  if (!category) return lead;
+  return `${lead} ${category.name} makes up ${Math.round(category.percent * 100)}% of all such requests.`;
 }

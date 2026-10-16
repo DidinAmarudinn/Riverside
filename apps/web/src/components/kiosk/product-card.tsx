@@ -21,7 +21,7 @@ export function ProductCard({ product }: { product: KioskProductCard }) {
       <div className="pl-2">
         <div className="mb-2 flex items-center justify-between gap-2">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            {out ? "Barang yang dicari" : "Barang"}
+            {out ? "You asked for" : "Product"}
           </span>
           <span
             className={cn(
@@ -37,7 +37,7 @@ export function ProductCard({ product }: { product: KioskProductCard }) {
                 out ? "bg-status-red" : "bg-status-green",
               )}
             />
-            {out ? "Habis" : "Tersedia"}
+            {out ? "Out of stock" : "In stock"}
           </span>
         </div>
 
@@ -65,7 +65,7 @@ export function ProductCard({ product }: { product: KioskProductCard }) {
                 </span>
               ) : null}
               <span className="text-slate-400">
-                {out ? "Stok toko saat ini:" : "Stok:"}{" "}
+                {out ? "In this store:" : "Stock:"}{" "}
                 <strong className={out ? "text-status-red" : "text-status-green"}>
                   {product.stockQty ?? 0} pcs
                 </strong>
@@ -78,7 +78,7 @@ export function ProductCard({ product }: { product: KioskProductCard }) {
           <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-[11px] text-slate-500">
             <div className="flex items-center gap-1.5 font-medium text-teal-700">
               <Check className="h-3.5 w-3.5 text-teal-600" aria-hidden />
-              Permintaan dicatat ke sistem Demand Radar
+              Request logged to Demand Radar
             </div>
             <span className="font-mono text-slate-400">
               #{product.sku}

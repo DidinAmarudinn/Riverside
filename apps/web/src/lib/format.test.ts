@@ -14,8 +14,8 @@ describe("format", () => {
   });
 
   it("formats compact IDR", () => {
-    expect(formatRupiahCompact(32_800_000)).toBe("Rp 32,8 jt");
-    expect(formatRupiahCompact(1_500_000_000)).toBe("Rp 1,5 M");
+    expect(formatRupiahCompact(32_800_000)).toBe("Rp 32.8M");
+    expect(formatRupiahCompact(1_500_000_000)).toBe("Rp 1.5B");
   });
 
   it("formats signed percentages", () => {
