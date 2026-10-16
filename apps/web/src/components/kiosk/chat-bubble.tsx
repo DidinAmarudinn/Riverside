@@ -37,7 +37,7 @@ export function AssistantBubble({ message }: { message: KioskMessage }) {
 
   return (
     <div className="flex flex-col items-start gap-3 pr-2 sm:pr-8">
-      <div className="max-w-[92%] rounded-[20px] rounded-bl-md bg-surface-container-lowest px-4 py-3 text-body-default leading-relaxed text-on-surface">
+      <div className="max-w-[92%] rounded-[20px] rounded-bl-md bg-surface-container-lowest px-4 py-3 text-body-default leading-relaxed whitespace-pre-line text-on-surface">
         {highlightPlaces(response.reply)}
       </div>
       <div className="flex w-full flex-col gap-2">

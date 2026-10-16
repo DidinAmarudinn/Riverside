@@ -129,7 +129,7 @@ export function AgentChat({
                     key={m.id}
                     className="rounded-2xl rounded-tl-sm bg-surface-container-low p-2.5 text-caption text-on-surface"
                   >
-                    <p className="leading-relaxed">{m.text}</p>
+                    <p className="whitespace-pre-line leading-relaxed">{m.text}</p>
                     {m.citations.length ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {m.citations.map((c, i) => (
