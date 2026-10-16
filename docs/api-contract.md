@@ -8,7 +8,7 @@ DDL: `sql/01_tables.sql`, views: `sql/02_views.sql`, Firestore rules: `infra/fir
 | Table | Main columns | Notes |
 |---|---|---|
 | `stores` | store_id, name, city, lat, lng | 3 stores |
-| `product_master` | sku, name, brand, category, pack_size, unit, price_idr, shelf_life_days, aisle, synonyms (ARRAY&lt;STRING&gt;), is_carried (BOOL) | ~200 SKUs plus ~20 `is_carried = false` items for assortment gaps. Fictional brands only |
+| `product_master` | sku, name, brand, category, pack_size, unit, price_idr, shelf_life_days, aisle, synonyms (ARRAY&lt;STRING&gt;), is_carried (BOOL) | ~200 SKUs plus ~20 `is_carried = false` items for assortment gaps. Familiar Indonesian grocery brand names for realism; all stock, sales, prices and conversations are simulated |
 | `calendar_context` | date, is_payday_window, is_holiday, holiday_name, is_ramadan, is_lebaran_window, weather | Forecast input and context for agent explanations |
 | `true_demand` | date, store_id, sku, demand_qty | Simulation ground truth. **Never readable by agents** |
 | `stock_events` | date, store_id, sku, opening_stock, received_qty, closing_stock, is_stockout | |
