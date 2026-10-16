@@ -57,7 +57,7 @@ export function useAgentChat(storeId: string, sku?: string) {
         ]);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Gagal menghubungi agen.",
+          err instanceof Error ? err.message : "Could not reach the agent.",
         );
       } finally {
         setIsSending(false);

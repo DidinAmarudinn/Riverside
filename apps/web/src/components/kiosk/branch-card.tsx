@@ -15,13 +15,13 @@ export function BranchCard({ branch }: { branch: KioskBranchCard }) {
                 {branch.name}
               </h5>
               <span className="rounded-full border border-status-blue-border bg-status-blue-bg px-2 py-0.5 text-xs font-semibold text-status-blue">
-                {branch.distanceKm.toLocaleString("id-ID")} km
+                {branch.distanceKm.toLocaleString("en-US")} km
               </span>
             </div>
             <p className="mt-0.5 text-xs text-slate-600">
-              Produk tersedia:{" "}
+              Available there:{" "}
               <strong className="font-bold text-emerald-700">
-                stok {branch.stockQty} pcs
+                {branch.stockQty} pcs
               </strong>
             </p>
           </div>

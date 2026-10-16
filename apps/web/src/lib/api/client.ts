@@ -74,7 +74,7 @@ async function rawFetch<T>(
           path,
           issues: parsed.error.issues,
         });
-        throw new ApiError("Respons server tidak sesuai kontrak.", {
+        throw new ApiError("Unexpected response from the server.", {
           code: "invalid_response",
           status: res.status,
         });
@@ -91,7 +91,7 @@ async function rawFetch<T>(
       });
     }
     throw new ApiError(
-      err instanceof Error ? err.message : "Gagal menghubungi server.",
+      err instanceof Error ? err.message : "Could not reach the server.",
       { code: "network" },
     );
   } finally {

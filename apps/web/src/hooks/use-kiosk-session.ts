@@ -65,7 +65,7 @@ export function useKioskSession(storeId: string) {
         ]);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Gagal mengirim pesan.",
+          err instanceof Error ? err.message : "Could not send the message.",
         );
       } finally {
         setIsTyping(false);
