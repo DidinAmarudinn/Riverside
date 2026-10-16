@@ -27,19 +27,24 @@ export function ChatInput({
   return (
     <div className="space-y-3.5">
       <div className="flex items-center gap-3">
-        <MultimodalButton
-          label="Foto"
-          icon={Camera}
-          enabled={multimodalEnabled}
-        />
-        <MultimodalButton
-          label="Suara"
-          icon={Mic}
-          enabled={multimodalEnabled}
-          amber
-        />
+        {/* Photo and voice input are not built; the buttons only show when the flag is on. */}
+        {multimodalEnabled ? (
+          <>
+            <MultimodalButton
+              label="Foto"
+              icon={Camera}
+              enabled={multimodalEnabled}
+            />
+            <MultimodalButton
+              label="Suara"
+              icon={Mic}
+              enabled={multimodalEnabled}
+              amber
+            />
+          </>
+        ) : null}
 
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <input
             type="text"
             value={value}
@@ -68,17 +73,18 @@ export function ChatInput({
           type="button"
           onClick={submit}
           disabled={disabled || !value.trim()}
-          className="tap-active flex h-14 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand-teal px-7 text-base font-bold text-white shadow-md transition hover:bg-brand-teal-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="tap-active flex h-14 flex-shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand-teal px-4 text-base font-bold sm:px-7 text-white shadow-md transition hover:bg-brand-teal-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <span>Kirim</span>
+          <span className="hidden sm:inline">Kirim</span>
           <Send className="h-5 w-5 -rotate-45" aria-hidden />
+          <span className="sr-only sm:hidden">Kirim</span>
         </button>
       </div>
 
       <div className="flex items-center justify-between px-1 text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <span className="inline-block h-2 w-2 rounded-full bg-teal-500" />
-          <span>Layar sentuh aktif • ketuk mikrofon untuk pencarian suara</span>
+          <span>Tulis seperti biasa, singkatan dan typo tetap dimengerti</span>
         </div>
         <span className="hidden sm:block">Demand Radar kiosk</span>
       </div>

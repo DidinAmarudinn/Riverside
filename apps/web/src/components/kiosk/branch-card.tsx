@@ -1,4 +1,4 @@
-import { Building2, Navigation, PackageCheck } from "lucide-react";
+import { Building2 } from "lucide-react";
 import type { KioskBranchCard } from "@/lib/api/types";
 
 export function BranchCard({ branch }: { branch: KioskBranchCard }) {
@@ -25,27 +25,6 @@ export function BranchCard({ branch }: { branch: KioskBranchCard }) {
               </strong>
             </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled
-            title="Segera hadir"
-            className="tap-active flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
-          >
-            <Navigation className="h-4 w-4 text-status-blue" aria-hidden />
-            Lihat rute
-          </button>
-          <button
-            type="button"
-            disabled
-            title="Segera hadir"
-            className="tap-active flex items-center gap-1.5 rounded-xl bg-brand-teal px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand-teal-dark disabled:opacity-60"
-          >
-            <PackageCheck className="h-4 w-4" aria-hidden />
-            Minta kirim / simpan
-          </button>
         </div>
       </div>
     </div>
